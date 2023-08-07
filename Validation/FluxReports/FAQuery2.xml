@@ -1,0 +1,20 @@
+﻿<FLUXFAQueryMessage xmlns="urn:un:unece:uncefact:data:standard:FLUXFAQueryMessage:3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<FAQuery>
+		<ID schemeID="UUID" xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">3b8de1f9-3e68-41cd-969f-630d3f6e654c</ID>
+		<SubmittedDateTime xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">2023-07-17T08:52:41Z</DateTime>
+		</SubmittedDateTime>
+		<TypeCode listID="FA_QUERY_TYPE" xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">TRIP</TypeCode>
+		<SubmitterFLUXParty xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<ID schemeID="FLUX_GP_PARTY">SRC</ID>
+		</SubmitterFLUXParty>
+		<SimpleFAQueryParameter xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<TypeCode listID="FA_QUERY_PARAMETER">TRIPID</TypeCode>
+			<ValueID schemeID="EU_TRIP_ID">DNK-TRP-4436311</ValueID>
+		</SimpleFAQueryParameter>
+		<SimpleFAQueryParameter xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<TypeCode listID="FA_QUERY_PARAMETER">CONSOLIDATED</TypeCode>
+			<ValueCode listID="BOOLEAN_TYPE">Y</ValueCode>
+		</SimpleFAQueryParameter>
+	</FAQuery>
+</FLUXFAQueryMessage>

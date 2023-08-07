@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31613.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{574217D5-C2F1-405F-9625-BFFD5A176568}"
+	ProjectSection(SolutionItems) = preProject
+		AppSetsForAccessIARa.json = AppSetsForAccessIARa.json
+		Changes.txt = Changes.txt
+		ForTestLocal.json = ForTestLocal.json
+		Прочети.txt = Прочети.txt
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation", "Validation\Validation.csproj", "{AD70CEBB-4612-4ACA-8A70-15997E62FD2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{B7D3340D-1407-4870-9AC0-632D5A2E5800}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD70CEBB-4612-4ACA-8A70-15997E62FD2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD70CEBB-4612-4ACA-8A70-15997E62FD2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD70CEBB-4612-4ACA-8A70-15997E62FD2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD70CEBB-4612-4ACA-8A70-15997E62FD2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7D3340D-1407-4870-9AC0-632D5A2E5800}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7D3340D-1407-4870-9AC0-632D5A2E5800}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7D3340D-1407-4870-9AC0-632D5A2E5800}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7D3340D-1407-4870-9AC0-632D5A2E5800}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {42964304-F7DA-40ED-A8CA-AEFB6D3A91A1}
+	EndGlobalSection
+EndGlobal

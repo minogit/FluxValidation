@@ -1,0 +1,28 @@
+﻿<FLUXFAQueryMessage xmlns="urn:un:unece:uncefact:data:standard:FLUXFAQueryMessage:3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<FAQuery>
+		<ID schemeID="UUID" xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">91a9f5ff-6187-411e-a5af-6cc18e46f07e</ID>
+		<SubmittedDateTime xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">2023-07-17T08:55:49Z</DateTime>
+		</SubmittedDateTime>
+		<TypeCode listID="FA_QUERY_TYPE" xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">VESSEL</TypeCode>
+		<SpecifiedDelimitedPeriod xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<StartDateTime>
+				<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">2022-10-01T00:00:00Z</DateTime>
+			</StartDateTime>
+			<EndDateTime>
+				<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">2022-10-31T23:59:59Z</DateTime>
+			</EndDateTime>
+		</SpecifiedDelimitedPeriod>
+		<SubmitterFLUXParty xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<ID schemeID="FLUX_GP_PARTY">SRC</ID>
+		</SubmitterFLUXParty>
+		<SimpleFAQueryParameter xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<TypeCode listID="FA_QUERY_PARAMETER">VESSELID</TypeCode>
+			<ValueID schemeID="IRCS">IRCS1</ValueID>
+		</SimpleFAQueryParameter>
+		<SimpleFAQueryParameter xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<TypeCode listID="FA_QUERY_PARAMETER">CONSOLIDATED</TypeCode>
+			<ValueCode listID="BOOLEAN_TYPE">Y</ValueCode>
+		</SimpleFAQueryParameter>
+	</FAQuery>
+</FLUXFAQueryMessage>

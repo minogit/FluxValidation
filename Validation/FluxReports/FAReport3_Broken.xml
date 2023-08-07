@@ -1,0 +1,66 @@
+﻿<FLUXFAReportMessage xmlns="urn:un:unece:uncefact:data:standard:FLUXFAReportMessage:3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<FLUXReportDocument>
+		<ID schemeID="UUID" xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">85bc4447-150c-4d73-a3f0-4ec9bf97b82a</ID>
+		<CreationDateTime xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">2023-07-17T09:15:38Z</DateTime>
+		</CreationDateTime>
+		<PurposeCode2 listID="FLUX_GP_PURPOSE" xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">9</PurposeCode2>
+		<Purpose xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">FLUX-FA-EU-711101 </Purpose>
+		<OwnerFLUXParty xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<ID schemeID="FLUX_GP_PARTY">SRC</ID>
+		</OwnerFLUXParty>
+	</FLUXReportDocument>
+	<FAReportDocument>
+		<TypeCode listID="FLUX_FA_REPORT_TYPE" xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">DECLARATION</TypeCode>
+		<AcceptanceDateTime xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">2023-07-17T04:15:38Z</DateTime>
+		</AcceptanceDateTime>
+		<RelatedFLUXReportDocument xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<ID schemeID="UUID">a9ca4927-1d5c-4cb5-897e-5f63972c2b3f</ID>
+			<CreationDateTime>
+				<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">2023-07-17T06:15:38Z</DateTime>
+			</CreationDateTime>
+			<PurposeCode listID="FLUX_GP_PURPOSE">9</PurposeCode>
+			<OwnerFLUXParty>
+				<ID schemeID="FLUX_GP_PARTY">SRC</ID>
+			</OwnerFLUXParty>
+		</RelatedFLUXReportDocument>
+		<SpecifiedFishingActivity xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<TypeCode listID="FLUX_FA_TYPE">ARRIVAL</TypeCode>
+			<OccurrenceDateTime>
+				<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">2023-07-17T02:15:38Z</DateTime>
+			</OccurrenceDateTime>
+			<ReasonCode listID="FA_REASON_ARRIVAL">REF</ReasonCode>
+			<RelatedFLUXLocation>
+				<TypeCode listID="FLUX_LOCATION_TYPE">LOCATION</TypeCode>
+				<CountryID schemeID="TERRITORY">ESP</CountryID>
+				<ID schemeID="LOCATION">ESCAR</ID>
+			</RelatedFLUXLocation>
+			<SpecifiedFishingTrip>
+				<ID schemeID="EU_TRIP_ID">SRC-TRP-TTT20230717121538348</ID>
+			</SpecifiedFishingTrip>
+		</SpecifiedFishingActivity>
+		<SpecifiedVesselTransportMeans xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+			<ID schemeID="CFR">CYP123456789</ID>
+			<Name>GOLF</Name>
+			<RegistrationVesselCountry>
+				<ID schemeID="TERRITORY">CYP</ID>
+			</RegistrationVesselCountry>
+			<SpecifiedContactParty>
+				<RoleCode listID="FLUX_CONTACT_ROLE">MASTER</RoleCode>
+				<SpecifiedStructuredAddress>
+					<StreetName>ABC</StreetName>
+					<CityName>CABOURG</CityName>
+					<CountryID schemeID="TERRITORY">ESP</CountryID>
+					<PlotIdentification>17</PlotIdentification>
+					<PostalArea> 14390</PostalArea>
+				</SpecifiedStructuredAddress>
+				<SpecifiedContactPerson>
+					<GivenName>John</GivenName>
+					<FamilyName>Doe</FamilyName>
+					<Alias>Captain Jack</Alias>
+				</SpecifiedContactPerson>
+			</SpecifiedContactParty>
+		</SpecifiedVesselTransportMeans>
+	</FAReportDocument>
+</FLUXFAReportMessage>
