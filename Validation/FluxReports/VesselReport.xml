@@ -1,0 +1,150 @@
+  <FLUXReportVesselInformation xmlns="urn:un:unece:uncefact:data:standard:FLUXReportVesselInformation:5">
+	<FLUXReportDocument>
+	  <ID schemeID="UUID" xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">c141001a-86c7-4fc8-ab51-4f3727a9a10a</ID>
+	  <CreationDateTime xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+		<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">2023-07-18T06:01:29Z</DateTime>
+	  </CreationDateTime>
+	  <PurposeCode listID="FLUX_GP_PURPOSE" xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">9</PurposeCode>
+	  <TypeCode listID="FLUX_VESSEL_REPORT_TYPE" xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">SUB-VCD</TypeCode>
+	  <OwnerFLUXParty xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+		<ID schemeID="FLUX_GP_PARTY">BGR</ID>
+		<Name languageID="BGR">Bulgaria</Name>
+	  </OwnerFLUXParty>
+	</FLUXReportDocument>
+	<VesselEvent>
+	  <TypeCode listID="VESSEL_EVENT" xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">MOD</TypeCode>
+	  <OccurrenceDateTime xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+		<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">2023-07-18T06:01:28Z</DateTime>
+	  </OccurrenceDateTime>
+	  <RelatedVesselTransportMeans xmlns="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20">
+		<ID schemeID="CFR">BGR001325062</ID>
+		<ID schemeID="REG_NBR">5062</ID>
+		<ID schemeID="EXT_MARK">БЧ5062</ID>
+		<Name languageID="BGR">МОРЕ И СЛЪНЦЕ</Name>
+		<TypeCode listID="VESSEL_TYPE">FX</TypeCode>
+		<RegistrationVesselCountry>
+		  <ID schemeID="TERRITORY">BGR</ID>
+		</RegistrationVesselCountry>
+		<SpecifiedRegistrationEvent>
+		  <OccurrenceDateTime>
+			<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">2018-04-12T21:00:00Z</DateTime>
+		  </OccurrenceDateTime>
+		  <RelatedRegistrationLocation>
+			<ID schemeID="VESSEL_PORT">BGBAL</ID>
+			<TypeCode listID="FLUX_VESSEL_REGSTR_TYPE">PORT</TypeCode>
+		  </RelatedRegistrationLocation>
+		</SpecifiedRegistrationEvent>
+		<SpecifiedConstructionEvent>
+		  <OccurrenceDateTime>
+			<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">1984-12-31T21:00:00Z</DateTime>
+		  </OccurrenceDateTime>
+		</SpecifiedConstructionEvent>
+		<AttachedVesselEngine>
+		  <RoleCode listID="FLUX_VESSEL_ENGINE_ROLE">MAIN</RoleCode>
+		  <PowerMeasure unitCode="KWT">18.39</PowerMeasure>
+		</AttachedVesselEngine>
+		<AttachedVesselEngine>
+		  <RoleCode listID="FLUX_VESSEL_ENGINE_ROLE">AUX</RoleCode>
+		  <PowerMeasure unitCode="KWT">0</PowerMeasure>
+		</AttachedVesselEngine>
+		<SpecifiedVesselDimension>
+		  <TypeCode listID="FLUX_VESSEL_DIM_TYPE">LOA</TypeCode>
+		  <ValueMeasure unitCode="MTR">4.6</ValueMeasure>
+		</SpecifiedVesselDimension>
+		<SpecifiedVesselDimension>
+		  <TypeCode listID="FLUX_VESSEL_DIM_TYPE">GT</TypeCode>
+		  <ValueMeasure unitCode="TNE">0.75</ValueMeasure>
+		</SpecifiedVesselDimension>
+		<SpecifiedVesselDimension>
+		  <TypeCode listID="FLUX_VESSEL_DIM_TYPE">TOTH</TypeCode>
+		  <ValueMeasure unitCode="TNE">0</ValueMeasure>
+		</SpecifiedVesselDimension>
+		<OnBoardFishingGear>
+		  <TypeCode listID="GEAR_TYPE">GNS</TypeCode>
+		  <RoleCode listID="FLUX_VESSEL_GEAR_ROLE">MAIN</RoleCode>
+		</OnBoardFishingGear>
+		<OnBoardFishingGear>
+		  <TypeCode listID="GEAR_TYPE">LHP</TypeCode>
+		  <RoleCode listID="FLUX_VESSEL_GEAR_ROLE">AUX</RoleCode>
+		</OnBoardFishingGear>
+		<ApplicableVesselEquipmentCharacteristic>
+		  <TypeCode listID="FLUX_VESSEL_EQUIP_TYPE">IRCS_IND</TypeCode>
+		  <ValueCode listID="BOOLEAN_TYPE">N</ValueCode>
+		</ApplicableVesselEquipmentCharacteristic>
+		<ApplicableVesselEquipmentCharacteristic>
+		  <TypeCode listID="FLUX_VESSEL_EQUIP_TYPE">ERS_IND</TypeCode>
+		  <ValueCode listID="BOOLEAN_TYPE">N</ValueCode>
+		</ApplicableVesselEquipmentCharacteristic>
+		<ApplicableVesselEquipmentCharacteristic>
+		  <TypeCode listID="FLUX_VESSEL_EQUIP_TYPE">ERS_EXEMPT_IND</TypeCode>
+		  <ValueCode listID="BOOLEAN_TYPE">Y</ValueCode>
+		</ApplicableVesselEquipmentCharacteristic>
+		<ApplicableVesselEquipmentCharacteristic>
+		  <TypeCode listID="FLUX_VESSEL_EQUIP_TYPE">VMS_IND</TypeCode>
+		  <ValueCode listID="BOOLEAN_TYPE">N</ValueCode>
+		</ApplicableVesselEquipmentCharacteristic>
+		<ApplicableVesselEquipmentCharacteristic>
+		  <TypeCode listID="FLUX_VESSEL_EQUIP_TYPE">AIS_IND</TypeCode>
+		  <ValueCode listID="BOOLEAN_TYPE">N</ValueCode>
+		</ApplicableVesselEquipmentCharacteristic>
+		<ApplicableVesselAdministrativeCharacteristic>
+		  <TypeCode listID="FLUX_VESSEL_ADMIN_TYPE">LICENCE</TypeCode>
+		  <ValueCode listID="BOOLEAN_TYPE">Y</ValueCode>
+		</ApplicableVesselAdministrativeCharacteristic>
+		<ApplicableVesselAdministrativeCharacteristic>
+		  <TypeCode listID="FLUX_VESSEL_ADMIN_TYPE">SEG</TypeCode>
+		  <ValueCode listID="VESSEL_SEGMENT">MFL</ValueCode>
+		</ApplicableVesselAdministrativeCharacteristic>
+		<ApplicableVesselAdministrativeCharacteristic>
+		  <TypeCode listID="FLUX_VESSEL_ADMIN_TYPE">EIS</TypeCode>
+		  <ValueDateTime>
+			<DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">1986-09-16T21:00:00Z</DateTime>
+		  </ValueDateTime>
+		</ApplicableVesselAdministrativeCharacteristic>
+		<SpecifiedContactParty>
+		  <NationalityCountryID schemeID="TERRITORY">BGR</NationalityCountryID>
+		  <RoleCode listID="FLUX_CONTACT_ROLE">OWNER</RoleCode>
+		  <SpecifiedStructuredAddress>
+			<StreetName languageID="BGR">ж.к. "Балик"</StreetName>
+			<CityName languageID="BGR">Балчик</CityName>
+			<CountryID schemeID="TERRITORY">BGR</CountryID>
+		  </SpecifiedStructuredAddress>
+		  <SpecifiedContactPerson>
+			<GivenName languageID="BGR">Марияна</GivenName>
+			<MiddleName languageID="BGR">Василева</MiddleName>
+			<FamilyName languageID="BGR">Василева</FamilyName>
+			<BirthDateTime>
+			  <DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">1969-12-01T22:00:00Z</DateTime>
+			</BirthDateTime>
+		  </SpecifiedContactPerson>
+		  <URIEmailCommunication>
+			<URIID schemeID="URI" />
+		  </URIEmailCommunication>
+		</SpecifiedContactParty>
+		<SpecifiedContactParty>
+		  <NationalityCountryID schemeID="TERRITORY">BGR</NationalityCountryID>
+		  <RoleCode listID="FLUX_CONTACT_ROLE">OPERATOR</RoleCode>
+		  <SpecifiedStructuredAddress>
+			<StreetName languageID="BGR">ж.к. "Балик"</StreetName>
+			<CityName languageID="BGR">Балчик</CityName>
+			<CountryID schemeID="TERRITORY">BGR</CountryID>
+		  </SpecifiedStructuredAddress>
+		  <SpecifiedContactPerson>
+			<GivenName languageID="BGR">Марияна</GivenName>
+			<MiddleName languageID="BGR">Василева</MiddleName>
+			<FamilyName languageID="BGR">Василева</FamilyName>
+			<BirthDateTime>
+			  <DateTime xmlns="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20">1969-12-01T22:00:00Z</DateTime>
+			</BirthDateTime>
+		  </SpecifiedContactPerson>
+		  <URIEmailCommunication>
+			<URIID schemeID="URI" />
+		  </URIEmailCommunication>
+		</SpecifiedContactParty>
+		<ApplicableVesselTechnicalCharacteristic>
+		  <TypeCode listID="FLUX_VESSEL_TECH_TYPE">HULL</TypeCode>
+		  <ValueCode listID="VESSEL_HULL_TYPE">3</ValueCode>
+		</ApplicableVesselTechnicalCharacteristic>
+	  </RelatedVesselTransportMeans>
+	</VesselEvent>
+  </FLUXReportVesselInformation>
