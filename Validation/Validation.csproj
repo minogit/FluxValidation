@@ -49,6 +49,9 @@
     <None Update="FluxReports\Samples_Fleet_Query_Vessel.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="FluxReports\Samples_Sales_SN_Report_Message_Normal.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="FluxReports\UnqualifiedDataType_20p0.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
