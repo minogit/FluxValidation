@@ -5682,6 +5682,7 @@ namespace Validation
 
 
             bool VesselDomainDebug = false;
+           
             if (VesselDomainDebug)
             {
                 #region VesselReport
@@ -5699,7 +5700,7 @@ namespace Validation
                 var stringReader = new System.IO.StringReader(xdoc.ToString());
                 var serializer = new XmlSerializer(typeof(FLUXReportVesselInformationType));
                 FLUXReportVesselInformationType Vesselreport = serializer.Deserialize(stringReader) as FLUXReportVesselInformationType;
- 
+
                 #region read csv Vessel BRules
                 string fPathVesselBRules = strWorkPath + @"\FluxReports\VESSELBRDEF.csv";
                 List<Vessel_MDR_Vessel_BR_Def> VesselBrDef = new List<Vessel_MDR_Vessel_BR_Def>();
@@ -5765,7 +5766,7 @@ namespace Validation
                                         }
                                         catch (Exception)
                                         {
- 
+
                                         }
                                         break;
                                     case 10:
@@ -5802,9 +5803,8 @@ namespace Validation
 
                 #endregion
 
-
                 #endregion
-                
+
                 foreach (var rule in VesselBrDef)
                 {
                     switch (rule.Code)
@@ -5813,16 +5813,68 @@ namespace Validation
 
                             if (Vesselreport != null)
                             {
-                                string currentFluxVesselReportType = "";  //SUB, SUB-VCD, SUB-VED, SNAP-F, SNAP-L, SNAP-U
+                                string valueCurrentFluxVesselReportType = ""; //SUB     [submission of vessel data for VCD & VED vessels except EU fishing vessels]
+                                                                              //SUB-VCD [submission of vessel core data for EU fishing vessels only]
+                                                                              //SUB-VED [submission of vessel extended data for any vessels (with the vessel identification)]
+                                                                              //SNAP-F  [full snapshot data]
+                                                                              //SNAP-L  [limited snapshot data]
+                                                                              //SUB-Q   [submission resulting from a query sent by COM]
+                                string valueHullMaterial = "";
+                                string valueLicenceIndicator = "";
+                                string valueCurrentEventType = "";
+                                string valueExportIndicator = "";
+                                string valuePublicAidCode = "";
+                                string valueImpExpCountry = "";
+                                string valueRegistrationCountry = "";
+                                string valueCFRCountryCode = "";
+                                string valueCFRFull = "";
+                                string valueSegmentCode = "";
+                                string valueVmsIndicator = "";
+
+                                List<string> entryEventsList = new List<string>() {
+                                    "CEN",
+                                    "CST",
+                                    "CHA",
+                                    "IMP"
+                                };
+                                List<string> exitEventsList = new List<string>() {
+                                    "DES",
+                                    "EXP",
+                                    "RET"
+                                };
+
+                                int countOfVesselEvents = 0;
 
                                 bool hasCfr = false;
                                 bool hasRegNbr = false;
                                 bool hasExtMark = false;
                                 bool hasUvi = false;
-
                                 bool hasIrcsBool = false;
-                                bool hasIrcsValue = false;
-                                decimal valueLOA = 0;
+                                bool hasIrcsValidValue = false;
+                                bool hasAISBool = false;
+                                bool hasERSBool = false;
+                                bool hasMmsiValidValue = false;
+                                bool hasVmsIndicator = false;
+                                bool hasLicenceIndicator = false;
+                                bool hasPublicAidCode = false;
+                                bool hasOwnerName = false;
+                                bool hasOwnerStreetName = false;
+                                bool hasOperatorName = false;
+                                bool hasOperatorStreetName = false;
+                                bool hasExportIndicator = false;
+
+                                decimal valueLOA = -1;
+                                decimal valueLBP = -1;
+                                decimal valueAuxPower = -1;
+                                decimal valueMainPower = -1;
+                                decimal valueGT = -1;
+                                decimal valueTOTH = -1;
+                                decimal valueGTS = -1;
+
+                                DateTime eventUtcDateTimeValue = new DateTime();
+                                DateTime eisUtcDateTimeValue = new DateTime();
+                                DateTime yocUtcDateTimeValue = new DateTime();
+
 
 
                                 #region FLUXReportDocument
@@ -5855,7 +5907,6 @@ namespace Validation
                                     {
                                         System.Console.WriteLine("VESSEL-L00-00-0001 | REJECTED | No FLUXReportDocument.ID provided or no FLUXReportDocument.ID.Value in 1 or more ID tags");
                                         //VESSEL-L00-00-0001 - rejected
-                                        SysList.Add("VESSEL-L00-00-0001");
                                     }
 
                                     if (Vesselreport.FLUXReportDocument.OwnerFLUXParty?.ID != null)
@@ -5874,7 +5925,7 @@ namespace Validation
                                                 //Country of Registration
                                                 //Code from the TERRITORY code list
                                                 //TODO: Check DB nomenclature - Vesselreport.FLUXReportDocument.OwnerFLUXParty.ID.Value is from TERRITORY list
-                                                
+
                                                 System.Console.WriteLine("VESSEL-L01-02-0003 | TODO | Check DB - MEMBER_STATE - Should be the same as the country sending the message");
                                                 //VESSEL-L01-02-0003
                                                 //Country of Registration
@@ -5885,7 +5936,6 @@ namespace Validation
                                             {
                                                 System.Console.WriteLine("VESSEL-L01-02-0001 | REJECTED | No FLUXReportDocument.OwnerFLUXParty.ID.Value provided");
                                                 //VESSEL-L01-02-0001
-                                                SysList.Add("VESSEL-L01-02-0001");
                                             }
                                         }
                                     }
@@ -5902,7 +5952,8 @@ namespace Validation
                                     //Mandatory
                                     if (Vesselreport.FLUXReportDocument.TypeCode?.Value != null)
                                     {
-                                        currentFluxVesselReportType = Vesselreport.FLUXReportDocument.TypeCode.Value.ToString();
+                                        valueCurrentFluxVesselReportType = Vesselreport.FLUXReportDocument.TypeCode.Value.ToString();
+
                                         System.Console.WriteLine("VESSEL-L00-00-0009 | OK | FLUXReportDocument.TypeCode provided with FLUXReportDocument.TypeCode.Value");
                                         //VESSEL-L00-00-0045
                                         //FLUX_Report Document/Type
@@ -5910,6 +5961,7 @@ namespace Validation
                                         if (Vesselreport.FLUXReportDocument.TypeCode.listID?.ToString() == "FLUX_VESSEL_REPORT_TYPE")
                                         {
                                             System.Console.WriteLine("VESSEL-L00-00-0045 | OK | FLUXReportDocument.TypeCode.listID == FLUX_VESSEL_REPORT_TYPE");
+
                                             System.Console.WriteLine("VESSEL-L00-00-0008 | TODO | Check DB - FLUX_VESSEL_REPORT_TYPE");
                                             //VESSEL-L00-00-0008
                                             //FLUX_Report Document/Type
@@ -5927,14 +5979,12 @@ namespace Validation
                                         {
                                             System.Console.WriteLine("VESSEL-L00-00-0045 | REJECTED | No FLUXReportDocument.TypeCode.listID provided or FLUXReportDocument.TypeCode.listID != FLUX_VESSEL_REPORT_TYPE");
                                             //VESSEL-L00-00-0045 - rejected
-                                            SysList.Add("VESSEL-L00-00-0045");
                                         }
                                     }
                                     else
                                     {
                                         System.Console.WriteLine("VESSEL-L00-00-0009 | REJECTED | No FLUXReportDocument.TypeCode or no FLUXReportDocument.TypeCode.Value provided");
                                         //VESSEL-L00-00-0009 - rejected
-                                        SysList.Add("VESSEL-L00-00-0009");
                                     }
                                     #endregion
 
@@ -5964,21 +6014,18 @@ namespace Validation
                                             {
                                                 System.Console.WriteLine("VESSEL-L00-00-0093 | REJECTED | FLUXReportDocument.CreationDateTime.Item is in the future");
                                                 //VESSEL-L00-00-0093 - rejected
-                                                SysList.Add("VESSEL-L00-00-0093");
                                             }
                                         }
                                         else
                                         {
                                             System.Console.WriteLine("VESSEL-L00-00-0007 | REJECTED | No FLUXReportDocument.CreationDateTime.Item (DateTime) provided or it has default value");
                                             //VESSEL-L00-00-0007 - rejected
-                                            SysList.Add("VESSEL-L00-00-0007");
                                         }
                                     }
                                     else
                                     {
                                         System.Console.WriteLine("VESSEL-L00-00-0006 | REJECTED | No FLUXReportDocument.CreationDateTime provided");
                                         //VESSEL-L00-00-0006 - rejected
-                                        SysList.Add("VESSEL-L00-00-0006");
                                     }
                                     #endregion
 
@@ -6073,12 +6120,15 @@ namespace Validation
                                 //Mandatory value
                                 if (Vesselreport.VesselEvent?.Length > 0)
                                 {
+                                    countOfVesselEvents = Vesselreport.VesselEvent.Length;
                                     foreach (var vesselEvent in Vesselreport.VesselEvent)
                                     {
                                         //VESSEL-L00-00-0048, VESSEL-L01-01-0009, VESSEL-L00-00-0150
                                         #region VesselEvent.TypeCode
                                         if (vesselEvent.TypeCode?.Value != null)
                                         {
+                                            valueCurrentEventType = vesselEvent.TypeCode.Value;
+
                                             System.Console.WriteLine("VESSEL-L01-01-0008 | OK | VesselEvent.TypeCode.Value provided");
                                             //VESSEL-L00-00-0048
                                             //Vessel_Event/Type
@@ -6131,7 +6181,7 @@ namespace Validation
                                             //VESSEL-L00-00-0068
                                             //Vessel_Event/Occurrence
                                             //Datetime format
-                                            if (vesselEvent.OccurrenceDateTime.Item != DateTime.MinValue)
+                                            if (vesselEvent.OccurrenceDateTime.Item != null)
                                             {
                                                 System.Console.WriteLine("VESSEL-L00-00-0068 | OK | VesselEvent.OccurrenceDateTime.Item provided with !default DateTime");
 
@@ -6139,6 +6189,7 @@ namespace Validation
                                                 //Event Date
                                                 //Not in the future
                                                 DateTime currentUtcDateTime = DateTime.UtcNow;
+                                                eventUtcDateTimeValue = vesselEvent.OccurrenceDateTime.Item;
                                                 if (vesselEvent.OccurrenceDateTime.Item <= currentUtcDateTime)
                                                 {
                                                     System.Console.WriteLine("VESSEL-L01-02-0044 | OK | VesselEvent.OccurrenceDateTime.Item is not in the future");
@@ -6214,11 +6265,13 @@ namespace Validation
                                                                     //TODO: check DB nomenclature - MEMBER_STATE if Vesselreport.VesselEvent.RelatedVesselTransportMeans.ID[schemaID=CFR].Value exists and is passed validation
                                                                     //#Q firstThreeCharactersOfCFR should be present in MEMBER_STATE list
 
-                                                                    string firstThreeCharsOfCfr = relatedVesselTransportMeansId.Value.ToString().Substring(0, 3);
+                                                                    valueCFRFull = relatedVesselTransportMeansId.Value.ToString();
+                                                                    valueCFRCountryCode = relatedVesselTransportMeansId.Value.ToString().Substring(0, 3);
+
                                                                     //#Q If CFR starts with ROM, change the country code to ROU to search in MEMBER_STATE list
-                                                                    if (firstThreeCharsOfCfr == "ROM")
+                                                                    if (valueCFRCountryCode == "ROM")
                                                                     {
-                                                                        firstThreeCharsOfCfr = "ROU";
+                                                                        valueCFRCountryCode = "ROU";
                                                                     }
 
                                                                     System.Console.WriteLine("VESSEL-L01-01-0006 | TODO | check DB - MEMBER_STATE");
@@ -6335,10 +6388,11 @@ namespace Validation
 
                                                                 //VESSEL-L01-01-0110
                                                                 //MMSI
-                                                                //Length = 7 digits
-                                                                if (relatedVesselTransportMeansId.Value.Length == 7)
+                                                                //Length = 9 digits
+                                                                if (relatedVesselTransportMeansId.Value.Length == 9)
                                                                 {
                                                                     System.Console.WriteLine("VESSEL-L01-01-0110 | OK | VesselEvent.RelatedVesselTransportMeans.ID.SchemeId == MMSI with value provided and length == 9");
+                                                                    hasMmsiValidValue = true;
                                                                 }
                                                                 else
                                                                 {
@@ -6371,28 +6425,29 @@ namespace Validation
 
                                                         if (relatedVesselTransportMeansId.schemeID?.ToString() == "IRCS")
                                                         {
-                                                            if (relatedVesselTransportMeansId.Value?.Length > 0)
+                                                            if (relatedVesselTransportMeansId.Value != null)
                                                             {
-                                                                hasIrcsValue = true;
                                                                 //VESSEL-L01-01-0024, VESSEL-L01-02-0006
                                                                 //IRCS
                                                                 //Length <= 7 characters max
                                                                 if (relatedVesselTransportMeansId.Value.Length <= 7)
                                                                 {
-                                                                    System.Console.WriteLine("VESSEL-L01-01-0024 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueIndicator.Item for IRCS provided and length <= 7");
-                                                                    System.Console.WriteLine("VESSEL-L01-02-0006 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueIndicator.Item for IRCS provided and length <= 7");
+                                                                    System.Console.WriteLine("VESSEL-L01-01-0024 | OK | VesselEvent.RelatedVesselTransportMeans.ID.Vaue for IRCS provided and length <= 7");
+                                                                    System.Console.WriteLine("VESSEL-L01-02-0006 | OK | VesselEvent.RelatedVesselTransportMeans.ID.Vaue for IRCS provided and length <= 7");
+
+                                                                    hasIrcsValidValue = true;
                                                                 }
                                                                 else
                                                                 {
-                                                                    System.Console.WriteLine("VESSEL-L01-01-0024 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueIndicator.Item for IRCS provided or length > 7");
-                                                                    System.Console.WriteLine("VESSEL-L01-02-0006 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueIndicator.Item for IRCS provided or length > 7");
+                                                                    System.Console.WriteLine("VESSEL-L01-01-0024 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ID.Vaue for IRCS provided or length > 7");
+                                                                    System.Console.WriteLine("VESSEL-L01-02-0006 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ID.Vaue for IRCS provided or length > 7");
                                                                     //VESSEL-L01-01-0024 - rejected
                                                                     //VESSEL-L01-02-0006 - rejected
                                                                 }
                                                             }
                                                             else
                                                             {
-                                                                hasIrcsValue = false;
+                                                                System.Console.WriteLine("VESSEL-L01-01-0024 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ID.Vaue for IRCS provided");
                                                             }
                                                         }
 
@@ -6432,11 +6487,11 @@ namespace Validation
                                                 }
                                                 if (!hasRegNbr)
                                                 {
-                                                    System.Console.WriteLine("VESSEL-L01-01-0015 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ID.SchemeId == REG_NBR present or with no VesselEvent.RelatedVesselTransportMeans.ID.Value");
+                                                    System.Console.WriteLine("VESSEL-L01-01-0015 | WARNING | No VesselEvent.RelatedVesselTransportMeans.ID.SchemeId == REG_NBR present or with no VesselEvent.RelatedVesselTransportMeans.ID.Value");
                                                 }
                                                 if (!hasExtMark)
                                                 {
-                                                    System.Console.WriteLine("VESSEL-L01-01-0017 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ID.SchemeId == EXT_MARK present or with no VesselEvent.RelatedVesselTransportMeans.ID.Value");
+                                                    System.Console.WriteLine("VESSEL-L01-01-0017 | WARNING | No VesselEvent.RelatedVesselTransportMeans.ID.SchemeId == EXT_MARK present or with no VesselEvent.RelatedVesselTransportMeans.ID.Value");
                                                 }
                                             }
                                             else
@@ -6444,10 +6499,10 @@ namespace Validation
                                                 System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ID tag provided");
                                                 //VESSEL-L01-01-0005 - rejected
                                                 System.Console.WriteLine("VESSEL-L01-01-0005 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ID.SchemeId == CFR present or with no VesselEvent.RelatedVesselTransportMeans.ID.Value");
-                                                //VESSEL-L01-01-0015 - rejected
-                                                System.Console.WriteLine("VESSEL-L01-01-0015 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ID.SchemeId == REG_NBR present or with no VesselEvent.RelatedVesselTransportMeans.ID.Value");
-                                                //VESSEL-L01-01-0017 - rejected
-                                                System.Console.WriteLine("VESSEL-L01-01-0017 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ID.SchemeId == EXT_MARK present or with no VesselEvent.RelatedVesselTransportMeans.ID.Value");
+                                                //VESSEL-L01-01-0015 - warning
+                                                System.Console.WriteLine("VESSEL-L01-01-0015 | WARNING | No VesselEvent.RelatedVesselTransportMeans.ID.SchemeId == REG_NBR present or with no VesselEvent.RelatedVesselTransportMeans.ID.Value");
+                                                //VESSEL-L01-01-0017 - warning
+                                                System.Console.WriteLine("VESSEL-L01-01-0017 | WARNING | No VesselEvent.RelatedVesselTransportMeans.ID.SchemeId == EXT_MARK present or with no VesselEvent.RelatedVesselTransportMeans.ID.Value");
                                             }
                                             #endregion
 
@@ -6519,7 +6574,7 @@ namespace Validation
                                                 }
                                                 else
                                                 {
-                                                    System.Console.WriteLine("VESSEL-L01-01-0019 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.SpeedMeasure.Value provided or is negative");
+                                                    System.Console.WriteLine("VESSEL-L01-00-0502 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.SpeedMeasure.Value provided or is negative");
                                                     //VESSEL-L01-00-0502 - rejected
                                                 }
                                             }
@@ -6653,6 +6708,8 @@ namespace Validation
                                                     //Code from the "MEMBER_STATE" code list
                                                     //TODO: check DB nomenclature - MEMBER_STATE if Vesselreport.VesselEvent.RelatedVesselTransportMeans.RegistrationVesselCountry.ID.Value exists
 
+                                                    valueRegistrationCountry = vesselEvent.RelatedVesselTransportMeans.RegistrationVesselCountry.ID.Value.ToString();
+
                                                     System.Console.WriteLine("VESSEL-L01-01-0002 | TODO | Check DB - MEMBER_STATE - Should be the same as the country sending the message");
                                                     //VESSEL-L01-01-0003
                                                     //Country of Registration
@@ -6672,7 +6729,7 @@ namespace Validation
                                             }
                                             #endregion
 
-                                            //VESSEL-L00-00-0051, VESSEL-L00-00-0026, VESSEL-L00-00-0053, VESSEL-L00-00-0052, VESSEL-L01-01-0021, VESSEL-L01-00-0638
+                                            //VESSEL-L00-00-0051, VESSEL-L00-00-0026, VESSEL-L00-00-0053, VESSEL-L00-00-0052, VESSEL-L01-01-0021, VESSEL-L01-00-0638, VESSEL-L01-01-0062
                                             #region VesselEvent.RelatedVesselTransportMeans.SpecifiedRegistrationEvent
                                             if (vesselEvent.RelatedVesselTransportMeans.SpecifiedRegistrationEvent != null)
                                             {
@@ -6729,6 +6786,14 @@ namespace Validation
                                                         if (relatedVesselTransportMeansSpecifiedRegistrationEvent.RelatedRegistrationLocation.CountryID?.schemeID?.ToString() == "TERRITORY")
                                                         {
                                                             System.Console.WriteLine("VESSEL-L00-00-0052 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedRegistrationEvent.RelatedRegistrationLocation.CountryID.schemeID provided and == TERRITORY");
+
+                                                            System.Console.WriteLine("VESSEL-L01-01-0062 | TODO | Check DB - TERRITORY");
+                                                            //VESSEL-L01-01-0062 [ERROR]
+                                                            //Imp/Exp Country
+                                                            //Code from the specified list
+                                                            //TODO: Check DB nomenclature - VesselEvent.RelatedVesselTransportMeans.SpecifiedRegistrationEvent.RelatedRegistrationLocation.CountryID.Value is from TERRITORY list
+
+                                                            valueImpExpCountry = relatedVesselTransportMeansSpecifiedRegistrationEvent.RelatedRegistrationLocation.CountryID.Value;
                                                         }
                                                         else
                                                         {
@@ -6762,8 +6827,8 @@ namespace Validation
                                                                 }
                                                                 else
                                                                 {
-                                                                    System.Console.WriteLine("VESSEL-L01-01-0021 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.SpecifiedRegistrationEvent.RelatedRegistrationLocation.Name.Value provided");
-                                                                    //VESSEL-L01-01-0021 - rejected
+                                                                    System.Console.WriteLine("VESSEL-L01-01-0021 | ERROR | No VesselEvent.RelatedVesselTransportMeans.SpecifiedRegistrationEvent.RelatedRegistrationLocation.Name.Value provided");
+                                                                    //VESSEL-L01-01-0021 - error
                                                                 }
                                                             }
                                                         }
@@ -6805,6 +6870,7 @@ namespace Validation
                                                     if (vesselEvent.RelatedVesselTransportMeans.SpecifiedConstructionEvent.OccurrenceDateTime.Item >= DateTime.Parse("Jan 1, 1850"))
                                                     {
                                                         System.Console.WriteLine("VESSEL-L01-01-0066 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedConstructionEvent.OccurrenceDateTime.Item (DateTime) >= YEAR_LOW (1850)");
+                                                        yocUtcDateTimeValue = vesselEvent.RelatedVesselTransportMeans.SpecifiedConstructionEvent.OccurrenceDateTime.Item;
                                                     }
                                                     else
                                                     {
@@ -6892,21 +6958,22 @@ namespace Validation
                                                                     System.Console.WriteLine("VESSEL-L01-01-0050 | OK | VesselEvent.RelatedVesselTransportMeans.AttachedVesselEngine.PowerMeasure.Value format XXXXX.YY valid");
                                                                     System.Console.WriteLine("VESSEL-L01-02-0039 | OK | VesselEvent.RelatedVesselTransportMeans.AttachedVesselEngine.PowerMeasure.Value format XXXXX.YY valid");
 
-                                                                    //VESSEL-L01-01-0052, VESSEL-L01-02-0040
+                                                                    //VESSEL-L01-01-0052 [MISSING], VESSEL-L01-02-0040
                                                                     //Main Power
                                                                     //>= lower limit : 0 &<= upper limit : 20000 (Parameters PWR_LOW and PWR_UP from the VESSEL_BR_PARAMETER code list)
                                                                     //#Q Refactor range validation
                                                                     //if (attachedVesselEngineMainPowerMeasure.Value >= PWR_LOW && attachedVesselEngineMainPowerMeasure.Value <= PWR_UP) 
                                                                     if (attachedVesselEngineMainPowerMeasure.Value >= 0 && attachedVesselEngineMainPowerMeasure.Value <= 20000)
                                                                     {
+                                                                        valueMainPower = attachedVesselEngineMainPowerMeasure.Value;
                                                                         System.Console.WriteLine("VESSEL-L01-01-0052 | OK | VesselEvent.RelatedVesselTransportMeans.AttachedVesselEngine.PowerMeasure.Value in range");
                                                                         System.Console.WriteLine("VESSEL-L01-02-0040 | OK | VesselEvent.RelatedVesselTransportMeans.AttachedVesselEngine.PowerMeasure.Value in range");
                                                                     }
                                                                     else
                                                                     {
-                                                                        System.Console.WriteLine("VESSEL-L01-01-0052 | REJECTED | VesselEvent.RelatedVesselTransportMeans.AttachedVesselEngine.PowerMeasure.Value out of range");
+                                                                        System.Console.WriteLine("VESSEL-L01-01-0052 | MISSING | VesselEvent.RelatedVesselTransportMeans.AttachedVesselEngine.PowerMeasure.Value out of range");
                                                                         System.Console.WriteLine("VESSEL-L01-02-0040 | REJECTED | VesselEvent.RelatedVesselTransportMeans.AttachedVesselEngine.PowerMeasure.Value out of range");
-                                                                        //VESSEL-L01-01-0052 - rejected
+                                                                        //VESSEL-L01-01-0052 - missing
                                                                         //VESSEL-L01-02-0040 - rejected
                                                                     }
                                                                 }
@@ -6958,7 +7025,7 @@ namespace Validation
                                                                     if (attachedVesselEngineAuxPowerMeasure.Value >= 0 && attachedVesselEngineAuxPowerMeasure.Value <= 20000)
                                                                     {
                                                                         System.Console.WriteLine("VESSEL-L01-01-0056 | OK | VesselEvent.RelatedVesselTransportMeans.AttachedVesselEngine.PowerMeasure.Value in range");
-
+                                                                        valueAuxPower = attachedVesselEngineAuxPowerMeasure.Value;
                                                                     }
                                                                     else
                                                                     {
@@ -7052,7 +7119,7 @@ namespace Validation
                                                     }
 
                                                     //For fishing authorisation management (SUB or SUB-VED)
-                                                    if (currentFluxVesselReportType == "SUB" || currentFluxVesselReportType == "SUB-VED")
+                                                    if (valueCurrentFluxVesselReportType == "SUB" || valueCurrentFluxVesselReportType == "SUB-VED")
                                                     {
                                                         //VESSEL-L00-00-0098
                                                         //Vessel_ Engine /Propulsion_type
@@ -7183,12 +7250,12 @@ namespace Validation
                                                                     //#Q IF FORMAT OK:
                                                                     System.Console.WriteLine("VESSEL-L01-01-0036 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
                                                                     System.Console.WriteLine("VESSEL-L01-02-0015 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
-
-                                                                    valueLOA = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
-                                                                    //VESSEL-L01-01-0036, VESSEL-L01-02-0015
+                                                                    //VESSEL-L01-01-0036 [MISSING], VESSEL-L01-02-0015
                                                                     //LOA
                                                                     //>= lower limit : 1 & <= upper limit : 200 (Parameters LEN_LOW and LEN_UP from the VESSEL_BR_PARAMETER code list
                                                                     //#Q Check value in range
+
+                                                                    valueLOA = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
                                                                 }
                                                                 else
                                                                 {
@@ -7228,7 +7295,9 @@ namespace Validation
                                                                     //#Q IF FORMAT OK:
                                                                     System.Console.WriteLine("VESSEL-L01-01-0039 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
                                                                     System.Console.WriteLine("VESSEL-L01-02-0019 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
-                                                                    //VESSEL-L01-01-0039, VESSEL-L01-02-0019
+
+                                                                    valueLBP = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+                                                                    //VESSEL-L01-01-0039 [ERROR], VESSEL-L01-02-0019
                                                                     //LBP
                                                                     //>= lower limit : 1 & <= upper limit : 200 (Parameters LEN_LOW and LEN_UP from the VESSEL_BR_PARAMETER code list)
                                                                     //#Q Check value in range
@@ -7264,13 +7333,14 @@ namespace Validation
                                                                 //#Q Add decimal format check
                                                                 if (true)
                                                                 {
+                                                                    valueGT = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
                                                                     System.Console.WriteLine("VESSEL-L01-01-0041 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXXX.YY");
                                                                     System.Console.WriteLine("VESSEL-L01-02-0025 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXXX.YY");
 
                                                                     //#Q IF FORMAT OK:
                                                                     System.Console.WriteLine("VESSEL-L01-01-0042 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
                                                                     System.Console.WriteLine("VESSEL-L01-02-0026 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
-                                                                    //VESSEL-L01-01-0042, VESSEL-L01-02-0026
+                                                                    //VESSEL-L01-01-0042 [MISSING], VESSEL-L01-02-0026
                                                                     //GT Tonnage
                                                                     //>= lower limit : 0 & <= upper limit : 20000 (Parameters TON_LOW and TON_UP from the VESSEL_BR_PARAMETER code list)
                                                                     //#Q Check value in range
@@ -7307,13 +7377,15 @@ namespace Validation
                                                                 //#Q Add decimal format check
                                                                 if (true)
                                                                 {
+                                                                    valueTOTH = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+
                                                                     System.Console.WriteLine("VESSEL-L01-01-0044 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXXX.YY");
                                                                     System.Console.WriteLine("VESSEL-L01-02-0028 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXXX.YY");
 
                                                                     //#Q IF FORMAT OK:
                                                                     System.Console.WriteLine("VESSEL-L01-01-0045 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
                                                                     System.Console.WriteLine("VESSEL-L01-02-0029 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
-                                                                    //VESSEL-L01-01-0045, VESSEL-L01-02-0029
+                                                                    //VESSEL-L01-01-0045 [ERROR], VESSEL-L01-02-0029
                                                                     //Other Tonnage
                                                                     //>= lower limit : 0 & <= upper limit : 20000 (Parameters TON_LOW and TON_UP from the VESSEL_BR_PARAMETER code list)
                                                                     //#Q Check value in range
@@ -7349,11 +7421,13 @@ namespace Validation
                                                                 //#Q Add decimal format check
                                                                 if (true)
                                                                 {
+                                                                    valueGTS = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+
                                                                     System.Console.WriteLine("VESSEL-L01-01-0047 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXXX.YY");
 
                                                                     //#Q IF FORMAT OK:
                                                                     System.Console.WriteLine("VESSEL-L01-01-0048 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
-                                                                    //VESSEL-L01-01-0048
+                                                                    //VESSEL-L01-01-0048 [ERROR]
                                                                     //GTs
                                                                     //>= lower limit : 0 & <= upper limit : 20000 (Parameters TON_LOW and TON_UP from the VESSEL_BR_PARAMETER code list)
                                                                     //#Q Check value in range
@@ -7778,6 +7852,8 @@ namespace Validation
                                                         //Mandatory value
                                                         if (relatedVesselTransportMeansOnBoardFishingGear.RoleCode.Any(a => a.Value == "MAIN"))
                                                         {
+                                                            System.Console.WriteLine("VESSEL-L01-01-0028 | OK | VesselEvent.RelatedVesselTransportMeans.OnBoardFishingGear.RoleCode provided with Value MAIN");
+
                                                             foreach (var onBoardFishingGearRoleCodeMain in relatedVesselTransportMeansOnBoardFishingGear.RoleCode.Where(w => w.Value == "MAIN"))
                                                             {
                                                                 //VESSEL-L01-01-0027
@@ -7801,13 +7877,13 @@ namespace Validation
                                                                         //TODO: check DB nomenclature - FLUX_VESSEL_GEAR_ROLE for Vesselreport.VesselEvent.RelatedVesselTransportMeans.OnBoardFishingGear.RoleCode.Value
 
                                                                         System.Console.WriteLine("VESSEL-L01-01-0027 | TODO | Check DB - GEAR_TYPE");
-                                                                        //VESSEL-L01-01-0029
+                                                                        //VESSEL-L01-01-0029 [ERROR]
                                                                         //Main Fishing Gear
                                                                         //Code from the specified list
                                                                         //TODO: check DB nomenclature - GEAR_TYPE for Vesselreport.VesselEvent.RelatedVesselTransportMeans.OnBoardFishingGear.TypeCode.Value
 
                                                                         System.Console.WriteLine("VESSEL-L01-01-0027 | TODO | 'No gear' code not allowed");
-                                                                        //VESSEL-L01-01-0030
+                                                                        //VESSEL-L01-01-0030 [ERROR]
                                                                         //Main Fishing Gear
                                                                         //"No gear" code not allowed
                                                                         //TODO: if Main Fishing Gear code is not "No gear"
@@ -7827,7 +7903,7 @@ namespace Validation
                                                         }
                                                         else
                                                         {
-                                                            System.Console.WriteLine("VESSEL-L01-01-0028 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.OnBoardFishingGear.RoleCode provided with Value MAIN");
+                                                            System.Console.WriteLine("VESSEL-L01-01-0028 | ERROR | No VesselEvent.RelatedVesselTransportMeans.OnBoardFishingGear.RoleCode provided with Value MAIN");
                                                             //VESSEL-L01-01-0028 - error
                                                         }
 
@@ -7838,7 +7914,23 @@ namespace Validation
                                                         {
                                                             System.Console.WriteLine("VESSEL-L01-01-0032 | OK | VesselEvent.RelatedVesselTransportMeans.OnBoardFishingGear.RoleCode provided with Value AUX");
 
-                                                            foreach (var onBoardFishingGearRoleCodeAux in relatedVesselTransportMeansOnBoardFishingGear.RoleCode.Where(w => w.Value == "AUX"))
+                                                            //VESSEL-L00-00-0038
+                                                            //Vessel_Event & Fishing_Gear/Role & Type
+                                                            //For a specific Vessel Event, only one occurrence of a code is allowed for subsidiary gear type
+                                                            if (relatedVesselTransportMeansOnBoardFishingGear.RoleCode.Where(w => w.Value == "AUX").Count() == 1)
+                                                            {
+                                                                System.Console.WriteLine("VESSEL-L00-00-0038 | OK | VesselEvent.RelatedVesselTransportMeans.OnBoardFishingGear.RoleCode provided with Value AUX only once");
+                                                            }
+                                                            else
+                                                            {
+                                                                System.Console.WriteLine("VESSEL-L00-00-0038 | OK | VesselEvent.RelatedVesselTransportMeans.OnBoardFishingGear.RoleCode provided with Value AUX more than once");
+                                                                //VESSEL-L00-00-0038
+                                                            }
+
+                                                            //#Q Always taking the first element, nevermind the count () the check for count is to meet the rule
+                                                            var fishingGearFirst = relatedVesselTransportMeansOnBoardFishingGear.RoleCode.First(f => f.Value == "AUX");
+
+                                                            if (fishingGearFirst.Value?.ToString() == "AUX" && relatedVesselTransportMeansOnBoardFishingGear.TypeCode?.Value != null)
                                                             {
                                                                 //VESSEL-L01-01-0031
                                                                 //Subsidiary Fishing Gears
@@ -7850,7 +7942,7 @@ namespace Validation
                                                                     //VESSEL-L00-00-0059
                                                                     //Fishing_ Gear /Role
                                                                     //ListId= FLUX_VESSEL_GEAR_ROLE
-                                                                    if (onBoardFishingGearRoleCodeAux.listID?.ToString() == "FLUX_VESSEL_GEAR_ROLE")
+                                                                    if (fishingGearFirst.listID?.ToString() == "FLUX_VESSEL_GEAR_ROLE")
                                                                     {
                                                                         System.Console.WriteLine("VESSEL-L00-00-0059 | OK | VesselEvent.RelatedVesselTransportMeans.OnBoardFishingGear.RoleCode..listID provided and == FLUX_VESSEL_GEAR_ROLE");
 
@@ -7861,7 +7953,7 @@ namespace Validation
                                                                         //TODO: check DB nomenclature - FLUX_VESSEL_GEAR_ROLE for Vesselreport.VesselEvent.RelatedVesselTransportMeans.OnBoardFishingGear.RoleCode.Value
 
                                                                         System.Console.WriteLine("VESSEL-L01-01-0033 | TODO | Check DB - GEAR_TYPE");
-                                                                        //VESSEL-L01-01-0033
+                                                                        //VESSEL-L01-01-0033 [ERROR]
                                                                         //Subsidiary Fishing Gears
                                                                         //Code from the specified list
                                                                         //TODO: check DB nomenclature - GEAR_TYPE for Vesselreport.VesselEvent.RelatedVesselTransportMeans.OnBoardFishingGear.TypeCode.Value
@@ -7999,7 +8091,7 @@ namespace Validation
                                                                         System.Console.WriteLine("VESSEL-L01-01-0022 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueCode.Value for IRCS provided and length == 1");
 
                                                                         System.Console.WriteLine("VESSEL-L01-01-0023 | TODO | Check DB - BOOLEAN_TYPE for IRCS");
-                                                                        //VESSEL-L01-01-0023
+                                                                        //VESSEL-L01-01-0023 [ERROR]
                                                                         //IRCS Indicator
                                                                         //Code from a list of reference: "BOOLEAN_TYPE" code list
                                                                         //TODO: Check DB nomenclature - BOOLEAN_TYPE for VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueCode.Value
@@ -8008,7 +8100,7 @@ namespace Validation
                                                                         {
                                                                             hasIrcsBool = true;
                                                                         }
-                                                                        else
+                                                                        else if (IRCSValueCode.Value?.ToString() == "N")
                                                                         {
                                                                             hasIrcsBool = false;
                                                                         }
@@ -8041,10 +8133,13 @@ namespace Validation
                                                                         System.Console.WriteLine("VESSEL-L01-01-0025 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueCode.Value for VMS provided and length == 1");
 
                                                                         System.Console.WriteLine("VESSEL-L01-01-0026 | TODO | Check DB - BOOLEAN_TYPE for VMS");
-                                                                        //VESSEL-L01-01-0026
+                                                                        //VESSEL-L01-01-0026 [ERROR]
                                                                         //VMS Indicator
                                                                         //Code from a list of reference: "BOOLEAN_TYPE" code list
                                                                         //TODO: Check DB nomenclature - BOOLEAN_TYPE for VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueCode.Value
+
+                                                                        hasVmsIndicator = true;
+                                                                        valueVmsIndicator = VMSValueCode.Value;
                                                                     }
                                                                     else
                                                                     {
@@ -8074,10 +8169,19 @@ namespace Validation
                                                                         System.Console.WriteLine("VESSEL-L01-01-0103 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueCode.Value provided with length == 1");
 
                                                                         System.Console.WriteLine("VESSEL-L01-01-0104 | TODO | Check DB - BOOLEAN_TYPE");
-                                                                        //VESSEL-L01-01-0104
+                                                                        //VESSEL-L01-01-0104 [ERROR]
                                                                         //ERS Indicator
                                                                         //Code from the specified list
                                                                         //TODO: Check DB nomenclature - VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueCode.Value in VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.listID
+
+                                                                        if (ERSValueCode.Value.ToString() == "Y")
+                                                                        {
+                                                                            hasERSBool = true;
+                                                                        }
+                                                                        else if (ERSValueCode.Value.ToString() == "N")
+                                                                        {
+                                                                            hasERSBool = false;
+                                                                        }
                                                                     }
                                                                     else
                                                                     {
@@ -8103,10 +8207,19 @@ namespace Validation
                                                                         System.Console.WriteLine("VESSEL-L01-01-0105 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueCode.Value provided with length == 1");
 
                                                                         System.Console.WriteLine("VESSEL-L01-01-0106 | TODO | Check DB - BOOLEAN_TYPE");
-                                                                        //VESSEL-L01-01-0106
+                                                                        //VESSEL-L01-01-0106 [ERROR]
                                                                         //AIS Indicator
                                                                         //Code from the specified list
                                                                         //TODO: Check DB nomenclature - VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueCode.Value in VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.listID
+
+                                                                        if (AISValueCode.Value.ToString() == "Y")
+                                                                        {
+                                                                            hasAISBool = true;
+                                                                        }
+                                                                        else if (AISValueCode.Value.ToString() == "N")
+                                                                        {
+                                                                            hasAISBool = false;
+                                                                        }
                                                                     }
                                                                     else
                                                                     {
@@ -8130,7 +8243,7 @@ namespace Validation
                                                                     {
                                                                         System.Console.WriteLine("VESSEL-L00-00-0114 | OK | VesselEvent.RelatedTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueCode.Value provided and relatedTransportMeansApplicableVesselEquipmentCharacteristic.TypeCode.listID == NAVIG_EQUIP_TYPE");
 
-                                                                        System.Console.WriteLine("VESSEL-L01-01-0106 | TODO | Check DB - NAVIG_EQUIP_TYPE");
+                                                                        System.Console.WriteLine("VESSEL-L01-00-0547 | TODO | Check DB - NAVIG_EQUIP_TYPE");
                                                                         //VESSEL-L01-00-0547
                                                                         //Navigation equipment type details
                                                                         //Code from the specified list
@@ -8952,7 +9065,7 @@ namespace Validation
                                                                 System.Console.WriteLine("VESSEL-L01-01-0012 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueCode.Value.Length == 1 and listID == BOOLEAN_TYPE");
 
                                                                 System.Console.WriteLine("VESSEL-L01-01-0013 | TODO | Check DB - BOOLEAN_TYPE");
-                                                                //VESSEL-L01-01-0013
+                                                                //VESSEL-L01-01-0013 [ERROR]
                                                                 //License Indicator
                                                                 //Code from a list of reference: "BOOLEAN_TYPE" code list
                                                                 //TODO: check DB nomenclature - BOOLEAN_TYPE for Vesselreport.VesselEvent.RelatedVesselTransportMeans.ApplicableVesselEquipmentCharacteristic.ValueCode.Value
@@ -8996,34 +9109,22 @@ namespace Validation
                                                         //Code from the specified list
                                                         //TODO: check DB nomenclature - FLUX_VESSEL_ADMIN_TYPE if Vesselreport.VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.Value exists
 
-                                                        if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "EIS")
+                                                        /* Value Code */
+                                                        if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "LICENCE")
                                                         {
-                                                            //VESSEL-L00-00-0082
-                                                            //Vessel_ Administrative_Characteristic/Value & Type='EIS'
-                                                            //Date type
-                                                            if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime?.Item is DateTime)
+                                                            //VESSEL-L00-00-0130
+                                                            //Vessel_ Administrative_Characteristic/Value & Type=LICENCE
+                                                            //ListId= BOOLEAN_TYPE
+                                                            if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode?.Value != null && relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode.listID?.ToString() == "BOOLEAN_TYPE")
                                                             {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0082 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item is DateTime");
-
-                                                                //VESSEL-L01-01-0059
-                                                                //EiS Year
-                                                                //>= lower limit : 1850 (Parameter YEAR_LOW from the VESSEL_BR_PARAMETER code list)
-                                                                //#Q Refactor DateTime check
-                                                                //if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime?.Item >= YEAR_LOW)
-                                                                if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime?.Item >= DateTime.Parse("Jan 1, 1850"))
-                                                                {
-                                                                    System.Console.WriteLine("VESSEL-L01-01-0059 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item provided and >= YEAR_LOW (1850)");
-                                                                }
-                                                                else
-                                                                {
-                                                                    System.Console.WriteLine("VESSEL-L01-01-0059 | ERROR | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.listID provided or not >= YEAR_LOW");
-                                                                    //VESSEL-L01-01-0059 - error
-                                                                }
+                                                                System.Console.WriteLine("VESSEL-L00-00-0130 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueCode.Value LICENCE provided with listID == BOOLEAN_TYPE");
+                                                                hasLicenceIndicator = true;
+                                                                valueLicenceIndicator = relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode.Value;
                                                             }
                                                             else
                                                             {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0082 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item is not DateTime");
-                                                                //VESSEL-L00-00-0082 - rejected
+                                                                System.Console.WriteLine("VESSEL-L00-00-0130 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueCode.Value LICENCE provided or listID != BOOLEAN_TYPE");
+                                                                //VESSEL-L00-00-0130 - rejected
                                                             }
                                                         }
 
@@ -9039,94 +9140,33 @@ namespace Validation
                                                             //Length = 3 characters
                                                             if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode?.Value?.Length == 3)
                                                             {
-                                                                System.Console.WriteLine("VESSEL-L01-01-0060 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.Value provided and length == 3");
+                                                                System.Console.WriteLine("VESSEL-L01-01-0060 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueCode.Value SEG provided and length == 3");
 
+                                                                valueSegmentCode = relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode.Value;
                                                                 //VESSEL-L00-00-0131
                                                                 //Vessel_ Administrative_Characteristic/Value & Type=SEG
                                                                 //ListId= VESSEL_SEGMENT
                                                                 //#Q Already there is a value with length 3, the check is only for listId
-                                                                if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.listID?.ToString() == "VESSEL_SEGMENT")
+                                                                if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode.listID?.ToString() == "VESSEL_SEGMENT")
                                                                 {
-                                                                    System.Console.WriteLine("VESSEL-L00-00-0131 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value provided and VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.listID == VESSEL_SEGMENT");
+                                                                    System.Console.WriteLine("VESSEL-L00-00-0131 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueCode.Value SEG provided with listID == VESSEL_SEGMENT");
                                                                 }
                                                                 else
                                                                 {
-                                                                    System.Console.WriteLine("VESSEL-L00-00-0131 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value provided or VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.listID != VESSEL_SEGMENT");
+                                                                    System.Console.WriteLine("VESSEL-L00-00-0131 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueCode.Value SEG provided or listID != VESSEL_SEGMENT");
                                                                     //VESSEL-L00-00-0131 - rejected
                                                                 }
                                                             }
                                                             else
                                                             {
-                                                                System.Console.WriteLine("VESSEL-L01-01-0060 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueCode.Value provided or length != 3");
+                                                                System.Console.WriteLine("VESSEL-L01-01-0060 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueCode.Value SEG provided or length != 3");
                                                                 //VESSEL-L01-01-0060 - rejected
                                                             }
                                                         }
                                                         else
                                                         {
-                                                            System.Console.WriteLine("VESSEL-L01-01-0061 | Error | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.Value provided for SEG");
+                                                            System.Console.WriteLine("VESSEL-L01-01-0061 | MISSING | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.Value SEG provided");
                                                             //VESSEL-L01-01-0061 - missing
-                                                        }
-
-                                                        if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "PURCHASE_YEAR")
-                                                        {
-                                                            //VESSEL-L00-00-0083
-                                                            //Vessel_Administrative_Characteristic/Value & Type='PURCHASE_YEAR'
-                                                            //Date type
-                                                            if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime?.Item is DateTime)
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0083 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value provided and VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.listID == VESSEL_EXPORT_TYPE");
-
-                                                                //VESSEL-L01-00-0578
-                                                                //Vessel purchase year
-                                                                //Not in future
-                                                                DateTime currentUtcDateTime = DateTime.UtcNow;
-                                                                if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime?.Item < currentUtcDateTime)
-                                                                {
-                                                                    System.Console.WriteLine("VESSEL-L01-00-0578 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item provided and not in the future");
-                                                                }
-                                                                else
-                                                                {
-                                                                    System.Console.WriteLine("VESSEL-L01-00-0578 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item provided or in the future");
-                                                                    //VESSEL-L01-00-0578 - rejected
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0083 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value provided or VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.listID != VESSEL_EXPORT_TYPE");
-                                                                //VESSEL-L00-00-0083 - rejected
-                                                            }
-                                                        }
-
-                                                        if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "AUTH_NAME")
-                                                        {
-                                                            //VESSEL-L01-00-0580
-                                                            //National authorisation name
-                                                            //Length <= 300 characters max
-                                                            if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.Value?.Value?.Length <= 300)
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L01-00-0580 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value provided and length <= 300");
-                                                            }
-                                                            else
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L01-00-0580 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value provided or length > 300");
-                                                                //VESSEL-L01-00-0580 - rejected
-                                                            }
-                                                        }
-
-                                                        if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "LICENCE")
-                                                        {
-                                                            //VESSEL-L00-00-0130
-                                                            //Vessel_ Administrative_Characteristic/Value & Type=LICENCE
-                                                            //ListId= BOOLEAN_TYPE
-                                                            if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.Value?.Value != null && relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.listID?.ToString() == "BOOLEAN_TYPE")
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0130 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value provided and VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.listID == BOOLEAN_TYPE");
-                                                            }
-                                                            else
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0130 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value provided or VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.listID != BOOLEAN_TYPE");
-                                                                //VESSEL-L00-00-0130 - rejected
-                                                            }
                                                         }
 
                                                         if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "EXPORT")
@@ -9134,13 +9174,22 @@ namespace Validation
                                                             //VESSEL-L00-00-0132
                                                             //Vessel_ Administrative_Characteristic/Value & Type=EXPORT
                                                             //ListId= VESSEL_EXPORT_TYPE
-                                                            if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.Value?.Value != null && relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.listID?.ToString() == "VESSEL_EXPORT_TYPE")
+                                                            if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode?.Value != null && relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode.listID?.ToString() == "VESSEL_EXPORT_TYPE")
                                                             {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0132 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value provided and VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.listID == VESSEL_EXPORT_TYPE");
+                                                                System.Console.WriteLine("VESSEL-L00-00-0132 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueCode.Value EXPORT provided and listID == VESSEL_EXPORT_TYPE");
+
+                                                                System.Console.WriteLine("VESSEL-L01-01-0063 | TODO | Check DB - VESSEL_EXPORT_TYPE");
+                                                                //VESSEL-L01-01-0063 [ERROR]
+                                                                //Exportation Type
+                                                                //Code from a list of reference: " VESSEL_EXPORT_TYPE" code list
+                                                                //TODO: Check DB nomenclature if relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode.Value in VESSEL_EXPORT_TYPE code list
+
+                                                                hasExportIndicator = true;
+                                                                valueExportIndicator = relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode.Value;
                                                             }
                                                             else
                                                             {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0132 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value provided or VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.listID != VESSEL_EXPORT_TYPE");
+                                                                System.Console.WriteLine("VESSEL-L00-00-0132 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueCode.Value EXPORT provided or listID != VESSEL_EXPORT_TYPE");
                                                                 //VESSEL-L00-00-0132 - rejected
                                                             }
                                                         }
@@ -9150,14 +9199,103 @@ namespace Validation
                                                             //VESSEL-L00-00-0133
                                                             //Vessel_ Administrative_Characteristic/Value & Type=AID
                                                             //ListId= VESSEL_PUBLIC_AID_TYPE
-                                                            if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.Value?.Value != null && relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.listID?.ToString() == "VESSEL_PUBLIC_AID_TYPE")
+                                                            if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode?.Value != null && relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode.listID?.ToString() == "VESSEL_PUBLIC_AID_TYPE")
                                                             {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0133 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value provided and VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.listID == VESSEL_EXPORT_TYPE");
+                                                                System.Console.WriteLine("VESSEL-L00-00-0133 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueCode.Value AID provided and listID == VESSEL_EXPORT_TYPE");
+
+                                                                System.Console.WriteLine("VESSEL-L01-01-0064 | TODO | Check DB - VESSEL_PUBLIC_AID_TYPE");
+                                                                //VESSEL-L01-01-0064 [ERROR]
+                                                                //Public Aid Code
+                                                                //Code from a list of reference: " VESSEL_PUBLIC_AID_TYPE" code list
+                                                                //TODO: Check DB nomenclature if relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode.Value in VESSEL_PUBLIC_AID_TYPE code list
+
+                                                                hasPublicAidCode = true;
+                                                                valuePublicAidCode = relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueCode.Value;
                                                             }
                                                             else
                                                             {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0133 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value provided or VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.listID != VESSEL_EXPORT_TYPE");
+                                                                System.Console.WriteLine("VESSEL-L00-00-0133 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueCode.Value AID provided or listID != VESSEL_EXPORT_TYPE");
                                                                 //VESSEL-L00-00-0133 - rejected
+                                                            }
+                                                        }
+
+                                                        /* Value Date */
+                                                        if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "EIS")
+                                                        {
+                                                            //VESSEL-L00-00-0082
+                                                            //Vessel_ Administrative_Characteristic/Value & Type='EIS'
+                                                            //Date type
+                                                            if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime?.Item is DateTime)
+                                                            {
+                                                                System.Console.WriteLine("VESSEL-L00-00-0082 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item EIS is DateTime");
+
+                                                                //VESSEL-L01-01-0059
+                                                                //EiS Year
+                                                                //>= lower limit : 1850 (Parameter YEAR_LOW from the VESSEL_BR_PARAMETER code list)
+                                                                //#Q Refactor DateTime check
+                                                                //if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime?.Item >= YEAR_LOW)
+                                                                if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime?.Item >= DateTime.Parse("Jan 1, 1850"))
+                                                                {
+                                                                    System.Console.WriteLine("VESSEL-L01-01-0059 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item EIS provided and >= YEAR_LOW (1850)");
+                                                                    eisUtcDateTimeValue = relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item;
+                                                                }
+                                                                else
+                                                                {
+                                                                    System.Console.WriteLine("VESSEL-L01-01-0059 | ERROR | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.listID EIS provided or not >= YEAR_LOW");
+                                                                    //VESSEL-L01-01-0059 - error
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                System.Console.WriteLine("VESSEL-L00-00-0082 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item EIS is not DateTime");
+                                                                //VESSEL-L00-00-0082 - rejected
+                                                            }
+                                                        }
+
+                                                        if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "PURCHASE_YEAR")
+                                                        {
+                                                            //VESSEL-L00-00-0083
+                                                            //Vessel_Administrative_Characteristic/Value & Type='PURCHASE_YEAR'
+                                                            //Date type
+                                                            if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime?.Item is DateTime)
+                                                            {
+                                                                System.Console.WriteLine("VESSEL-L00-00-0083 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item PURCHASE_YEAR provided and is DateTime");
+
+                                                                //VESSEL-L01-00-0578
+                                                                //Vessel purchase year
+                                                                //Not in future
+                                                                DateTime currentUtcDateTime = DateTime.UtcNow;
+                                                                if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime?.Item < currentUtcDateTime)
+                                                                {
+                                                                    System.Console.WriteLine("VESSEL-L01-00-0578 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item PURCHASE_YEAR provided and not in the future");
+                                                                }
+                                                                else
+                                                                {
+                                                                    System.Console.WriteLine("VESSEL-L01-00-0578 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item PURCHASE_YEAR provided or in the future");
+                                                                    //VESSEL-L01-00-0578 - rejected
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                System.Console.WriteLine("VESSEL-L00-00-0083 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item PURCHASE_YEAR provided or is not DateTime");
+                                                                //VESSEL-L00-00-0083 - rejected
+                                                            }
+                                                        }
+
+                                                        /* Value Text */
+                                                        if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "AUTH_NAME")
+                                                        {
+                                                            //VESSEL-L01-00-0580
+                                                            //National authorisation name
+                                                            //Length <= 300 characters max
+                                                            if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.Value?.Value?.Length <= 300)
+                                                            {
+                                                                System.Console.WriteLine("VESSEL-L01-00-0580 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value AUTH_NAME provided and length <= 300");
+                                                            }
+                                                            else
+                                                            {
+                                                                System.Console.WriteLine("VESSEL-L01-00-0580 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.Value.Value AUTH_NAME provided or length > 300");
+                                                                //VESSEL-L01-00-0580 - rejected
                                                             }
                                                         }
                                                     }
@@ -9174,13 +9312,339 @@ namespace Validation
                                             }
                                             #endregion
 
+                                            //VESSEL-L00-00-0062, VESSEL-L00-00-0030, VESSEL-L00-00-0134, VESSEL-L01-01-0057, VESSEL-L01-00-0690
+                                            #region VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic
+                                            if (vesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic != null)
+                                            {
+                                                foreach (var relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic in vesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic)
+                                                {
+                                                    //VESSEL-L00-00-0062
+                                                    //Vessel_ Technical_Characteristic/Type
+                                                    //ListId= FLUX_VESSEL_TECH_TYPE
+                                                    if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.TypeCode?.listID?.ToString() == "FLUX_VESSEL_TECH_TYPE")
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L00-00-0062 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.TypeCode.listID provided and == FLUX_VESSEL_TECH_TYPE");
+
+                                                        System.Console.WriteLine("VESSEL-L00-00-0062 | TODO | Check DB - FLUX_VESSEL_TECH_TYPE");
+                                                        //VESSEL-L00-00-0030
+                                                        //Vessel_ Technical_Characteristic/Type
+                                                        //Code from the specified list
+                                                        //TODO: check DB nomenclature - FLUX_VESSEL_TECH_TYPE if Vesselreport.VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.TypeCode.Value exists
+
+                                                        /* Value Code */
+                                                        if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.TypeCode.Value?.ToString() == "HULL")
+                                                        {
+                                                            //VESSEL-L00-00-0134
+                                                            //Vessel_ Technical_Characteristic/value & Type=HULL
+                                                            //ListId= VESSEL_HULL_TYPE
+                                                            if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.ValueCode?.Value != null && relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.ValueCode.listID?.ToString() == "VESSEL_HULL_TYPE")
+                                                            {
+                                                                System.Console.WriteLine("VESSEL-L00-00-0134 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.ValueCode provided with ListId == VESSEL_HULL_TYPE for TypeCode.Value == HULL");
+
+                                                                System.Console.WriteLine("VESSEL-L01-01-0057 | TODO | Check DB - VESSEL_HULL_TYPE");
+                                                                //VESSEL-L01-01-0057 [ERROR]
+                                                                //Hull Material
+                                                                //Code from a list of reference: "VESSEL_HULL_TYPE" code list
+                                                                //TODO: Check DB nomenclature for relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.ValueCode.Value - code from VESSEL_HULL_TYPE list
+
+                                                                valueHullMaterial = relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.ValueCode?.Value;
+                                                            }
+                                                            else
+                                                            {
+                                                                System.Console.WriteLine("VESSEL-L00-00-0134 | OK | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.ValueCode provided with ListId == VESSEL_HULL_TYPE for TypeCode.Value == HULL");
+                                                                //VESSEL-L00-00-0134 - rejected
+                                                            }
+                                                        }
+
+                                                        /* Value Text */
+                                                        if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.TypeCode.Value?.ToString() == "PROCESS_CLASS")
+                                                        {
+                                                            //VESSEL-L01-00-0690
+                                                            //Processing class
+                                                            //Length <= 300 characters max
+                                                            if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.Value.Value.Length <= 300)
+                                                            {
+                                                                System.Console.WriteLine("VESSEL-L01-00-0690 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.Value.Value provided with length <= 300");
+                                                            }
+                                                            else
+                                                            {
+                                                                System.Console.WriteLine("VESSEL-L01-00-0690 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.Value.Value provided or length > 300");
+                                                                //VESSEL-L01-00-0690 - rejected
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L00-00-0062 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.TypeCode.listID provided or != FLUX_VESSEL_TECH_TYPE");
+                                                        //VESSEL-L00-00-0062 - rejected
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic provided");
+                                            }
+                                            #endregion
+
+                                            //VESSEL-L00-00-0135, VESSEL-L01-00-0512, VESSEL-L00-00-0084, VESSEL-L00-00-0085, VESSEL-L01-00-0679, VESSEL-L00-00-0138, VESSEL-L01-00-0518,
+                                            //VESSEL-L01-00-0680, VESSEL-L00-00-0086, VESSEL-L00-00-0139, VESSEL-L00-00-0136, VESSEL-L00-00-0137, VESSEL-L00-00-0151, VESSEL-L01-00-0510,
+                                            //VESSEL-L01-00-0676, VESSEL-L01-00-0677, VESSEL-L01-00-0678
+                                            //#Q Corrected Value/ValueCode/ValueMeasure usage for validations
+                                            #region VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic
+                                            if (vesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic != null)
+                                            {
+                                                foreach (var relatedVesselTransportMeansApplicableVesselStorageCharacteristic in vesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic)
+                                                {
+                                                    if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.TypeCode != null)
+                                                    {
+
+                                                        var storageCapacityFirstTypeCode = relatedVesselTransportMeansApplicableVesselStorageCharacteristic.TypeCode.First(f => f.listID?.ToString() == "STORAGE_TYPE" && f.Value != null);
+
+                                                        //VESSEL-L00-00-0135
+                                                        //Vessel_Storage_Char/Type
+                                                        //ListId=STORAGE_TYPE
+                                                        if (storageCapacityFirstTypeCode.listID?.ToString() == "STORAGE_TYPE")
+                                                        {
+                                                            System.Console.WriteLine("VESSEL-L00-00-0135 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TypeCode.listID provided and == STORAGE_TYPE");
+
+                                                            System.Console.WriteLine("VESSEL-L01-00-0512 | TODO | Check DB - STORAGE_TYPE");
+                                                            //VESSEL-L01-00-0512
+                                                            //Storage Method
+                                                            //Code from the specified list
+                                                            //TODO: Check DB nomenclature - VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.Value in STORAGE_TYPE list
+
+                                                            //IF TypeCode.Value from STORAGE_TYPE list:
+                                                            if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.CapacityValueMeasure != null)
+                                                            {
+                                                                foreach (var applicableVesselStorageCharacteristicCapacityValueMeasure in relatedVesselTransportMeansApplicableVesselStorageCharacteristic.CapacityValueMeasure)
+                                                                {
+                                                                    //VESSEL-L00-00-0084
+                                                                    //Vessel_Storage_Char/Capacity_value
+                                                                    //Numerical value
+                                                                    //#Q Already decimal
+                                                                    if (applicableVesselStorageCharacteristicCapacityValueMeasure.Value != null)
+                                                                    {
+                                                                        System.Console.WriteLine("VESSEL-L00-00-0084 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.Value (decimal) provided and numerical");
+
+                                                                        if (storageCapacityFirstTypeCode.Value.ToString() == "FISH_HOLD")
+                                                                        {
+                                                                            //VESSEL-L00-00-0137
+                                                                            //Vessel_Storage_Char/Capacity_v alue & Type=FISH_HOLD
+                                                                            //The unit must be MTQ
+                                                                            if (applicableVesselStorageCharacteristicCapacityValueMeasure.unitCode?.ToString() == "MTQ")
+                                                                            {
+                                                                                System.Console.WriteLine("VESSEL-L00-00-0137 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.unitCode provided and == MTQ for FISH_HOLD");
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                System.Console.WriteLine("VESSEL-L00-00-0137 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.unitCode provided or != MTQ for FISH_HOLD");
+                                                                                //VESSEL-L00-00-0137 - rejected
+                                                                            }
+
+                                                                            //VESSEL-L01-00-0677
+                                                                            //Fish Hold capacity
+                                                                            //no negative value
+                                                                            if (applicableVesselStorageCharacteristicCapacityValueMeasure.Value > 0)
+                                                                            {
+                                                                                System.Console.WriteLine("VESSEL-L01-00-0677 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.Value FISH_HOLD provided is positive");
+
+                                                                                System.Console.WriteLine("VESSEL-L01-00-0678 | TODO | Check format - XXXXX.YY");
+                                                                                //VESSEL-L01-00-0678
+                                                                                //Fish Hold capacity
+                                                                                //Format: XXXXX.YY with 2 optional decimals
+                                                                                //TODO: Check decimal format for VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.Value to meet XXXXX.YY
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                System.Console.WriteLine("VESSEL-L01-00-0677 | REJECTED | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.Value FISH_HOLD is negative");
+                                                                                //VESSEL-L01-00-0677 - rejected
+                                                                            }
+                                                                        }
+                                                                        else if (storageCapacityFirstTypeCode.Value.ToString() == "FREEZ")
+                                                                        {
+                                                                            //VESSEL-L00-00-0151
+                                                                            //Vessel_Storage_Char/Capacity_v alue & Type=FREEZ
+                                                                            //The unit must be MTQ
+                                                                            if (applicableVesselStorageCharacteristicCapacityValueMeasure.unitCode?.ToString() == "MTQ")
+                                                                            {
+                                                                                System.Console.WriteLine("VESSEL-L00-00-0151 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.unitCode provided and == MTQ for FREEZ");
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                System.Console.WriteLine("VESSEL-L00-00-0151 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.unitCode provided or != MTQ for FREEZ");
+                                                                                //VESSEL-L00-00-0151 - rejected
+                                                                            }
+                                                                        }
+                                                                        else if (storageCapacityFirstTypeCode.Value.ToString() == "STE_GEN")
+                                                                        {
+                                                                            //VESSEL-L00-00-0136
+                                                                            //Vessel_Storage_Char/Capacity_v alue & Type=STE_GEN
+                                                                            //The unit must be MTQ
+                                                                            if (applicableVesselStorageCharacteristicCapacityValueMeasure.unitCode?.ToString() == "MTQ")
+                                                                            {
+                                                                                System.Console.WriteLine("VESSEL-L00-00-0136 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.unitCode provided and == MTQ for STE_GEN");
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                System.Console.WriteLine("VESSEL-L00-00-0136 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.unitCode provided or != MTQ for STE_GEN");
+                                                                                //VESSEL-L00-00-0136 - rejected
+                                                                            }
+
+                                                                            //VESSEL-L01-00-0510
+                                                                            //Storage Capacity
+                                                                            //no negative value
+                                                                            if (applicableVesselStorageCharacteristicCapacityValueMeasure.Value > 0)
+                                                                            {
+                                                                                System.Console.WriteLine("VESSEL-L01-00-0510 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.Value STE_GEN provided is positive");
+
+                                                                                System.Console.WriteLine("VESSEL-L01-00-0676 | TODO | Check format - XXXXX.YY");
+                                                                                //VESSEL-L01-00-0676
+                                                                                //Storage Capacity
+                                                                                //Format: XXXXX.YY with 2 optional decimals
+                                                                                //TODO: Check decimal format for VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.Value to meet XXXXX.YY
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                System.Console.WriteLine("VESSEL-L01-00-0510 | REJECTED | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.Value STE_GEN is negative");
+                                                                                //VESSEL-L01-00-0510 - rejected
+                                                                            }
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            System.Console.WriteLine("Unknown VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TypeCode provided");
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        System.Console.WriteLine("VESSEL-L00-00-0084 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.Value (decimal) provided or not numerical");
+                                                                        //VESSEL-L00-00-0084 - rejected
+                                                                    }
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure provided");
+                                                            }
+
+                                                            if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.TemperatureValueMeasure != null)
+                                                            {
+                                                                foreach (var applicableVesselStorageCharacteristicTemperatureValueMeasure in relatedVesselTransportMeansApplicableVesselStorageCharacteristic.TemperatureValueMeasure)
+                                                                {
+                                                                    //VESSEL-L00-00-0085
+                                                                    //Vessel_Storage_Char/Temperatur e_value
+                                                                    //Numerical value
+                                                                    if (applicableVesselStorageCharacteristicTemperatureValueMeasure.Value != null)
+                                                                    {
+                                                                        System.Console.WriteLine("VESSEL-L00-00-0085 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TemperatureValueMeasure.Value (decimal) provided");
+
+                                                                        System.Console.WriteLine("VESSEL-L01-00-0679 | TODO | Check format - XXX.YY");
+                                                                        //VESSEL-L01-00-0679
+                                                                        //Storage Temperature
+                                                                        //Format: XXX.YY with 2 optional decimals
+                                                                        //TODO: Add decimal value format check
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        System.Console.WriteLine("VESSEL-L00-00-0085 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TemperatureValueMeasure.Value (decimal) provided");
+                                                                        //VESSEL-L00-00-0085 - rejected
+                                                                    }
+
+                                                                    //VESSEL-L00-00-0138
+                                                                    //Vessel_Storage_Char/Temperatur e_value
+                                                                    //Numerical value
+                                                                    if (applicableVesselStorageCharacteristicTemperatureValueMeasure.unitCode == "CEL")
+                                                                    {
+                                                                        System.Console.WriteLine("VESSEL-L00-00-0138 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TemperatureValueMeasure.unitCode provided and == CEL");
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        System.Console.WriteLine("VESSEL-L00-00-0138 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TemperatureValueMeasure.unitCode provided or != CEL");
+                                                                        //VESSEL-L00-00-0138 - rejected
+                                                                    }
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TemperatureValueMeasure provided");
+                                                            }
+
+                                                            if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.UnitValueQuantity != null)
+                                                            {
+                                                                //VESSEL-L00-00-0086
+                                                                //Vessel_Storage_Char/Unit_value
+                                                                //Numerical value
+                                                                if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.UnitValueQuantity?.Value != null)
+                                                                {
+                                                                    System.Console.WriteLine("VESSEL-L00-00-0086 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.Value (decimal) provided");
+
+                                                                    //VESSEL-L01-00-0518
+                                                                    //Storage Units
+                                                                    //no negative value
+                                                                    if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.UnitValueQuantity.Value > 0)
+                                                                    {
+                                                                        System.Console.WriteLine("VESSEL-L01-00-0518 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.Value provided and > 0");
+
+                                                                        System.Console.WriteLine("VESSEL-L01-00-0680 | TODO | Check format - XXXXX");
+                                                                        //VESSEL-L01-00-0680
+                                                                        //Storage Units
+                                                                        //Format: XXXXX without decimals
+                                                                        //TODO: Add decimal value format check
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        System.Console.WriteLine("VESSEL-L01-00-0518 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.Value provided or < 0");
+                                                                        //VESSEL-L01-00-0518 - rejected
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    System.Console.WriteLine("VESSEL-L00-00-0086 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.Value (decimal) provided");
+                                                                    //VESSEL-L00-00-0086 - rejected
+                                                                }
+
+                                                                //VESSEL-L00-00-0139
+                                                                //Vessel_Storage_Char/Unit_value
+                                                                //The unit must be C62
+                                                                if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.UnitValueQuantity?.unitCode?.ToString() == "C62")
+                                                                {
+                                                                    System.Console.WriteLine("VESSEL-L00-00-0139 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.unitCode provided and == C62");
+                                                                }
+                                                                else
+                                                                {
+                                                                    System.Console.WriteLine("VESSEL-L00-00-0139 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.unitCode provided or != C62");
+                                                                    //VESSEL-L00-00-0139 - rejected
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity provided");
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            System.Console.WriteLine("VESSEL-L00-00-0135 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TypeCode.listID provided or != STORAGE_TYPE");
+                                                            //VESSEL-L00-00-0135 - rejected
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TypeCode provided");
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic provided");
+                                            }
+                                            #endregion
+
                                             //VESSEL-L00-00-0063, VESSEL-L00-00-0035, VESSEL-L00-00-0144, VESSEL-L01-01-0079, VESSEL-L01-00-0633, VESSEL-L01-00-0685, VESSEL-L01-00-0686,
                                             //VESSEL-L01-00-0619, VESSEL-L01-00-0618, VESSEL-L01-01-0080, VESSEL-L01-01-0083, VESSEL-L01-01-0084, VESSEL-L01-01-0085, VESSEL-L01-01-0086,
-                                            //VESSEL-L01-01-0087, VESSEL-L01-01-0088, VESSEL-L01-01-0089, VESSEL-L01-01-0100, VESSEL-L00-00-0064, VESSEL-L01-01-0102, VESSEL-L01-01-0067,
-                                            //VESSEL-L01-01-0070, VESSEL-L01-01-0071, VESSEL-L01-01-0072, VESSEL-L01-01-0073, VESSEL-L01-01-0074, VESSEL-L01-01-0075, VESSEL-L01-01-0076,
-                                            //VESSEL-L01-01-0077, VESSEL-L00-00-0064, VESSEL-L01-01-0078, VESSEL-L01-01-0079, VESSEL-L00-00-0036, VESSEL-L01-00-0689, VESSEL-L01-00-0688,
-                                            //VESSEL-L00-00-0067, VESSEL-L01-00-0617, VESSEL-L01-00-0615, VESSEL-L01-00-0614, VESSEL-L01-00-0616, VESSEL-L01-00-0616, VESSEL-L01-00-0688,
-                                            //VESSEL-L00-00-0144, VESSEL-L01-00-0687
+                                            //VESSEL-L01-01-0087, VESSEL-L01-01-0088, VESSEL-L01-01-0089, VESSEL-L01-01-0100, VESSEL-L01-01-0102, VESSEL-L01-01-0067, VESSEL-L01-01-0070,
+                                            //VESSEL-L01-01-0071, VESSEL-L01-01-0072, VESSEL-L01-01-0073, VESSEL-L01-01-0074, VESSEL-L01-01-0075, VESSEL-L01-01-0076, VESSEL-L01-01-0077,
+                                            //VESSEL-L00-00-0064, VESSEL-L01-01-0078, VESSEL-L01-01-0079, VESSEL-L00-00-0036, VESSEL-L01-00-0689, VESSEL-L01-00-0688, VESSEL-L00-00-0067, 
+                                            //VESSEL-L01-00-0617, VESSEL-L01-00-0615, VESSEL-L01-00-0614, VESSEL-L01-00-0616, VESSEL-L01-00-0616, VESSEL-L01-00-0688, VESSEL-L00-00-0144,
+                                            //VESSEL-L01-00-0687, VESSEL-L01-01-0101
                                             #region VesselEvent.RelatedVesselTransportMeans.SpecifiedContactParty
                                             if (vesselEvent.RelatedVesselTransportMeans.SpecifiedContactParty != null)
                                             {
@@ -9216,6 +9680,7 @@ namespace Validation
                                                                             if (ownerName.Length <= 100)
                                                                             {
                                                                                 System.Console.WriteLine("VESSEL-L01-01-0067 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson provided and length <= 100");
+                                                                                hasOwnerName = true;
                                                                             }
                                                                             else
                                                                             {
@@ -9240,6 +9705,7 @@ namespace Validation
                                                                             if (specifiedContactPartySpecifiedStructuredAddress.StreetName?.Value != null && specifiedContactPartySpecifiedStructuredAddress.StreetName?.Value?.Length <= 256)
                                                                             {
                                                                                 System.Console.WriteLine("VESSEL-L01-01-0070 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedStructuredAddress OWNER provided and length <= 256");
+                                                                                hasOwnerStreetName = true;
                                                                             }
                                                                             else
                                                                             {
@@ -9381,7 +9847,7 @@ namespace Validation
                                                                                 System.Console.WriteLine("VESSEL-L00-00-0063 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedContactParty.NationalityCountryID.schemeID OWNER provided and == TERRITORY");
 
                                                                                 System.Console.WriteLine("VESSEL-L01-01-0078 | TODO | Check DB - TERRITORY OWNER");
-                                                                                //VESSEL-L01-01-0078
+                                                                                //VESSEL-L01-01-0078 [ERROR]
                                                                                 //Owner Nationality
                                                                                 //Code from the specified list
                                                                                 //TODO: Check DB nomenclature - TERRITORY for VesselEvent.RelatedVesselTransportMeans.SpecifiedContactParty.NationalityCountryID.Value OWNER
@@ -9438,6 +9904,7 @@ namespace Validation
                                                                             if (operatorName.Length <= 100)
                                                                             {
                                                                                 System.Console.WriteLine("VESSEL-L01-01-0080 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson OPERATOR provided and length <= 100");
+                                                                                hasOperatorName = true;
                                                                             }
                                                                             else
                                                                             {
@@ -9462,6 +9929,7 @@ namespace Validation
                                                                             if (specifiedContactPartySpecifiedStructuredAddress.StreetName?.Value != null && specifiedContactPartySpecifiedStructuredAddress.StreetName?.Value?.Length <= 256)
                                                                             {
                                                                                 System.Console.WriteLine("VESSEL-L01-01-0083 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedStructuredAddress OPERATOR provided and length <= 256");
+                                                                                hasOperatorStreetName = true;
                                                                             }
                                                                             else
                                                                             {
@@ -9603,7 +10071,7 @@ namespace Validation
                                                                                 System.Console.WriteLine("VESSEL-L00-00-0063 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedContactParty.NationalityCountryID.schemeID provided and == TERRITORY");
 
                                                                                 System.Console.WriteLine("VESSEL-L01-01-0101 | TODO | Check DB - TERRITORY OPERATOR");
-                                                                                //VESSEL-L01-01-0101
+                                                                                //VESSEL-L01-01-0101 [ERROR]
                                                                                 //Owner Nationality
                                                                                 //Code from the specified list
                                                                                 //TODO: Check DB nomenclature - TERRITORY for VesselEvent.RelatedVesselTransportMeans.SpecifiedContactParty.NationalityCountryID.Value OPERATOR
@@ -9982,263 +10450,6 @@ namespace Validation
                                             else
                                             {
                                                 System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.SpecifiedContactParty provided");
-                                            }
-                                            #endregion
-
-                                            //VESSEL-L00-00-0062, VESSEL-L00-00-0030, VESSEL-L00-00-0134, VESSEL-L01-01-0057, VESSEL-L01-00-0690
-                                            #region VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic
-                                            if (vesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic != null)
-                                            {
-                                                foreach (var relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic in vesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic)
-                                                {
-                                                    //VESSEL-L00-00-0062
-                                                    //Vessel_ Technical_Characteristic/Type
-                                                    //ListId= FLUX_VESSEL_TECH_TYPE
-                                                    if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.TypeCode?.listID?.ToString() == "FLUX_VESSEL_TECH_TYPE")
-                                                    {
-                                                        System.Console.WriteLine("VESSEL-L00-00-0062 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.TypeCode.listID provided and == FLUX_VESSEL_TECH_TYPE");
-
-                                                        System.Console.WriteLine("VESSEL-L00-00-0062 | TODO | Check DB - FLUX_VESSEL_TECH_TYPE");
-                                                        //VESSEL-L00-00-0030
-                                                        //Vessel_ Technical_Characteristic/Type
-                                                        //Code from the specified list
-                                                        //TODO: check DB nomenclature - FLUX_VESSEL_TECH_TYPE if Vesselreport.VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.TypeCode.Value exists
-
-                                                        if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.ValueCode?.Value?.ToString() != "" && relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.TypeCode.Value?.ToString() == "HULL")
-                                                        {
-                                                            //VESSEL-L00-00-0134
-                                                            //Vessel_ Technical_Characteristic/value & Type=HULL
-                                                            //ListId= VESSEL_HULL_TYPE
-                                                            if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.ValueCode.listID?.ToString() == "VESSEL_HULL_TYPE")
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0134 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.ValueCode and TypeCode.Value == HULL provided with ListId == VESSEL_HULL_TYPE");
-
-                                                                System.Console.WriteLine("VESSEL-L01-01-0057 | TODO | Check DB - VESSEL_HULL_TYPE");
-                                                                //VESSEL-L01-01-0057
-                                                                //Hull Material
-                                                                //Code from a list of reference: "VESSEL_HULL_TYPE" code list
-                                                                //TODO: Check DB nomenclature for relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.ValueCode.Value - code from VESSEL_HULL_TYPE list
-                                                            }
-                                                            else
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0134 | OK | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.ValueCode and TypeCode.Value == HULL provided with ListId == VESSEL_HULL_TYPE");
-                                                                //VESSEL-L00-00-0134 - rejected
-                                                            }
-                                                        }
-
-                                                        if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.TypeCode.Value == "PROCESS_CLASS")
-                                                        {
-                                                            //VESSEL-L01-00-0690
-                                                            //Processing class
-                                                            //Length <= 300 characters max
-                                                            if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.Value.Value.Length <= 300)
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L01-00-0690 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.Value.Value provided with length <= 300");
-                                                            }
-                                                            else
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L01-00-0690 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.Value.Value provided or length > 300");
-                                                                //VESSEL-L01-00-0690 - rejected
-                                                            }
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        System.Console.WriteLine("VESSEL-L00-00-0062 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.TypeCode.listID provided or != FLUX_VESSEL_TECH_TYPE");
-                                                        //VESSEL-L00-00-0062 - rejected
-                                                    }
-                                                }
-                                            }
-                                            else
-                                            {
-                                                System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic provided");
-                                            }
-                                            #endregion
-
-                                            //VESSEL-L00-00-0135, VESSEL-L01-00-0512, VESSEL-L00-00-0084, VESSEL-L00-00-0085, VESSEL-L01-00-0679, VESSEL-L00-00-0138, VESSEL-L01-00-0518,
-                                            //VESSEL-L01-00-0680, VESSEL-L00-00-0086, VESSEL-L00-00-0139
-                                            #region VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic
-                                            if (vesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic != null)
-                                            {
-                                                //#Q How to check for each TypeCode = FISH_HOLD, FREEZ, STR_GEN, especially for capacity
-
-                                                foreach (var relatedVesselTransportMeansApplicableVesselStorageCharacteristic in vesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic)
-                                                {
-                                                    if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.TypeCode != null)
-                                                    {
-                                                        foreach (var applicableVesselStorageCharacteristicTypeCode in relatedVesselTransportMeansApplicableVesselStorageCharacteristic.TypeCode)
-                                                        {
-                                                            //VESSEL-L00-00-0135
-                                                            //Vessel_Storage_Char/Type
-                                                            //ListId=STORAGE_TYPE
-                                                            if (applicableVesselStorageCharacteristicTypeCode.listID?.ToString() == "STORAGE_TYPE")
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0135 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TypeCode.listID provided and == STORAGE_TYPE");
-
-                                                                System.Console.WriteLine("VESSEL-L01-00-0512 | TODO | Check DB - STORAGE_TYPE");
-                                                                //VESSEL-L01-00-0512
-                                                                //Storage Method
-                                                                //Code from the specified list
-                                                                //TODO: Check DB nomenclature - VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.Value in STORAGE_TYPE list
-
-                                                            }
-                                                            else
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0135 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TypeCode.listID provided or != STORAGE_TYPE");
-                                                                //VESSEL-L00-00-0135 - rejected
-                                                            }
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TypeCode provided");
-                                                    }
-
-                                                    if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.CapacityValueMeasure != null)
-                                                    {
-                                                        foreach (var applicableVesselStorageCharacteristicCapacityValueMeasure in relatedVesselTransportMeansApplicableVesselStorageCharacteristic.CapacityValueMeasure)
-                                                        {
-                                                            //VESSEL-L00-00-0084
-                                                            //Vessel_Storage_Char/Capacity_value
-                                                            //Numerical value
-                                                            //#Q Already decimal
-                                                            if (applicableVesselStorageCharacteristicCapacityValueMeasure.Value != null)
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0084 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.Value (decimal) provided and numerical");
-                                                            }
-                                                            else
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0084 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure.Value (decimal) provided or not numerical");
-                                                                //VESSEL-L00-00-0084 - rejected
-                                                            }
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.CapacityValueMeasure provided");
-                                                    }
-
-                                                    if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.TemperatureValueMeasure != null)
-                                                    {
-                                                        foreach (var applicableVesselStorageCharacteristicTemperatureValueMeasure in relatedVesselTransportMeansApplicableVesselStorageCharacteristic.TemperatureValueMeasure)
-                                                        {
-                                                            //VESSEL-L00-00-0085
-                                                            //Vessel_Storage_Char/Temperatur e_value
-                                                            //Numerical value
-                                                            if (applicableVesselStorageCharacteristicTemperatureValueMeasure.Value != null)
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0085 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TemperatureValueMeasure.Value (decimal) provided");
-
-                                                                //VESSEL-L01-00-0679
-                                                                //Storage Temperature
-                                                                //Format: XXX.YY with 2 optional decimals
-                                                                //#Q Add decimal value format check
-                                                                if (true)
-                                                                {
-                                                                    System.Console.WriteLine("VESSEL-L01-00-0679 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TemperatureValueMeasure.Value (decimal) format XXX.YY valid");
-                                                                }
-                                                                else
-                                                                {
-                                                                    System.Console.WriteLine("VESSEL-L01-00-0679 | REJECTED | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TemperatureValueMeasure.Value (decimal) format XXX.YY not valid");
-                                                                    //VESSEL-L01-00-0679 - rejected
-                                                                }
-                                                            }
-                                                            else
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0085 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TemperatureValueMeasure.Value (decimal) provided");
-                                                                //VESSEL-L00-00-0085 - rejected
-                                                            }
-
-                                                            //VESSEL-L00-00-0138
-                                                            //Vessel_Storage_Char/Temperatur e_value
-                                                            //Numerical value
-                                                            if (applicableVesselStorageCharacteristicTemperatureValueMeasure.unitCode == "CEL")
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0138 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TemperatureValueMeasure.unitCode provided and == CEL");
-                                                            }
-                                                            else
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L00-00-0138 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TemperatureValueMeasure.unitCode provided or != CEL");
-                                                                //VESSEL-L00-00-0138 - rejected
-                                                            }
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.TemperatureValueMeasure provided");
-                                                    }
-
-                                                    if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.UnitValueQuantity != null)
-                                                    {
-                                                        //VESSEL-L01-00-0518
-                                                        //Storage Units
-                                                        //no negative value
-                                                        if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.UnitValueQuantity.Value > 0)
-                                                        {
-                                                            System.Console.WriteLine("VESSEL-L01-00-0518 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.Value provided and > 0");
-
-                                                            //VESSEL-L01-00-0680
-                                                            //Storage Units
-                                                            //Format: XXXXX without decimals
-                                                            //#Q Add decimal value format check
-                                                            if (true)
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L01-00-0680 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.Value format XXXXX valid");
-                                                            }
-                                                            else
-                                                            {
-                                                                System.Console.WriteLine("VESSEL-L01-00-0680 | REJECTED | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.Value format XXXXX not valid");
-                                                                //VESSEL-L01-00-0680 - rejected
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            System.Console.WriteLine("VESSEL-L01-00-0518 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.Value provided or < 0");
-                                                            //VESSEL-L01-00-0518 - rejected
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity provided");
-                                                    }
-
-                                                    if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.UnitValueQuantity != null)
-                                                    {
-                                                        //VESSEL-L00-00-0086
-                                                        //Vessel_Storage_Char/Unit_value
-                                                        //Numerical value
-                                                        if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.UnitValueQuantity?.Value != null)
-                                                        {
-                                                            System.Console.WriteLine("VESSEL-L00-00-0086 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.Value (decimal) provided");
-                                                        }
-                                                        else
-                                                        {
-                                                            System.Console.WriteLine("VESSEL-L00-00-0086 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.Value (decimal) provided");
-                                                            //VESSEL-L00-00-0086 - rejected
-                                                        }
-
-                                                        //VESSEL-L00-00-0139
-                                                        //Vessel_Storage_Char/Unit_value
-                                                        //The unit must be C62
-                                                        if (relatedVesselTransportMeansApplicableVesselStorageCharacteristic.UnitValueQuantity?.unitCode?.ToString() == "C62")
-                                                        {
-                                                            System.Console.WriteLine("VESSEL-L00-00-0139 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.unitCode provided and == C62");
-                                                        }
-                                                        else
-                                                        {
-                                                            System.Console.WriteLine("VESSEL-L00-00-0139 | REJECTED | No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity.unitCode provided or != C62");
-                                                            //VESSEL-L00-00-0139 - rejected
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic.UnitValueQuantity provided");
-                                                    }
-                                                }
-                                            }
-                                            else
-                                            {
-                                                System.Console.WriteLine("No VesselEvent.RelatedVesselTransportMeans.ApplicableVesselStorageCharacteristic provided");
                                             }
                                             #endregion
 
@@ -10623,20 +10834,818 @@ namespace Validation
                                 }
                                 #endregion
 
-                                //VESSEL-L01-02-0007, VESSEL-L02-01-0008, VESSEL-L02-01-0007, VESSEL-L02-01-0010
+                                //VESSEL-L00-00-0021, VESSEL-L00-00-0022, VESSEL-L02-01-0043, VESSEL-L02-01-0042, VESSEL-L02-01-0037, VESSEL-L02-01-0032, VESSEL-L02-01-0052,
+                                //VESSEL-L02-01-0023, VESSEL-L02-01-0024, VESSEL-L02-01-0036, VESSEL-L02-01-0001, VESSEL-L02-01-0038, VESSEL-L02-01-0041, VESSEL-L02-01-0040,
+                                //VESSEL-L02-01-0067, VESSEL-L02-01-0056, VESSEL-L02-01-0021, VESSEL-L02-01-0019, VESSEL-L02-01-0020, VESSEL-L01-02-0007, VESSEL-L02-01-0008,
+                                //VESSEL-L02-01-0007, VESSEL-L02-01-0064, VESSEL-L02-01-0065, VESSEL-L02-01-0018, VESSEL-L02-01-0010, VESSEL-L02-01-0059, VESSEL-L02-01-0025,
+                                //VESSEL-L02-01-0054, VESSEL-L02-01-0055, VESSEL-L02-01-0061, VESSEL-L02-01-0063, VESSEL-L02-01-0062, VESSEL-L02-01-0027, VESSEL-L02-01-0028,
+                                //VESSEL-L02-01-0029, VESSEL-L02-01-0047, VESSEL-L02-01-0044, VESSEL-L02-01-0031, VESSEL-L02-01-0026, VESSEL-L02-01-0013, VESSEL-L02-01-0011,
+                                //VESSEL-L02-01-0006, VESSEL-L02-01-0012, VESSEL-L02-01-0014, VESSEL-L02-01-0030, VESSEL-L02-01-0017, VESSEL-L02-01-0048, VESSEL-L02-01-0049,
+                                //VESSEL-L02-01-0045, VESSEL-L02-01-0046, VESSEL-L02-01-0016, VESSEL-L02-01-0015
                                 #region Boolean Validations
                                 //#Q Should this kind of validations be performed this way?
+
+                                if (valueCurrentFluxVesselReportType.StartsWith("SUB"))
+                                {
+                                    System.Console.WriteLine("VESSEL-L00-00-0021 | TODO | Check if only one vessel is present");
+                                    //VESSEL-L00-00-0021 [REJECTED]
+                                    //FLUX_Report Document/Type & Vessel_ Transport_ Means / Identification
+                                    //For a submission (any types), only one vessel must be present
+                                    //TODO: Check if only one vessel is present
+                                }
+
+                                if (valueCurrentFluxVesselReportType == "SUB" || valueCurrentFluxVesselReportType == "SUB-VED")
+                                {
+                                    //VESSEL-L00-00-0022
+                                    //FLUX_Report Document/Type & Vessel_Event/Occurence
+                                    //For a submission of type SUB and SUB-VED, only one event must be present
+                                    if (countOfVesselEvents > 0 && countOfVesselEvents == 1)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L00-00-0022 | OK | Only one Vessel Event provided for Report Type SUB or SUB_VED");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L00-00-0022 |REJECTED | More than one Vessel Event provided for Report Type SUB or SUB_VED or count not properly set");
+                                        //VESSEL-L00-00-0022 - rejected
+                                    }
+                                }
+
+                                if (valueCurrentEventType == "EXP")
+                                {
+                                    //VESSEL-L02-01-0043
+                                    //Exportation Type & Event Type
+                                    //Exportation Type should be provided for an export (EXP)
+                                    if (hasExportIndicator)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0043 | OK | Exportation Type provided for Export Event");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0043 | ERROR | No Exportation Type provided for Export Event");
+                                        //VESSEL-L02-01-0043 - error
+                                    }
+                                }
+                                else
+                                {
+                                    //VESSEL-L02-01-0042
+                                    //Exportation Type & Event Type
+                                    //Exportation Type should be empty if it is not an export
+                                    if (valueExportIndicator != "")
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0042 | ERROR | Exportation Type provided for Event Type != Export");
+                                        //VESSEL-L02-01-0042 - error
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0042 | OK | No Exportation Type provided for Event Type != Export");
+                                    }
+                                }
+
+                                if (valueCurrentEventType == "MOD")
+                                {
+                                    if (hasPublicAidCode && valuePublicAidCode != "PA" && valuePublicAidCode != "EI" && valuePublicAidCode != "EG")
+                                    {
+                                        //VESSEL-L02-01-0037
+                                        //Public Aid Code & Event Code & GTs
+                                        //If aid code is set (not null and different from PA, EI and EG) and event code ='MOD', the GTs should have a value
+                                        if (valueGTS != -1)
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0037 | OK | GTS provided for Public AID Code != PA/EI/EG and Event Type == MOD");
+
+                                        }
+                                        else
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0037 | WARNING | No  GTS provided for Public AID Code != PA/EI/EG and Event Type == MOD");
+                                            //VESSEL-L02-01-0037 - warning
+                                        }
+                                    }
+                                }
+
+                                if (valueCurrentEventType == "CST")
+                                {
+                                    //VESSEL-L02-01-0032
+                                    //YoC & Event Date & Event Code
+                                    //For a CST, the YoC should be limited to 3 years before the year of the event date (Parameter YEAR_NBR_CST from the VESSEL_BR_PARAMETER code list)
+                                    int value_YEAR_NBR_CST = 3;
+                                    if (DateTime.Compare(yocUtcDateTimeValue, eventUtcDateTimeValue.AddYears(value_YEAR_NBR_CST * (-1))) >= 0 && DateTime.Compare(yocUtcDateTimeValue, eventUtcDateTimeValue) <= 0)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0032 | OK | YoC Date is between Event Date and 3 years before");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0032 | WARNING | Yoc Date is not between Event Date and 3 years before");
+                                        //VESSEL-L02-01-0032 - warning
+                                    }
+
+                                    //VESSEL-L02-01-0052
+                                    //CFR & Event Code & Country of registration
+                                    //For a construction (CST) the Country code in CFR should be the country of registration
+                                    if (valueCFRCountryCode == valueRegistrationCountry)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0052 | OK | Country Code from CFR == Country of Registration");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0052| MISSING | Country Code from CFR != Country of Registration");
+                                        //VESSEL-L02-01-0052 - missing
+                                    }
+
+                                    //VESSEL-L02-01-0023
+                                    //Lengths (LOA/LBP) & Tonnages (GT, Other)
+                                    //Each length (if available) is compared with each tonnage (if available). Check Other Tonnage only if > 0. See table below
+                                    //AND
+                                    //VESSEL-L02-01-0024
+                                    //Lengths (LOA/LBP) & Main Power
+                                    //Each length (if available) is compared with the main power (if available). See table below
+                                    //#Q The following seems not right
+                                    if (valueLOA != -1 || valueLBP != -1)
+                                    {
+                                        if (valueLOA != -1)
+                                        {
+                                            if (1 <= valueLOA && valueLOA < 10)
+                                            {
+                                                if (0 <= valueMainPower && valueMainPower <= 500)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if ((decimal)0.01 <= valueGT && valueGT <= 500)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if ((decimal)0.01 <= valueTOTH && valueTOTH <= 500)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else if (10 <= valueLOA && valueLOA < 15)
+                                            {
+                                                if (0 <= valueMainPower && valueMainPower <= 1000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if (1 <= valueGT && valueGT <= 1000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if (1 <= valueTOTH && valueTOTH <= 1000)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else if (15 <= valueLOA && valueLOA < 24)
+                                            {
+                                                if (4 <= valueMainPower && valueMainPower <= 2500)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if (4 <= valueGT && valueGT <= 2500)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if (4 <= valueTOTH && valueTOTH <= 2500)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else if (24 <= valueLOA && valueLOA < 36)
+                                            {
+                                                if (9 <= valueMainPower && valueMainPower <= 10000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if (9 <= valueGT && valueGT <= 10000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if (9 <= valueTOTH && valueTOTH <= 10000)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else if (36 <= valueLOA && valueLOA < 60)
+                                            {
+                                                if (90 <= valueMainPower && valueMainPower <= 10000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if (90 <= valueGT && valueGT <= 10000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if (90 <= valueTOTH && valueTOTH <= 10000)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else if (60 <= valueLOA && valueLOA < 100)
+                                            {
+                                                if (360 <= valueMainPower && valueMainPower <= 15000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if (360 <= valueGT && valueGT <= 15000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if (360 <= valueTOTH && valueTOTH <= 15000)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else if (100 <= valueLOA && valueLOA <= 200)
+                                            {
+                                                if (720 <= valueMainPower && valueMainPower <= 20000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if (720 <= valueGT && valueGT <= 20000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if (720 <= valueTOTH && valueTOTH <= 20000)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                System.Console.WriteLine("LOA not in range");
+                                            }
+                                        }
+
+                                        if (valueLBP != -1)
+                                        {
+                                            if (1 <= valueLBP && valueLBP < 10)
+                                            {
+                                                if (0 <= valueMainPower && valueMainPower <= 500)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if ((decimal)0.01 <= valueGT && valueGT <= 500)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if ((decimal)0.01 <= valueTOTH && valueTOTH <= 500)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else if (10 <= valueLBP && valueLBP < 15)
+                                            {
+                                                if (0 <= valueMainPower && valueMainPower <= 1000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if (1 <= valueGT && valueGT <= 1000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if (1 <= valueTOTH && valueTOTH <= 1000)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else if (15 <= valueLBP && valueLBP < 24)
+                                            {
+                                                if (4 <= valueMainPower && valueMainPower <= 2500)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if (4 <= valueGT && valueGT <= 2500)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if (4 <= valueTOTH && valueTOTH <= 2500)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else if (24 <= valueLBP && valueLBP < 36)
+                                            {
+                                                if (9 <= valueMainPower && valueMainPower <= 10000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if (9 <= valueGT && valueGT <= 10000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if (9 <= valueTOTH && valueTOTH <= 10000)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else if (36 <= valueLBP && valueLBP < 60)
+                                            {
+                                                if (90 <= valueMainPower && valueMainPower <= 10000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if (90 <= valueGT && valueGT <= 10000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if (90 <= valueTOTH && valueTOTH <= 10000)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else if (60 <= valueLBP && valueLBP < 100)
+                                            {
+                                                if (360 <= valueMainPower && valueMainPower <= 15000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if (360 <= valueGT && valueGT <= 15000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if (360 <= valueTOTH && valueTOTH <= 15000)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else if (100 <= valueLBP && valueLBP <= 200)
+                                            {
+                                                if (720 <= valueMainPower && valueMainPower <= 20000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | OK | Main Power in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0024 | WARNING | Main Power not in range");
+                                                    //VESSEL-L02-01-0024 - warning
+                                                }
+
+                                                if (720 <= valueGT && valueGT <= 20000)
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | OK | GT in range");
+                                                }
+                                                else
+                                                {
+                                                    System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | GT not in range");
+                                                    //VESSEL-L02-01-0023 - warning
+                                                }
+
+                                                if (valueTOTH != -1)
+                                                {
+                                                    if (720 <= valueTOTH && valueTOTH <= 20000)
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | OK | TOTH in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        System.Console.WriteLine("VESSEL-L02-01-0023 | WARNING | TOTH not in range");
+                                                        //VESSEL-L02-01-0023 - warning
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                System.Console.WriteLine("LBP not in range");
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("Any of LOA or LBP provided or not correctly set");
+                                    }
+
+                                    if (valueGT >= 400)
+                                    {
+                                        DateTime dateTimeValue2004EndFrom = new DateTime(2004, 12, 31);
+                                        if (DateTime.Compare(eventUtcDateTimeValue, dateTimeValue2004EndFrom) >= 0)
+                                        {
+                                            //VESSEL-L02-01-0036
+                                            //Public Aid Code & GT Tonnage & Event Code & Event date
+                                            //If tonnage >= 400GT and Event Code=CST and event date ≥ 31/12/2004, aid code should be set to No Aid (PA)
+                                            if (valuePublicAidCode == "PA")
+                                            {
+                                                System.Console.WriteLine("VESSEL-L02-01-0052 | OK | AID code == PA provided for CST, GT >= 400 and after 31.12.2004");
+                                            }
+                                            else
+                                            {
+                                                System.Console.WriteLine("VESSEL-L02-01-0052 | WARNING | AID code != PA provided for CST, GT >= 400 and after 31.12.2004");
+                                                //VESSEL-L02-01-0036 - warning
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (valueCurrentEventType == "IMP")
+                                {
+                                    System.Console.WriteLine("TODO: Check if import is from MS");
+
+                                    System.Console.WriteLine("VESSEL-L02-01-0001 | TODO | CFR ISO-3 country code should be != ISO-3 country code of the declaring MS");
+                                    //VESSEL-L02-01-0001
+                                    //CFR & Country of Registration & Exp/Imp Country & Event Code
+                                    //For an import (IMP) from a MS, the ISO-3 country code [valueCFRCountryCode] of the CFR (first 3 characters of CFR) should be different from the ISO-3 country code of the declaring MS
+                                }
+
+                                if (valueCurrentEventType == "IMP" || valueCurrentEventType == "EXP")
+                                {
+                                    //VESSEL-L02-01-0038
+                                    //Imp/Exp Country & Event Code
+                                    //For import/export (IMP, EXP), a country (ISO-3) should be mentioned
+                                    if (valueImpExpCountry != "")
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0038 | OK | Import/Export Country provided for Import/Export Event");
+
+                                        System.Console.WriteLine("VESSEL-L02-01-0039 | TODO | Check Import/Export Country - should not be in blacklist");
+                                        //VESSEL-L02-01-0039 [WARNING]
+                                        //Imp/Exp Country & Event Code
+                                        //For import/export (IMP, EXP), the country should not be in the black list
+                                        //TODO: CHeck if Import/Export Country provided is in the blacklist
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0038 | MISSING | No Import/Export Country provided for Import/Export Event");
+                                        //VESSEL-L02-01-0038 - missing
+                                    }
+
+                                    //VESSEL-L02-01-0041
+                                    //Imp/Exp Country & Country of registration
+                                    //Should be different
+                                    if (valueImpExpCountry != valueRegistrationCountry)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0041 | OK | Import/Export Country != Country of Registration");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0041 | MISSING | Import/Export Country == Country of Registration");
+                                        //VESSEL-L02-01-0041 - missing
+                                    }
+                                }
+                                else
+                                {
+                                    //VESSEL-L02-01-0040
+                                    //Imp/Exp Country & Event Code
+                                    //Imp/Exp country should be empty if it is not an importation/exportation (IMP/EXP)
+                                    if (valueImpExpCountry != "")
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0039 | ERROR | Import/Export Country provided for Event != Import/Export");
+                                        //VESSEL-L02-01-0040 - ERROR
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0039 | OK | No Import/Export Country provided for Event != Import/Export");
+                                    }
+                                }
+
+                                if (valueCurrentEventType != "" && exitEventsList.Contains(valueCurrentEventType))
+                                {
+                                    //VESSEL-L02-01-0067
+                                    //License Indicator & Event
+                                    //The license indicator must be 'N' for an exit from the fleet
+                                    if (valueLicenceIndicator == "N")
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0067 | OK | Licence Indicator == N for Exit Event");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0067 | WARNING | Licence Indicator != N for Exit Event");
+                                        //VESSEL-L02-01-0067 - warning
+                                    }
+
+                                    //VESSEL-L02-01-0056
+                                    //Event Code & Public Aid Code
+                                    //If Event Code = DES, EXP or RET then Public Aid Code should be filled in
+                                    if (hasPublicAidCode)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0056 | OK | Public Aid Code provided for Exit Event");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0056 | ERROR | No Public Aid Code provided for Exit Event");
+                                        //VESSEL-L02-01-0056 - error
+                                    }
+                                }
+                                else
+                                {
+                                    System.Console.WriteLine("Event Type is not Exit or is not set properly");
+                                }
+
+                                if (valueGTS != -1 && valueLOA != -1)
+                                {
+                                    //VESSEL-L02-01-0021
+                                    //GTs & LOA
+                                    //If GTs, LOA >= 15m
+                                    if (valueLOA >= 15)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0021 | OK | GTS (" + valueGTS + ") provided for LOA (" + valueLOA + ") >= 15");
+
+                                        //VESSEL-L02-01-0019
+                                        //GTs & GT Tonnage
+                                        //GTs < GT Tonnage
+                                        if (valueGTS < valueGT)
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0019 | OK | GTS (" + valueGTS + ") < GT (" + valueGT + ")");
+
+                                            //VESSEL-L02-01-0020
+                                            //GTs & GT Tonnage
+                                            //GTs <= 30 % GT Tonnage (Parameter SAF_PCT from the VESSEL_BR_PARAMETER code list)
+                                            //The safety tonnage should be X % lower than the GT Tonnage
+                                            //#Q X% lower meaning GTS + GTS*X% == or <= or < GT? 
+                                            decimal SAF_percentage = 30; //Parameter SAF_PCT from the VESSEL_BR_PARAMETER code list
+                                            decimal valueGTSpercentage = valueGTS / 100 * SAF_percentage;
+
+                                            if (valueGTS - valueGTSpercentage <= valueGT)
+                                            {
+                                                System.Console.WriteLine("VESSEL-L02-01-0020 | OK | GTS (" + valueGTS + ") is 30% lower than GT (" + valueGT + ")");
+                                            }
+                                            else
+                                            {
+                                                System.Console.WriteLine("VESSEL-L02-01-0020 | WARNING | GTS (" + valueGTS + ") is not 30% lower than GT (" + valueGT + ")");
+                                                //VESSEL-L02-01-0020 - warning
+                                            }
+                                        }
+                                        else
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0019 | ERROR | GTS (" + valueGTS + ") !< GT(" + valueGT + ")");
+                                            //VESSEL-L02-01-0019 - error
+                                        }
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0021 | ERROR | GTS (" + valueGTS + ") !< GT(" + valueGT + ")");
+                                        //VESSEL-L02-01-0021 - error
+                                    }
+                                }
+                                else
+                                {
+                                    System.Console.WriteLine("GTS value (" + valueGTS + ") or LOA value (" + valueLOA + ") not properly set");
+                                }
 
                                 //VESSEL-L01-02-0007
                                 //UVI & IRCS & registration number
                                 //One of these identifiers is mandatory
-                                if (hasUvi || hasIrcsValue || hasRegNbr)
+                                if (hasUvi || hasIrcsValidValue || hasRegNbr)
                                 {
-                                    System.Console.WriteLine("VESSEL-L01-02-0007 | OK | At least one of UVI (" + hasUvi + ") || IRCS (" + hasIrcsValue + ") || REG_NBR (" + hasRegNbr + ") is provided");
+                                    System.Console.WriteLine("VESSEL-L01-02-0007 | OK | At least one of UVI (" + hasUvi + ") || IRCS (" + hasIrcsValidValue + ") || REG_NBR (" + hasRegNbr + ") is provided");
                                 }
                                 else
                                 {
-                                    System.Console.WriteLine("VESSEL-L01-02-0007 | REJECTED | None of UVI (" + hasUvi + ") || IRCS (" + hasIrcsValue + ") || REG_NBR (" + hasRegNbr + ") is provided");
+                                    System.Console.WriteLine("VESSEL-L01-02-0007 | REJECTED | None of UVI (" + hasUvi + ") || IRCS (" + hasIrcsValidValue + ") || REG_NBR (" + hasRegNbr + ") is provided");
                                     //VESSEL-L01-02-0007 - rejected
                                 }
 
@@ -10644,13 +11653,13 @@ namespace Validation
                                     //VESSEL-L02-01-0008
                                     //IRCS Indicator & IRCS
                                     //If indicator is 'Y', value in IRCS
-                                    if (hasIrcsValue)
+                                    if (hasIrcsValidValue)
                                     {
-                                        System.Console.WriteLine("VESSEL-L02-01-0008 | OK | Indicator is Y and IRCS value provided");
+                                        System.Console.WriteLine("VESSEL-L02-01-0008 | OK | IRCS Indicator is Y and IRCS value provided");
                                     }
                                     else
                                     {
-                                        System.Console.WriteLine("VESSEL-L02-01-0008 | WARNING |  Indicator is Y, but no IRCS value provided");
+                                        System.Console.WriteLine("VESSEL-L02-01-0008 | WARNING | IRCS Indicator is Y, but no IRCS value provided");
                                         //VESSEL-L02-01-0008 - warning
                                     }
                                 else
@@ -10658,31 +11667,508 @@ namespace Validation
                                     //VESSEL-L02-01-0007
                                     //IRCS Indicator & IRCS
                                     //If indicator is 'N', no value in IRCS
-                                    if (hasIrcsValue)
+                                    if (hasIrcsValidValue)
                                     {
-                                        System.Console.WriteLine("VESSEL-L02-01-0007 | WARNING | Indicator is N, but IRCS value provided");
+                                        System.Console.WriteLine("VESSEL-L02-01-0007 | WARNING | IRCS Indicator is N, but IRCS value provided");
                                     }
                                     else
                                     {
-                                        System.Console.WriteLine("VESSEL-L02-01-0007 | OK | Indicator is N and no IRCS value provided");
+                                        System.Console.WriteLine("VESSEL-L02-01-0007 | OK | IRCS Indicator is N and no IRCS value provided");
                                         //VESSEL-L02-01-0007 - warning
                                     }
                                 }
 
-                                if (valueLOA >= 24)
+                                if (hasAISBool)
                                 {
-                                    //VESSEL-L02-01-0010
-                                    //IRCS & LOA
-                                    //Mandatory for vessels >= 24m LOA
-                                    if (hasIrcsValue)
+                                    //VESSEL-L02-01-0064
+                                    //AIS Indicator & MMSI
+                                    //If the AIS Indicator is set to 'Y', the MMSI should be provided
+                                    if (hasMmsiValidValue)
                                     {
-                                        System.Console.WriteLine("VESSEL-L02-01-0010 | OK | IRCS value provided for LOA (" + valueLOA + ") >= 24m");
+                                        System.Console.WriteLine("VESSEL-L02-01-0064 | OK | AIS Indicator is Y and MMSI value is provided");
                                     }
                                     else
                                     {
-                                        System.Console.WriteLine("VESSEL-L02-01-0010 | WARNING | No IRCS value provided for LOA (" + valueLOA + ") >= 24m");
-                                        //VESSEL-L02-01-0010 - warning
+                                        System.Console.WriteLine("VESSEL-L02-01-0064 | WARNING | AIS Indicator is Y, but MMSI value is not provided");
+                                        //VESSEL-L02-01-0064 - warning
                                     }
+                                }
+                                else
+                                {
+                                    //VESSEL-L02-01-0065
+                                    //AIS Indicator & MMSI
+                                    //If the AIS Indicator is set to 'N', the MMSI should not be provided
+                                    if (hasMmsiValidValue)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0065 | WARNING | AIS Indicator is N, but MMSI value is provided");
+                                        //VESSEL-L02-01-0065 - warning
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0065 | OK | AIS Indicator is N and MMSI value is not provided");
+                                    }
+                                }
+
+                                if (valueLOA >= 15)
+                                {
+
+                                    //VESSEL-L02-01-0018
+                                    //GT Tonnage & Other Tonnage & LOA
+                                    //For LOA >= 15m, GT > Other Tonnage
+                                    if (valueGT > valueTOTH)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0018 | OK | LOA is >= 15 and GT is > TOTH");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0018 | WARNING | LOA is >= 15, but GT !> TOTH");
+                                        //VESSEL-L02-01-0018 - warning
+                                    }
+
+                                    if (valueLOA >= 24)
+                                    {
+                                        //VESSEL-L02-01-0010
+                                        //IRCS & LOA
+                                        //Mandatory for vessels >= 24m LOA
+                                        if (hasIrcsValidValue)
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0010 | OK | IRCS value provided for LOA (" + valueLOA + ") >= 24m");
+                                        }
+                                        else
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0010 | ERROR | No IRCS value provided for LOA (" + valueLOA + ") >= 24m");
+                                            //VESSEL-L02-01-0010 - error
+                                        }
+
+                                        if (valueLOA > 30)
+                                        {
+                                            //VESSEL-L02-01-0059
+                                            //LOA & Auxiliary Power
+                                            //If LOA > 30m then Auxiliary Power should be greater than 0 (Parameter LEN_PWR from the VESSEL_BR_PARAMETER code list)
+                                            //#Q 0 to be replaced with Parameter LEN_PWR from the VESSEL_BR_PARAMETER code list
+                                            if (valueAuxPower > 0)
+                                            {
+                                                System.Console.WriteLine("VESSEL-L02-01-0059 | OK | AUX value > LEN_PWR provided for LOA (" + valueLOA + ") > 30m");
+                                            }
+                                            else
+                                            {
+                                                System.Console.WriteLine("VESSEL-L02-01-0059 | WARNING | AUX value < LEN_PWR provided for LOA (" + valueLOA + ") > 30m");
+                                                //VESSEL-L02-01-0059 - warning
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (valueMainPower > 0)
+                                {
+                                    //VESSEL-L02-01-0025
+                                    //Main Power & Auxiliary Power
+                                    //Auxiliary power < Main power if main power ≠ 0
+                                    if (valueAuxPower < valueMainPower)
+                                    {
+
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0025 | WARNING | AUX power value (" + valueAuxPower + ") !< MAIN power value (" + valueMainPower + ")");
+                                        //VESSEL-L02-01-0025 - warning
+                                    }
+                                }
+                                else
+                                {
+                                    System.Console.WriteLine("MAIN power value (" + valueMainPower + ") not properly set or == 0");
+                                }
+
+                                DateTime dateTimeValue2003From = new DateTime(2003, 1, 1);
+                                DateTime dateTimeValue2004From = new DateTime(2004, 1, 1);
+                                DateTime dateTimeValue2005From = new DateTime(2005, 1, 1);
+                                DateTime dateTimeValue2016From = new DateTime(2016, 1, 1);
+                                DateTime dateTimeValue2018From = new DateTime(2018, 2, 1);
+
+                                if (eventUtcDateTimeValue == DateTime.MinValue)
+                                {
+                                    System.Console.WriteLine("Event Date not properly set.");
+                                }
+                                if (eisUtcDateTimeValue == DateTime.MinValue)
+                                {
+                                    System.Console.WriteLine("EiS Date not properly set.");
+                                }
+                                if (yocUtcDateTimeValue == DateTime.MinValue)
+                                {
+                                    System.Console.WriteLine("YoC Date not properly set.");
+                                }
+
+                                if (DateTime.Compare(eventUtcDateTimeValue, dateTimeValue2004From) >= 0)
+                                {
+                                    if (valueLOA > 18 && valueLicenceIndicator == "Y" && valueSegmentCode == "AQU")
+                                    {
+                                        //VESSEL-L02-01-0054
+                                        //VMS Indicator & Event Date & LOA & Segment Code &Licence Indicator
+                                        //VMS indicator = Y for an event Period including 01/01/2004 or beyond, for vessel > 18 m LOA and Licence Indicator = Y and Segment Code <> AQU
+                                        if (valueVmsIndicator == "Y")
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0054 | OK | VMS Indicator present for Event Date after 01.01.2004, LOA > 18, Licence Indicator present and Segment Code == AQU");
+                                        }
+                                        else
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0054 | WARNING | No VMS Indicator present for Event Date after 01.01.2004, LOA > 18, Licence Indicator present and Segment Code == AQU");
+                                            //VESSEL-L02-01-0054 - warning
+                                        }
+                                    }
+                                }
+
+                                if (DateTime.Compare(eventUtcDateTimeValue, dateTimeValue2005From) >= 0)
+                                {
+                                    if (valueLOA > 15 && valueLicenceIndicator == "Y" && valueSegmentCode == "AQU")
+                                    {
+                                        //VESSEL-L02-01-0055
+                                        //VMS Indicator & Event Date & LOA & Segment Code &Licence Indicator
+                                        //VMS Indicator = Y for an event period including 01/01/2005 or beyond, for vessel > 15 m LOA and Licence Indicator = Y and segment code <> AQU
+                                        if (valueVmsIndicator == "Y")
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0055 | OK | VMS Indicator present for Event Date after 01.01.2004, LOA > 15, Licence Indicator present and Segment Code == AQU");
+                                        }
+                                        else
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0055 | WARNING | No VMS Indicator present for Event Date after 01.01.2004, LOA > 15, Licence Indicator present and Segment Code == AQU");
+                                            //VESSEL-L02-01-0055 - warning
+                                        }
+                                    }
+                                }
+
+                                if (DateTime.Compare(eventUtcDateTimeValue, dateTimeValue2016From) >= 0)
+                                {
+                                    if (valueGT >= 100)
+                                    {
+                                        //VESSEL-L02-01-0061
+                                        //UVI & Event Date & Tonnage (GT, Other tonnage)
+                                        //UVI is mandatory from and for an event period including 01/01/2016 or beyond and for vessels with a tonnage above or equal to 100GT
+                                        if (hasUvi)
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0061 | OK | UVI present for Event Date within mandatory period and GT > 100");
+                                        }
+                                        else
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0061 | MISSING | No UVI present for Event Date within mandatory period and GT > 100");
+                                            //VESSEL-L02-01-0061 - missing
+                                        }
+                                    }
+                                }
+
+                                if (DateTime.Compare(eventUtcDateTimeValue, dateTimeValue2018From) >= 0) // DateTime.Compare >= 0 => eventUtcDateTimeValue is the same or later than dateTimeValueErsAisFrom
+                                {
+                                    //VESSEL-L02-01-0063
+                                    //AIS Indicator & Event Date
+                                    //AIS indicator is mandatory from and for an event period including 01/02/2018 or beyond
+                                    if (hasAISBool)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0063 | OK | AIS indicator is present for Event Date within mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0063 | ERROR | AIS indicator is not present for Event Date within mandatory period");
+                                        //VESSEL-L02-01-0063 - error
+                                    }
+
+                                    //VESSEL-L02-01-0062
+                                    //ERS Indicator & Event Date
+                                    //ERS Indicator is mandatory from and for an event period including 01/02/2018 or beyond
+                                    if (hasERSBool)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0062 | OK | ERS indicator is present for Event Date within mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0062 | ERROR | ERS indicator is not present for Event Date within mandatory period");
+                                        //VESSEL-L02-01-0062 - error
+                                    }
+                                }
+
+                                //VESSEL-L02-01-0027
+                                //EiS & Event Date
+                                //EiS <= Event Date
+                                if (DateTime.Compare(eisUtcDateTimeValue, eventUtcDateTimeValue) <= 0)
+                                {
+                                    System.Console.WriteLine("VESSEL-L02-01-0027 | OK | EiS date is earlier or the same as Event Date");
+                                }
+                                else
+                                {
+                                    System.Console.WriteLine("VESSEL-L02-01-0027 | ERROR | EiS date is not earlier or the same as Event Date");
+                                    //VESSEL-L02-01-0027 - error
+                                }
+
+                                //VESSEL-L02-01-0028
+                                //YoC & Event Date
+                                //YoC <= Event Date
+                                if (DateTime.Compare(yocUtcDateTimeValue, eventUtcDateTimeValue) <= 0)
+                                {
+                                    System.Console.WriteLine("VESSEL-L02-01-0028 | OK | YoC date is earlier or the same as Event Date");
+                                }
+                                else
+                                {
+                                    System.Console.WriteLine("VESSEL-L02-01-0028 | ERROR | YoC date is not earlier or the same as Event Date");
+                                    //VESSEL-L02-01-0028 - error
+                                }
+
+                                //VESSEL-L02-01-0029
+                                //YoC & EiS
+                                //YoC <= EiS year
+                                if (DateTime.Compare(yocUtcDateTimeValue, eisUtcDateTimeValue) <= 0)
+                                {
+                                    System.Console.WriteLine("VESSEL-L02-01-0029 | OK | YoC date is earlier or the same as EiS Date");
+                                }
+                                else
+                                {
+                                    System.Console.WriteLine("VESSEL-L02-01-0029 | ERROR | YoC date is not earlier or the same as EiS Date");
+                                    //VESSEL-L02-01-0029 - error
+                                }
+
+                                if (DateTime.Compare(eventUtcDateTimeValue, dateTimeValue2003From) >= 0)
+                                {
+                                    if (valueLOA >= 27 || valueLBP >= 24)
+                                    {
+                                        //VESSEL-L02-01-0047
+                                        //Owner Name & Event Date & LOA/LBP
+                                        //For an event period including 01/01/2003 or beyond the Owner Name is mandatory for vessels of 27m LOA or 24m LBP
+                                        if (hasOwnerName)
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0047 | OK | Owner name provided for mandatory period and LOA >= 27 or LBP >= 24");
+                                        }
+                                        else
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0047 | WARNING | No Owner name provided for mandatory period and LOA >= 27 or LBP >= 24");
+                                            //VESSEL-L02-01-0047 - warning
+                                        }
+                                    }
+
+                                    if (valueLOA >= 15 || valueLBP >= 12)
+                                    {
+                                        //VESSEL-L02-01-0044
+                                        //Operator Name & Event Date & LOA & LBP
+                                        //For an event period including 01/01/2003 or beyond , an Operator Name is mandatory for vessels above or equal to 15m LOA or 12m LBP
+                                        if (hasOperatorName)
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0044 | OK | Operator name provided for mandatory period and LOA >= 15 or LBP >= 12");
+                                        }
+                                        else
+                                        {
+                                            System.Console.WriteLine("VESSEL-L02-01-0044 | WARNING | No Operator name provided for mandatory period and LOA >= 15 or LBP >= 12");
+                                            //VESSEL-L02-01-0044 - warning
+                                        }
+                                    }
+                                }
+
+                                if (DateTime.Compare(eventUtcDateTimeValue, dateTimeValue2003From) >= 0)
+                                {
+                                    //VESSEL-L02-01-0031
+                                    //Event Date & EiS
+                                    //EiS mandatory for an event period including 01/01/2003 or beyond
+                                    if (eisUtcDateTimeValue != DateTime.MinValue)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0031 | OK | EiS Date provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0031 | ERROR | EiS Date not provided for mandatory period");
+                                        //VESSEL-L02-01-0031 - error
+                                    }
+
+                                    //VESSEL-L02-01-0026
+                                    //Hull Material & Event Date
+                                    //No 'Unknown' code for an event period including 01/01/2003 or beyond
+                                    if (valueHullMaterial != "Unknown") //#Q or != corresponding code for Unknown from the VESSEL_HULL_TYPE list
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0026 | OK | Hull Material != Unknown provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0026 | ERROR | No Hull Material != Unknown provided for mandatory period");
+                                        //VESSEL-L02-01-0026 - error
+                                    }
+
+                                    //VESSEL-L02-01-0013
+                                    //LOA & Event Date
+                                    //LOA mandatory for an event period including 01/01/2003 or beyond
+                                    if (valueLOA != -1)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0013 | OK | LOA provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0013 | MISSING | No LOA provided for mandatory period");
+                                        //VESSEL-L02-01-0013 - missing
+                                    }
+
+                                    //VESSEL-L02-01-0011
+                                    //VMS Indicator & Event Date
+                                    //VMS indicator mandatory for an event period including 01/01/2003 or beyond
+                                    if (hasVmsIndicator)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0011 | OK | VMS Indicator provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0011 | ERROR | No VMS Indicator provided for mandatory period or not properly set");
+                                        //VESSEL-L02-01-0011 - error
+                                    }
+
+                                    //VESSEL-L02-01-0006
+                                    //License Indicator & Event Date
+                                    //Mandatory for an event period including 01/01/2003 or beyond
+                                    if (hasLicenceIndicator) //#Q LICENSE or LICENCE is correct? Both appear in documentation
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0006 | OK | License Indicator provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0006 | ERROR | No License Indicator provided for mandatory period or not properly set");
+                                        //VESSEL-L02-01-0006 - error
+                                    }
+
+                                    //VESSEL-L02-01-0012
+                                    //Main Gear Code & Event Date
+                                    //No '"Unknown" gear for an event period including 01/01/2003 or beyond
+                                    if (valueHullMaterial != "Unknown") //#Q or != corresponding code for Unknown from the GEAR_TYPE list
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0012 | OK | Main Gear != Unknown provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0012 | ERROR | No Main Gear != Unknown provided for mandatory period");
+                                        //VESSEL-L02-01-0012 - error
+                                    }
+
+                                    //VESSEL-L02-01-0014
+                                    //LOA & LBP & Event Date
+                                    //One length must be given if the event date < 01/01/2003
+                                    if (valueLOA != -1 || valueLBP != -1)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0014 | OK | LOA or LBP provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0014 | ERROR | No LOA or LBP provided for mandatory period");
+                                        //VESSEL-L02-01-0014 - error
+                                    }
+                                }
+                                else
+                                {
+                                    //VESSEL-L02-01-0030
+                                    //Event Date & YoC & EiS
+                                    //YoC or EiS should be given for events < 01/01/2003
+                                    if (eisUtcDateTimeValue != DateTime.MinValue || yocUtcDateTimeValue != DateTime.MinValue)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0030 | ERROR | EiS Date or YoC Date provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0030 | ERROR | No EiS Date or YoC Date provided for mandatory period");
+                                        //VESSEL-L02-01-0030 - error
+                                    }
+                                }
+
+                                if (DateTime.Compare(eventUtcDateTimeValue, dateTimeValue2004From) >= 0)
+                                {
+                                    //VESSEL-L02-01-0017
+                                    //GT Tonnage & Event Date
+                                    //GT Tonnage mandatory for an event period including 01/01/2004 or beyond
+                                    if (valueGT != -1)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0017 | OK | GT Tonnage provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0017 | MISSING | No GT Tonnage provided for mandatory period");
+                                        //VESSEL-L02-01-0017 - missing
+                                    }
+
+                                    //VESSEL-L02-01-0048
+                                    //Owner Name & Event Date
+                                    //For an event period including 01/01/2004 or beyond the Owner Name is mandatory
+                                    if (hasOwnerName)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0048 | OK | Owner Name provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0048 | WARNING | No Owner Name provided for mandatory period");
+                                        //VESSEL-L02-01-0048 - warning
+                                    }
+
+                                    //VESSEL-L02-01-0049
+                                    //Owner Street & Event Date
+                                    //For an event period including 01/01/2004 or beyond the Owner Street is mandatory
+                                    if (hasOwnerStreetName)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0049 | OK | Owner Street Name provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0049 | WARNING | No Owner Street Name provided for mandatory period");
+                                        //VESSEL-L02-01-0049 - warning
+                                    }
+
+                                    //VESSEL-L02-01-0045
+                                    //Operator Name & Event Date
+                                    //For an event period including 01/01/2004 or beyond an Operator Name is mandatory
+                                    if (hasOperatorName)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0045 | OK | Operator Name provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0045 | ERROR | No Operator Name provided for mandatory period");
+                                        //VESSEL-L02-01-0045 - error
+                                    }
+
+                                    //VESSEL-L02-01-0046
+                                    //Operator Street & Event Date
+                                    //For an event period including 01/01/2004 or beyond an Operator Street is mandatory
+                                    if (hasOperatorStreetName)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0046 | OK | Operator Street Name provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0046 | ERROR | No Operator Street Name provided for mandatory period");
+                                        //VESSEL-L02-01-0046 - error
+                                    }
+                                }
+                                else
+                                {
+                                    //VESSEL-L02-01-0016
+                                    //GT Tonnage & Other Tonnage & Event Date
+                                    //One tonnage should be given for an even date < 01/01/2004
+                                    if (valueGT != -1 || valueTOTH != -1)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0016 | OK | GT Tonnage or Other Tonnage provided for mandatory period");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0016 | MISSING | No GT Tonnage or Other Tonnage provided for mandatory period");
+                                        //VESSEL-L02-01-0016 - missing
+                                    }
+                                }
+
+                                //#Q decimal type cannot be null, initial value is 0, check if LOA and LBP have been set
+                                if (valueLOA != -1 && valueLBP != -1)
+                                {
+                                    //VESSEL-L02-01-0015
+                                    //LOA & LBP
+                                    //LBP <= LOA
+                                    if (valueLBP <= valueLOA)
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0015 | OK | LBP <= LOA");
+                                    }
+                                    else
+                                    {
+                                        System.Console.WriteLine("VESSEL-L02-01-0015 | WARNING | LBP <= LOA");
+                                        //VESSEL-L02-01-0015 - warning
+                                    }
+                                }
+                                else
+                                {
+                                    System.Console.WriteLine("LOA or LBP is 0 (initial value) => not provided or provided 0");
                                 }
                                 #endregion
 
