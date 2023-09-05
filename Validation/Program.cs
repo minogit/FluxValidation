@@ -12305,8 +12305,12 @@ namespace Validation
                 {
                     switch (rule.Code)
                     {
-                        case "....":
+                        case "SALE-L00-00-0001":
 
+                            if (SalesReport.FLUXReportDocument.ID != null)
+                            {
+
+                            }
                           
 
                             break;
