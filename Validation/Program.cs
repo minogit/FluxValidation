@@ -12311,7 +12311,10 @@ namespace Validation
                             {
 
                             }
-                          
+                            else
+                            {
+                                System.Console.WriteLine("No SalesReport provided");
+                            }
 
                             break;
                     }
