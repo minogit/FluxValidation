@@ -46,6 +46,9 @@
     <None Update="FluxReports\ReusableAggregateBusinessInformationEntity_20p0.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="FluxReports\SALESBRDEF.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="FluxReports\Samples_Fleet_Query_Vessel.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
