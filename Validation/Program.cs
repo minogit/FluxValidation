@@ -5678,7 +5678,6 @@ namespace Validation
 
 
             bool VesselDomainDebug = false;
-           
             if (VesselDomainDebug)
             {
                 #region VesselReport
@@ -12183,6 +12182,7 @@ namespace Validation
             bool SalesDomainDebug = true;
             if (SalesDomainDebug)
             {
+
                 #region Sales Report
                 string filePathSalesReport = strWorkPath + @"\FluxReports\Samples_Sales_SN_Report_Message_Normal.xml";
                 XmlDocument xmlDoc = new XmlDocument();
@@ -12217,7 +12217,6 @@ namespace Validation
                             Sales_MDR_Sales_BR_Def def = new Sales_MDR_Sales_BR_Def();
                             for (int i = 0; i < values.Length; i++)
                             {
-
                                 switch (i)
                                 {
                                     case 0: // id
@@ -12284,7 +12283,7 @@ namespace Validation
                                         break;
                                     case 15:
                                         def.EnMessage = values[15];
-                                        break;                                     
+                                        break;
                                 }
                             }
                             SalesBrDef.Add(def);
@@ -12303,18 +12302,326 @@ namespace Validation
 
                 foreach (var rule in SalesBrDef)
                 {
-                    switch (rule.Code)
+                    //#Q Changed switch(rule.Code) to switch(rule.BR) as there is nothing in col 2 in SALESBRDEF.csv and business rules codes are in column 11 - BR 
+                    switch (rule.BR)
                     {
                         case "SALE-L00-00-0001":
 
-                            if (SalesReport.FLUXReportDocument.ID != null)
+                            #region SalesReport
+                            if (SalesReport != null)
                             {
+                                string valuePurposeCode = "";
 
+                                bool hasReferencedIdentification = false;
+
+                                #region SalesReport.FLUXReportDocument
+                                //SALE-L00-00-0001
+                                //FLUX_ ReportDocument
+                                //Must be present
+                                if (SalesReport.FLUXReportDocument != null)
+                                {
+                                    Console.WriteLine("SALE-L00-00-0001 | OK | SalesReport.FLUXReportDocument provided");
+
+                                    //SALE-L02-00-0001
+                                    //FLUX_ ReportDocument
+                                    //Only one report document
+                                    //#Q Will this check satisfy the condition?
+                                    if (SalesReport.FLUXReportDocument.GetType().IsArray == false)
+                                    {
+                                        Console.WriteLine("SALE-L02-00-0001 | OK | SalesReport.FLUXReportDocument is not an array");
+
+                                        #region SalesReport.FLUXReportDocument.ID
+                                        //SALE-L00-00-0010
+                                        //FLUX_ ReportDocument/Identification
+                                        //Must be present.
+                                        if (SalesReport.FLUXReportDocument.ID != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0010 | OK | SalesReport.FLUXReportDocument.ID provided");
+
+                                            foreach (var fluxReportDocumentId in SalesReport.FLUXReportDocument.ID)
+                                            {
+                                                //SALE-L01-00-0010
+                                                //FLUX_ ReportDocument/Identification
+                                                //Check attribute schemeID. Must be UUID.
+                                                if (fluxReportDocumentId.schemeID?.ToString() == "UUID")
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0010 | OK | SalesReport.FLUXReportDocument.ID.schemeID provided and == UUID");
+
+                                                    Console.WriteLine("SALE-L01-00-0011 | TODO | Check format - SalesReport.FLUXReportDocument.ID.Value - RFC4122");
+                                                    //SALE-L01-00-0011 - error
+                                                    //FLUX_ ReportDocument/Identification
+                                                    //Check Format. Must be according to the specified schemeID.
+                                                    //TODO: Check id UUID format - RFC4122
+
+                                                    Console.WriteLine("SALE-L03-00-0010 | TODO | Check DB - SalesReport.FLUXReportDocument.ID.Value - unique");
+                                                    //SALE-L03-00-0010 - warning
+                                                    //FLUX_ ReportDocument/Identification
+                                                    //The identification must be unique and not already exist
+                                                    //If it exists already, the contents are considered identical and the message may be ignored by the receiving party.
+                                                    //It is expected to return the same validation results.
+                                                    //TODO: Check id UUID - unique
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0010 | ERROR | No SalesReport.FLUXReportDocument.ID.schemeID provided or != UUID");
+                                                    //SALE-L01-00-0010 - error
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0010 | ERROR | No SalesReport.FLUXReportDocument.ID provided");
+                                            //SALE-L00-00-0010 - error
+                                        }
+                                        #endregion SalesReport.FLUXReportDocument.ID
+
+                                        #region SalesReport.FLUXReportDocument.PurposeCode
+                                        //SALE-L00-00-0012
+                                        //FLUX_ ReportDocument/Purpose
+                                        //The code must be present
+                                        if (SalesReport.FLUXReportDocument.PurposeCode != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0012 | OK | SalesReport.FLUXReportDocument.PurposeCode provided");
+
+                                            //SALE-L01-00-0014
+                                            //FLUX_ ReportDocument/Purpose
+                                            //Check attribute listID. Must be FLUX_GP_PURPOSE
+                                            if (SalesReport.FLUXReportDocument.PurposeCode.listID?.ToString() == "FLUX_GP_PURPOSE")
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0014 | OK | SalesReport.FLUXReportDocument.PurposeCode.listID provided and == FLUX_GP_PURPOSE");
+
+                                                Console.WriteLine("SALE-L01-00-0015 | TODO | Check DB - SalesReport.FLUXReportDocument.PurposeCode.Value - from FLUX_GP_PURPOSE list");
+                                                //SALE-L01-00-0015
+                                                //FLUX_ ReportDocument/Purpose
+                                                //Check code from the list listID.
+                                                //Todo: Check code - from FLUX_GP_PURPOSE
+
+                                                //SALE-L01-00-0016
+                                                //FLUX_ ReportDocument/Purpose
+                                                //Purpose code should not be 1 (cancellation)
+                                                if (SalesReport.FLUXReportDocument.PurposeCode.Value?.ToString() != "" && SalesReport.FLUXReportDocument.PurposeCode.Value?.ToString() != "1")
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0016 | OK | SalesReport.FLUXReportDocument.PurposeCode.Value provided and != 1 (cancellation)");
+
+                                                    valuePurposeCode = SalesReport.FLUXReportDocument.PurposeCode.Value.ToString();
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0016 | ERROR | No SalesReport.FLUXReportDocument.PurposeCode.Value provided or == 1 (cancellation)");
+                                                    //SALE-L01-00-0016 - error
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0014 | ERROR | No SalesReport.FLUXReportDocument.PurposeCode.listID provided or != FLUX_GP_PURPOSE");
+                                                //SALE-L01-00-0014 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0012 | ERROR | No SalesReport.FLUXReportDocument.PurposeCode provided");
+                                            //SALE-L00-00-0012 - error
+                                        }
+                                        #endregion SalesReport.FLUXReportDocument.PurposeCode
+
+                                        #region SalesReport.FLUXReportDocument.ReferencedIdentification
+                                        if (valuePurposeCode == "3" || valuePurposeCode == "5")  //3: deletion; 5: correction
+                                        {
+                                            //SALE-L02-00-0010
+                                            //FLUX_ ReportDocument/Purpose, FLUX_ReportDocument/Referenced Identification
+                                            //If correction or deletion, the referenced identification must be provided and it must be the one of a an existing Sales Report message.
+                                            //#Q TODO: Check if SalesReport.FLUXReportDocument.ReferencedID.Value is one of an existing Sales Report
+
+                                            Console.WriteLine("SALE-L02-00-0010 | TODO | Check DB - SalesReport.FLUXReportDocument.ReferencedID.Value provided and of an existing Sales Report");
+                                            bool referencedIdValueIsExisting = true;
+                                            if (SalesReport.FLUXReportDocument.ReferencedID != null && referencedIdValueIsExisting)
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0010 | OK | SalesReport.FLUXReportDocument.ReferencedID provided and of an existing Sales Report");
+
+                                                hasReferencedIdentification = true;
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0010 | WARNING | No SalesReport.FLUXReportDocument.ReferencedID provided or not of an existing Sales Report");
+                                                //SALE-L02-00-0010 - warning
+                                            }
+                                        }
+                                        
+                                        //#Q Does 9 corresponds to creation?
+                                        if (valuePurposeCode == "9")  //9: original report
+                                        {
+                                            //SALE-L02-00-0011
+                                            //FLUX_ ReportDocument/Purpose, FLUX_ ReportDocument/ Referenced Identification
+                                            //If it is a new message (creation), the referenced identification, if provided, must be the one of a Query message
+                                            //#Q TODO: Check if the Referenced Identification is one of a Query message
+
+                                            Console.WriteLine("SALE-L02-00-0011 | TODO | Check DB - SalesReport.FLUXReportDocument.ReferencedID.Value provided and one of a Query message");
+                                            bool referencedIdValueIsQueryMessage = true;
+                                            if (SalesReport.FLUXReportDocument.ReferencedID != null && referencedIdValueIsQueryMessage)
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0011 | OK | SalesReport.FLUXReportDocument.ReferencedID.Value provided and of a Query Message");
+
+                                                hasReferencedIdentification = true;
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0011 | ERROR | No SalesReport.FLUXReportDocument.ReferencedID provided or not of a Query Message");
+                                                //SALE-L02-00-0011 - error
+                                            }
+                                        }
+
+                                        if (hasReferencedIdentification)
+                                        {
+                                            //SALE-L01-00-0008
+                                            //FLUX_ ReportDocument/Referenced Identification
+                                            //Check attribute schemeID. Must be UUID.
+                                            if (SalesReport.FLUXReportDocument.ReferencedID.schemeID?.ToString() == "UUID")
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0008 | OK | SalesReport.FLUXReportDocument.ReferencedID.schemeID provided and == UUID");
+
+                                                Console.WriteLine("SALE-L01-00-0008 | TODO | Check format - SalesReport.FLUXReportDocument.ReferencedID.Value - RFC4122");
+                                                //SALE-L01-00-0009 - error
+                                                //FLUX_ ReportDocument/Referenced Identification
+                                                //Check Format. Must be according to the specified schemeID
+                                                //TODO: Check referenced id UUID format - RFC4122
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0008 | ERROR | No SalesReport.FLUXReportDocument.ReferencedID.schemeID provided or != UUID");
+                                                //SALE-L01-00-0008 - error
+                                            }
+                                        }
+                                        #endregion SalesReport.FLUXReportDocument.ReferencedIdentification
+
+                                        #region SalesReport.FLUXReportDocument.CreationDateTime
+                                        //SALE-L00-00-0011
+                                        //FLUX_ ReportDocument/Creation
+                                        //Must be present.
+                                        if (SalesReport.FLUXReportDocument.CreationDateTime?.Item != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0011 | OK | SalesReport.FLUXReportDocument.CreationDateTime.Item provided");
+
+                                            //SALE-L01-00-0012
+                                            //FLUX_ ReportDocument
+                                            //Check Format. Must be date in UTC according to ISO8601
+                                            if (SalesReport.FLUXReportDocument.CreationDateTime.Item is DateTime)
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0012 | OK | SalesReport.FLUXReportDocument.CreationDateTime.Item is DateTime");
+
+                                                //SALE-L01-00-0013
+                                                //FLUX_ ReportDocument
+                                                //Date must be in the past.
+                                                DateTime dateTimeUtcNow = DateTime.UtcNow;
+                                                if (DateTime.Compare(SalesReport.FLUXReportDocument.CreationDateTime.Item, dateTimeUtcNow) < 0)  // date1 is earlier than date2 => in the past
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0013 | OK | SalesReport.FLUXReportDocument.CreationDateTime is in the past");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0013 | ERROR | SalesReport.FLUXReportDocument.CreationDateTime is not in the past");
+                                                    //SALE-L01-00-0013 - error
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0012 | ERROR | SalesReport.FLUXReportDocument.CreationDateTime is not DateTime");
+                                                //SALE-L01-00-0012 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0011 | ERROR | No SalesReport.FLUXReportDocument.CreationDateTime.Item provided");
+                                            //SALE-L00-00-0011 - error
+                                        }
+                                        #endregion SalesReport.FLUXReportDocument.CreationDateTime
+
+                                        #region SalesReport.FLUXReportDocument.OwnerFLUXParty
+                                        //SALE-L00-00-0013
+                                        //FLUXParty
+                                        //Must be present
+                                        if (SalesReport.FLUXReportDocument.OwnerFLUXParty != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0013 | OK | SalesReport.FLUXReportDocument.OwnerFLUXParty provided");
+
+                                            //SALE-L00-00-0014
+                                            //FLUXParty
+                                            //Only one party
+                                            //#Q Will this check satisfy the condition?
+                                            if (SalesReport.FLUXReportDocument.OwnerFLUXParty.GetType().IsArray == false)
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0014 | OK | SalesReport.FLUXReportDocument.OwnerFLUXParty ia not an array");
+
+                                                //SALE-L00-00-0020
+                                                //FLUX_party/Identification
+                                                //Must be present
+                                                if (SalesReport.FLUXReportDocument.OwnerFLUXParty.ID != null)
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0020 | OK | SalesReport.FLUXReportDocument.OwnerFLUXParty.ID provided");
+
+                                                    //#Q As cardinality is 1, take and validate only the first element
+                                                    var ownerPartyId = SalesReport.FLUXReportDocument.OwnerFLUXParty.ID.First();
+                                                    //SALE-L01-00-0017
+                                                    //FLUX_party/Identification
+                                                    //Check attribute schemeID. Must be FLUX_GP_PARTY
+                                                    if (ownerPartyId.schemeID?.ToString() == "FLUX_GP_PARTY")
+                                                    {
+                                                        Console.WriteLine("SALE-L01-00-0017 | OK | SalesReport.FLUXReportDocument.OwnerFLUXParty.ID.schemaID provided and == FLUX_GP_PARTY");
+
+                                                        Console.WriteLine("SALE-L01-00-0020 | TODO | Check DB - SalesReport.FLUXReportDocument.OwnerFLUXParty.ID.Value from FLUX_GP_PARTY list");
+                                                        //SALE-L01-00-0020 - error
+                                                        //FLUX_party/Identification
+                                                        //Check code from the list schemeD
+                                                        //TODO: Check DB - SalesReport.FLUXReportDocument.OwnerFLUXParty.ID.Value from FLUX_GP_PARTY list
+
+                                                        Console.WriteLine("SALE-L03-00-0012 | TODO | Check DB if SalesReport.FLUXReportDocument.OwnerFLUXParty.ID.Value is consistent with FLUX TL values");
+                                                        //SALE-L03-00-0012 - warning
+                                                        //FLUX_party/Identification
+                                                        //Check if OwnerFLUXParty.ID is consistent with FLUX TL values.
+                                                        //TODO: Check if 
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L01-00-0017 | ERROR | No SalesReport.FLUXReportDocument.OwnerFLUXParty.ID.schemaID provided or != FLUX_GP_PARTY");
+                                                        //SALE-L01-00-0017 - error
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0020 | ERROR | No SalesReport.FLUXReportDocument.OwnerFLUXParty.ID provided");
+                                                    //SALE-L00-00-0020 - error
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0014 | ERROR | SalesReport.FLUXReportDocument.OwnerFLUXParty ia an array");
+                                                //SALE-L00-00-0014
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0013 | ERROR | No SalesReport.FLUXReportDocument.OwnerFLUXParty provided");
+                                            //SALE-L00-00-0013 - error
+                                        }
+                                        #endregion SalesReport.FLUXReportDocument.OwnerFLUXParty
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L02-00-0001 | ERROR | SalesReport.FLUXReportDocument is an array");
+                                        //SALE-L02-00-0001 - error
+                                    }
+                                }
+                                else
+                                {
+                                    Console.WriteLine("SALE-L00-00-0001 | ERROR | No SalesReport.FLUXReportDocument provided");
+                                    //SALE-L00-00-0001 - error
+                                }
+                                #endregion SalesReport.FLUXReportDocument
                             }
                             else
                             {
-                                System.Console.WriteLine("No SalesReport provided");
+                                Console.WriteLine("No SalesReport provided");
                             }
+                            #endregion
 
                             break;
                     }
