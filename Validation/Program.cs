@@ -12311,8 +12311,14 @@ namespace Validation
                             if (SalesReport != null)
                             {
                                 string valuePurposeCode = "";
+                                string valueSalesReportTypeCode = "";
 
                                 bool hasReferencedIdentification = false;
+                                bool isReportResultingFromQuery = false;
+
+                                DateTime dateTimeFluxReportDocumentCreation = new DateTime();
+                                DateTime dateTimeDelimitedPeriodStart = new DateTime();
+                                DateTime dateTimeSalesEventOccurance = new DateTime();
 
                                 #region SalesReport.FLUXReportDocument
                                 //SALE-L00-00-0001
@@ -12515,6 +12521,8 @@ namespace Validation
                                                 if (DateTime.Compare(SalesReport.FLUXReportDocument.CreationDateTime.Item, dateTimeUtcNow) < 0)  // date1 is earlier than date2 => in the past
                                                 {
                                                     Console.WriteLine("SALE-L01-00-0013 | OK | SalesReport.FLUXReportDocument.CreationDateTime is in the past");
+
+                                                    dateTimeFluxReportDocumentCreation = SalesReport.FLUXReportDocument.CreationDateTime.Item;
                                                 }
                                                 else
                                                 {
@@ -12616,6 +12624,671 @@ namespace Validation
                                     //SALE-L00-00-0001 - error
                                 }
                                 #endregion SalesReport.FLUXReportDocument
+
+                                #region SalesReport.SalesReport
+                                if (SalesReport.SalesReport != null)
+                                {
+                                    //#Q Does "If the report is not resulting from a query" means it is a original report => purpose code = 9?
+                                    //#Q If so, will the validation be: if (valuePurposeCode != "3" || valuePurposeCode != "9"), as there cannot be 2 purpose codes at the same time?
+                                    isReportResultingFromQuery = true;
+                                    if (valuePurposeCode != "3" && !isReportResultingFromQuery == false)
+                                    {
+                                        //SALE-L02-00-0003
+                                        //FLUX_ ReportDocument/Purpose, FLUX_ReportDocument/Referenced Identification
+                                        //One and only one occurrence of a sales report if purpose code is not for a 'delete' and if the report is not resulting from a query
+                                        if (SalesReport.SalesReport.Count() == 1)
+                                        {
+                                            Console.WriteLine("SALE-L02-00-0003 | OK | Exactly one SalesReport.SalesReport provided");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L02-00-0003 | ERROR | No or more than one SalesReport.SalesReport provided");
+                                            //SALE-L02-00-0003 - error
+                                        }
+
+                                        //SALE-L03-00-0030 - is its place here?
+                                    }
+
+                                    //#Q "In the EU context, there is maximum one sales report by Sales Report message."
+                                    //#Q As cardinality is 1, take and validate only the first element
+                                    var salesReportSalesReport = SalesReport.SalesReport.First();
+
+                                    #region SalesReport.SalesReport.ItemTypeCode
+                                    //SALE-L00-00-0021
+                                    //Sales Report/Item Type
+                                    //Must be present
+                                    if (salesReportSalesReport.ItemTypeCode != null)
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0021 | OK | SalesReport.SalesReport.ItemTypeCode provided");
+
+                                        Console.WriteLine("SALE-L01-00-0021 | TODO | Check DB - SalesReport.SalesReport.ItemTypeCode.Value from FLUX_SALES_TYPE list");
+                                        //SALE-L01-00-0021
+                                        //Sales Report/Item Type
+                                        //Check code from the list
+                                        //TODO: Check DB - SalesReport.SalesReport.ItemTypeCode.Value is from FLUX_SALES_TYPE list
+
+                                        //SALE-L01-00-0022 - error
+                                        //Sales Report/Item Type
+                                        //Only SN and TOD allowed
+                                        if (salesReportSalesReport.ItemTypeCode.Value?.ToString() == "SN" || salesReportSalesReport.ItemTypeCode.Value?.ToString() == "TOD")
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0022 | OK | SalesReport.SalesReport.ItemTypeCode.Value provided and == SN || TOD");
+
+                                            valueSalesReportTypeCode = salesReportSalesReport.ItemTypeCode.Value?.ToString();
+
+                                            if (valuePurposeCode == "5")  //5: correction
+                                            {
+                                                Console.WriteLine("SALE-L03-00-0020 | TODO | Check if SalesReport.SalesReport.ItemTypeCode.Value == type of the referenced report");
+                                                //SALE-L03-00-0020 - error
+                                                //Sales Report/Item Type, FLUX Report Document/Purpose, FLUX Report Document/Referenced Identification
+                                                //In case of a correction, the item type must be the same as the item type of the referenced report
+                                                //TODO: Check if item type is the same as the item type of the referenced report
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0022 | ERROR | No SalesReport.SalesReport.ItemTypeCode.Value provided or != SN || TOD");
+                                            //SALE-L01-00-0022 - error
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0021 | ERROR | No SalesReport.SalesReport.ItemTypeCode provided");
+                                        //SALE-L00-00-0021 - error
+                                    }
+                                    #endregion SalesReport.SalesReport.ItemTypeCode
+
+                                    #region SalesReport.SalesReport.IncludedSalesDocument
+                                    //SALE-L00-00-0022
+                                    //Sales Report/Sales Document
+                                    //Must be present
+                                    if (salesReportSalesReport.IncludedSalesDocument != null)
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0022 | OK | SalesReport.SalesReport.IncludedSalesDocument provided");
+
+                                        //SALE-L02-00-0020
+                                        //Sales Report/Sales Document
+                                        //Only one sales document
+                                        if (salesReportSalesReport.IncludedSalesDocument.Count() == 1)
+                                        {
+                                            Console.WriteLine("SALE-L02-00-0020 | OK | Exactly one SalesReport.SalesReport.IncludedSalesDocument provided");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L02-00-0020 | ERROR | More than one SalesReport.SalesReport.IncludedSalesDocument provided");
+                                            //SALE-L02-00-0020 - error
+                                        }
+
+                                        //#Q "In the EU context, there is only one sales document by Sales Report message."
+                                        //#Q As cardinality is 1, take and validate only the first element
+                                        var salesReportSalesDocument = salesReportSalesReport.IncludedSalesDocument.First();
+
+                                        #region SalesReport.SalesDocument.IncludedSalesDocument.ID
+                                        //SALE-L00-00-0030
+                                        //Sales Document/Identification
+                                        //Must be present
+                                        if (salesReportSalesDocument.ID != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0030 | OK | SalesReport.SalesReport.IncludedSalesDocument.ID provided");
+
+                                            foreach (var salesDocumentId in salesReportSalesDocument.ID)
+                                            {
+                                                string[] salesDocumentIdSubstrings = salesDocumentId.Value?.ToString().Trim().Split("-");
+                                                string salesDocumentIdNationalNumber = String.Join("-", salesDocumentId.Value?.ToString().Trim().Split("-").Skip(2));
+
+                                                //SALE-L01-00-0031
+                                                //Sales Document/Identification
+                                                //Check format of the part corresponding to the national number
+                                                //country specific. For the sender, this BR can be used to control the national format.
+                                                //For the recipient, it can verify the specific format of the sender if he knows it,
+                                                //otherwise it is to verify if that part has maximum 20 chars
+
+                                                Console.WriteLine("SALE-L01-00-0031 | TODO | Add SalesReport.SalesReport.IncludedSalesDocument.ID checks - sender/recipient");
+
+                                                if (salesDocumentIdNationalNumber.Length > 0 && salesDocumentIdNationalNumber.Length <= 20)
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0031 | OK | SalesReport.SalesReport.IncludedSalesDocument.ID salesDocumentIdNationalNumber provided and length <= 20");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0031 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.ID salesDocumentIdNationalNumber provided or length > 20");
+                                                    //SALE-L01-00-0031 - error
+                                                }
+
+                                                //SALE-L01-00-0032
+                                                //Sales Document/Identification
+                                                //Check format of the common part
+                                                //ISO-3 code + '-' + type of report
+                                                //TODO: Check if salesDocumentIdSubstrings[0] is an ISO-3 code
+                                                Console.WriteLine("SALE-L01-00-0032 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.ID salesDocumentIdSubstrings[0] is valid ISO-3 code");
+                                                bool isFirstSubstringIso3Code = true;
+                                                if (isFirstSubstringIso3Code && (salesDocumentIdSubstrings[1] == valueSalesReportTypeCode))
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0032 | OK | SalesReport.SalesReport.IncludedSalesDocument.ID common part format valid");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0032 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.ID common part format not valid");
+                                                    //SALE-L01-00-0032 - error
+                                                }
+
+                                                //SALE-L03-00-0030 - is its place here?
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0030 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.ID provided");
+                                            //SALE-L00-00-0030 - error
+                                        }
+                                        #endregion SalesReport.SalesDocument.IncludedSalesDocument.ID
+
+                                        #region SalesReport.SalesDocument.IncludedSalesDocument.CurrencyCode
+                                        //SALE-L00-00-0031
+                                        //Sales Document/Sales Currency
+                                        //Must be present
+                                        if (salesReportSalesDocument.CurrencyCode != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0031 | OK | SalesReport.SalesReport.CurrencyCode provided");
+
+                                            //SALE-L01-00-0033
+                                            //Sales Document/Sales Currency
+                                            //Check Code from the list listID
+                                            Console.WriteLine("SALE-L01-00-0033 | TODO | Check if SalesRepost.SalesReport.CurrencyCode.Value is from TERRITORY_CURR list");
+                                            bool isCodeFromSpecifiedList = true;
+                                            if (salesReportSalesDocument.CurrencyCode.listID?.ToString() == "TERRITORY_CURR" && isCodeFromSpecifiedList)
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0033 | OK | SalesReport.SalesReport.CurrencyCode.listID provided and Value is from TERRITORY_CURR list");
+                                                
+                                                Console.WriteLine("SALE-L03-00-0031 | TODO | Check if SalesReport.SalesReport.CurrencyCode.Value is official of the country at the time");
+                                                //SALE-L03-00-0031 - warning
+                                                //Sales Document/Sales Currency, Sales Event/ Occurrence, FLUX Location/ Country
+                                                //It must be an official currency of the country at that date
+                                                //TODO: Check if SalesReport.SalesReport.CurrencyCode.Value is official
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0033 | ERROR | No SalesReport.SalesReport.CurrencyCode.listID provided or Value is not from TERRITORY_CURR list");
+                                                //SALE-L01-00-0033 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0031 | ERROR | No SalesReport.SalesReport.CurrencyCode provided");
+                                            //SALE-L00-00-0031 - error
+                                        }
+                                        #endregion SalesReport.SalesDocument.IncludedSalesDocument.CurrencyCode
+
+                                        #region SalesReport.SalesDocument.IncludedSalesDocument.TransportDocumentID
+                                        if (salesReportSalesDocument.TransportDocumentID != null)
+                                        {
+                                            foreach (var salesDocumentTransportDocumentID in salesReportSalesDocument.TransportDocumentID)
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0034 | TODO | Check format - SalesReport.SalesReport.IncludedSalesDocument.TransportDocumentID");
+                                                //SALE-L01-00-0034 - error
+                                                //Sales Document/Transport Document Identification
+                                                //Check format
+                                                //TODO: Check SalesReport.SalesReport.IncludedSalesDocument.TransportDocumentID format
+
+                                                Console.WriteLine("SALE-L03-00-0032 | TODO | Check DB - SalesReport.SalesReport.IncludedSalesDocument.TransportDocumentID - if a reference is mentioned, it must be present in DB");
+                                                //SALE-L03-00-0032 - warning
+                                                //Sales Document/Transport Document Identification
+                                                //The reference must exist
+                                                //If a reference of a document is mentioned, that document must exist (meaning the reference must be known - already registered - in the system).
+                                                //But because some documents are still processed on paper and transmitted with delays, it can be known by the Administration after the reception and validation of the sales information.
+                                                //That is why the validation result is a warning (not a blocking issue)
+                                                //TODO: Check for reference - if mentioned, should be present in DB
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("No SalesReport.SalesReport.IncludedSalesDocument.TransportDocumentID provided");
+                                        }
+                                        #endregion SalesReport.SalesDocument.IncludedSalesDocument.TransportDocumentID
+
+                                        #region SalesReport.SalesDocument.IncludedSalesDocument.TakeoverDocumentID
+                                        if (salesReportSalesDocument.TakeoverDocumentID != null)
+                                        {
+                                            foreach (var salesDocumentTakeoverDocumentID in salesReportSalesDocument.TakeoverDocumentID)
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0034 | TODO | Check format - SalesReport.SalesReport.IncludedSalesDocument.TakeoverDocumentID");
+                                                //SALE-L01-00-0035 - error
+                                                //Sales Document/Take Over Document Identification
+                                                //Check Format
+                                                //TODO: Check SalesReport.SalesReport.IncludedSalesDocument.TransportDocumentID format
+
+                                                Console.WriteLine("SALE-L03-00-0033 | TODO | Check DB - SalesReport.SalesReport.IncludedSalesDocument.TakeoverDocumentID - if a reference is mentioned, it must be present in DB");
+                                                //SALE-L03-00-0033 - warning
+                                                //Sales Document/Take Over Document Identification
+                                                //The reference must exist
+                                                //Cfr note of SALEL03-00-0032  //#Q What does this mean?
+                                                //TODO: Check for reference - if mentioned, should be present in DB
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("No SalesReport.SalesReport.IncludedSalesDocument.TakeoverDocumentID provided");
+                                        }
+                                        #endregion SalesReport.SalesDocument.IncludedSalesDocument.TakeoverDocumentID
+
+                                        #region SalesReport.SalesDocument.IncludedSalesDocument.SalesNoteID
+                                        if (salesReportSalesDocument.SalesNoteID != null)
+                                        {
+                                            foreach (var salesDocumentTakeoverDocumentID in salesReportSalesDocument.SalesNoteID)
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0036 | TODO | Check format - SalesReport.SalesReport.IncludedSalesDocument.SalesNoteID");
+                                                //SALE-L01-00-0036 - error
+                                                //Sales Document/Sales Note identification
+                                                //Check Format
+                                                //TODO: Check SalesReport.SalesReport.IncludedSalesDocument.TransportDocumentID format
+
+                                                Console.WriteLine("SALE-L03-00-0034 | TODO | Check DB - SalesReport.SalesReport.IncludedSalesDocument.SalesNoteID - if a reference is mentioned, it must be present in DB");
+                                                //SALE-L03-00-0034 - warning
+                                                //Sales Document/Sales Note identification
+                                                //The reference must exist
+                                                //Cfr note of SALEL03-00-0032  //#Q What does this mean?
+                                                //TODO: Check for reference - if mentioned, should be present in DB
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("No SalesReport.SalesReport.IncludedSalesDocument.SalesNoteID provided");
+                                        }
+                                        #endregion SalesReport.SalesDocument.IncludedSalesDocument.SalesNoteID
+
+                                        #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesEvent
+                                        //SALE-L00-00-0032
+                                        //Sales Event
+                                        //Must exist
+                                        if (salesReportSalesDocument.SpecifiedSalesEvent != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0032 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesEvent provided");
+
+                                            //SALE-L02-00-0030
+                                            //Sales Event
+                                            //Only one sales event
+                                            if (salesReportSalesDocument.SpecifiedSalesEvent.Count() == 1)
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0032 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesEvent Count == 1");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0032 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesEvent Count != 1");
+                                                //SALE-L02-00-0030 - error
+                                            }
+
+                                            //#Q As cardinality iis 1, take and validate only the first element
+                                            var salesDocumentSpecifiedSalesEvent = salesReportSalesDocument.SpecifiedSalesEvent.First();
+
+                                            //SALE-L01-00-0050
+                                            //Sales Event/Occurrence
+                                            //Check format
+                                            if (salesDocumentSpecifiedSalesEvent.OccurrenceDateTime?.Item != null && salesDocumentSpecifiedSalesEvent.OccurrenceDateTime?.Item is DateTime)
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0050 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesEvent.OccurrenceDateTime.Item provided and DateTime");
+
+                                                dateTimeSalesEventOccurance = salesDocumentSpecifiedSalesEvent.OccurrenceDateTime.Item;
+                                                TimeSpan timeSpanMaximumDelay = new TimeSpan(24, 0, 0);
+                                                DateTime dateTimeSalesEventOccuranceWithDelay = dateTimeSalesEventOccurance.Add(timeSpanMaximumDelay);
+                                                if (valuePurposeCode == "9")
+                                                {
+                                                    //SALE-L03-00-0050
+                                                    //Sales Event/Occurrence, FLUX Report Document / Creation, FLUX Report Document / Referenced Identification
+                                                    //If the report is not resulting from a query, the reception date (Creation) (by Market state) should not be later than 24h after the sale date/takeover date (Occurrence)
+                                                    if (DateTime.Compare(dateTimeSalesEventOccuranceWithDelay, dateTimeFluxReportDocumentCreation) >= 0)  //dateTime1 is the same or later than dateTime2.
+                                                    {
+                                                        Console.WriteLine("SALE-L01-00-0050 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesEvent.OccurrenceDateTime.Item +24h delay is not before FLUXDocumentCreation");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L01-00-0050 | WARNING | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesEvent.OccurrenceDateTime.Item +24h delay is before FLUXDocumentCreation");
+                                                        //SALE-L03-00-0050 - warning
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0050 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesEvent.OccurrenceDateTime.Item provided or not DateTime");
+                                                //SALE-L01-00-0050 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0032 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesEvent provided");
+                                            //SALE-L00-00-0032 - error
+                                        }
+                                        #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesEvent
+
+                                        #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesParty
+                                        //SALE-L00-00-0033
+                                        //Sales Party
+                                        //Must exist
+                                        if (salesReportSalesDocument.SpecifiedSalesParty != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0033 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty provided");
+
+                                            //SALE-L02-00-0031
+                                            //Sales Party
+                                            //At least two occurrences
+                                            if (salesReportSalesDocument.SpecifiedSalesParty.Count() >= 2)
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0031 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty Count >= 2");
+
+                                                //SALE-L01-00-0042
+                                                //Sales Party/Role
+                                                //SENDER role must exist
+                                                if (salesReportSalesDocument.SpecifiedSalesParty.Any(a => a.RoleCode?.First().Value?.ToString() == "SENDER"))
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0042 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty provided with role SENDER");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0042 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty provided with role SENDER");
+                                                    //SALE-L01-00-0042 - error
+                                                }
+
+                                                //SALE-L01-00-0043
+                                                //Sales Party/Role
+                                                //No code for CARRIER allowed  //#Q What does this means - there should not be a Carrier role?
+                                                if (salesReportSalesDocument.SpecifiedSalesParty.Any(a => a.RoleCode?.First().Value?.ToString() == "CARRIER"))
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0043 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty provided with role CARRIER");
+                                                    //SALE-L01-00-0043 - error
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0043 | OK | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty provided with role CARRIER");
+                                                }
+
+                                                //SALE-L02-00-0044
+                                                //Sales Party/Role
+                                                //No duplication of role allowed
+                                                if (salesReportSalesDocument.SpecifiedSalesParty.GroupBy(g => g.RoleCode?.First().Value).Where(w => w.Count() > 1).Count() == 0)
+                                                {
+                                                    Console.WriteLine("SALE-L02-00-0044 | OK | No duplicate SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.RoleCode provided");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L02-00-0044 | ERROR | Duplicate SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.RoleCode provided");
+                                                    //SALE-L02-00-0044 - error
+                                                }
+
+                                                if (valueSalesReportTypeCode == "SN")
+                                                {
+                                                    //SALE-L02-00-0041
+                                                    //Sales Party/Role
+                                                    //PROVIDER role must exist for a sales note (SN)
+                                                    if (salesReportSalesDocument.SpecifiedSalesParty.Any(a => a.RoleCode?.First().Value?.ToString() == "PROVIDER"))
+                                                    {
+                                                        Console.WriteLine("SALE-L02-00-0041 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty provided with role PROVIDER");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L02-00-0041 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty provided with role PROVIDER");
+                                                        //SALE-L02-00-0041 - error
+                                                    }
+
+                                                    //SALE-L02-00-0042
+                                                    //Sales Party/Role
+                                                    //BUYER roles must exist for a sales note (SN)
+                                                    if (salesReportSalesDocument.SpecifiedSalesParty.Any(a => a.RoleCode?.First().Value?.ToString() == "BUYER"))
+                                                    {
+                                                        Console.WriteLine("SALE-L02-00-0042 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty provided with role BUYER");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L02-00-0042 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty provided with role BUYER");
+                                                        //SALE-L02-00-0042 - error
+                                                    }
+                                                }
+                                                else if (valueSalesReportTypeCode == "TOD")
+                                                {
+                                                    //SALE-L02-00-0043
+                                                    //Sales Party/Role
+                                                    //RECIPIENT role must exist for a Take-over doc
+                                                    if (salesReportSalesDocument.SpecifiedSalesParty.Any(a => a.RoleCode?.First().Value?.ToString() == "RECIPIENT"))
+                                                    {
+                                                        Console.WriteLine("SALE-L02-00-0043 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty provided with role RECIPIENT");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L02-00-0043 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty provided with role RECIPIENT");
+                                                        //SALE-L02-00-0043 - error
+                                                    }
+                                                }
+
+                                                foreach (var salesDocumentSpecifiedSalesParty in salesReportSalesDocument.SpecifiedSalesParty)
+                                                {
+                                                    string valueRoleCode = "";
+
+                                                    //SALE-L00-00-0040
+                                                    //Sales Party/Role
+                                                    //Must be present
+                                                    if (salesDocumentSpecifiedSalesParty.RoleCode != null)
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0040 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.RoleCode provided");
+
+                                                        //#Q As cardinality is up to 1, take and validate the first element only 
+                                                        var salesPartyRoleCode = salesDocumentSpecifiedSalesParty.RoleCode.First();
+
+                                                        Console.WriteLine("SALE-L01-00-0041 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.RoleCode.listID codes are from FLUX_SALES_PARTY_ROLE list");
+                                                        //SALE-L01-00-0041
+                                                        //Sales Party/Role
+                                                        //Check code from the list listID
+                                                        //TODO: Check if salesPartyRoleCode.listID code are from FLUX_SALES_PARTY_ROLE list
+
+                                                        valueRoleCode = salesPartyRoleCode.Value?.ToString();                                                                                                                
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0040 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.RoleCode provided");
+                                                        //SALE-L00-00-0040 - error
+                                                    }
+
+                                                    //SALE-L00-00-0041
+                                                    //Sales Party/Name
+                                                    //Must be present
+                                                    if (salesDocumentSpecifiedSalesParty.Name != null)
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0041 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.Name provided");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0041 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.Name provided");
+                                                        //SALE-L00-00-0041 - error
+                                                    }
+
+                                                    if (salesDocumentSpecifiedSalesParty.ID != null)
+                                                    {
+                                                        Console.WriteLine("SALE-L01-00-0040 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.ID.schemeID codes are from FLUX_SALES_PARTY_ID_TYPE list");
+                                                        //SALE-L01-00-0040 - error
+                                                        //Sales Party/Identification
+                                                        //Check code from the list schemeID
+                                                        //TODO: Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.ID.schemeID codes are from FLUX_SALES_PARTY_ID_TYPE list
+                                                    }
+
+                                                    if (valueRoleCode == "SENDER")
+                                                    {
+                                                        //SALE-L02-00-0040
+                                                        //Sales Party/Identification, Sales Party/Role
+                                                        //Identification mandatory when role=SENDER
+                                                        if (salesDocumentSpecifiedSalesParty.ID != null)
+                                                        {
+                                                            Console.WriteLine("SALE-L02-00-0040 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.ID provided for role SENDER");
+
+                                                            //SALE-L03-00-0041
+                                                            //Sales Party/Identification, Sales Party/Role
+                                                            //If SENDER role, it should be a MS Identification (SchemeID=MS)
+                                                            if (salesDocumentSpecifiedSalesParty.ID.schemeID?.ToString() == "MS")
+                                                            {
+                                                                Console.WriteLine("SALE-L03-00-0041 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.ID with schemeID == MS provided for role SENDER");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L03-00-0041 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.ID with schemeID == MS provided for role SENDER");
+                                                                //SALE-L03-00-0041 - error
+                                                            }
+
+                                                            Console.WriteLine("SALE-L03-00-0040 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.ID.Value exists in country registered bodies list");
+                                                            //SALE-L03-00-0040 - error
+                                                            //Sales Party/Identification, Sales Party/Role
+                                                            //If SENDER role, the ID must exist in a list of registered bodies of the country
+                                                            //That list should be produced by each country for internal usage.
+                                                            //TODO: Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.ID.Value exists in country registered bodies list
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L02-00-0040 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.ID provided for role SENDER");
+                                                            //SALE-L02-00-0040 - error
+                                                        }
+                                                    }
+                                                    else if (valueRoleCode == "RECIPIENT")
+                                                    {
+                                                        if (valueSalesReportTypeCode == "TOD")
+                                                        {
+                                                            //SALE-L02-00-0045
+                                                            //Sales Party/Role FLUX Organisation/Name
+                                                            //Name of organisation must be present for TOD if the role is RECIPIENT
+                                                            if (salesDocumentSpecifiedSalesParty.Name?.Value != null)
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0045 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.Name provided for role RECIPIENT when type TOD");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0045 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.Name provided for role RECIPIENT when type TOD");
+                                                                //SALE-L02-00-0045 - error
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0031 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty Count < 2");
+                                                //SALE-L02-00-0031 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0033 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty provided");
+                                            //SALE-L00-00-0033 - error
+                                        }
+                                        #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesParty
+
+                                        #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFishingActivity
+                                        //SALE-L00-00-0034
+                                        //Fishing Activity
+                                        //Must exist
+                                        if (salesReportSalesDocument.SpecifiedFishingActivity != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0034 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity provided");
+
+                                            //SALE-L02-00-0032
+                                            //Fishing Activity
+                                            //Only one occurrence
+                                            if (salesReportSalesDocument.SpecifiedFishingActivity.Count() == 1)
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0032 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity Count == 1");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0032 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity Count != 1");
+                                                //SALE-L02-00-0032 - error
+                                            }
+
+                                            var salesDocumentSpecifiedFishingActivity = salesReportSalesDocument.SpecifiedFishingActivity.First();
+
+                                            //#Q Since cardinality of DelimitedPeriod is 1, take the First element for validation
+                                            dateTimeDelimitedPeriodStart = salesDocumentSpecifiedFishingActivity.SpecifiedDelimitedPeriod.First().StartDateTime.Item;
+                                            //SALE-L02-00-0050
+                                            //Sales Event/Occurrence, Delimited_Period/Start
+                                            //Sales Event date >= Start date (landing)
+                                            if (DateTime.Compare(dateTimeSalesEventOccurance, dateTimeDelimitedPeriodStart) >= 0)  //datetime1 is the same or after datetime2
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0050 | OK | dateTimeSalesEventOccurance is after SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod.Start");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0050 | ERROR | dateTimeSalesEventOccurance is before SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod.Start");
+                                                //SALE-L02-00-0050 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0034 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity provided");
+                                            //SALE-L00-00-0034 - error
+                                        }
+                                        #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFishingActivity
+
+                                        #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFLUXLocation
+                                        //SALE-L00-00-0035
+                                        //Flux Location
+                                        //Must exist
+                                        if (salesReportSalesDocument.SpecifiedFLUXLocation != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0035 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFLUXLocation provided");
+
+                                            //SALE-L02-00-0032
+                                            //Flux Location
+                                            //Only one occurrence
+                                            //It is a market place or a storage location  //#Q How is this checked?
+                                            if (salesReportSalesDocument.SpecifiedFLUXLocation.Count() == 1)
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0032 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFLUXLocation Count == 1");
+                                                Console.WriteLine("SALE-L02-00-0032 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFLUXLocation is market place or storage location");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0032 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFLUXLocation Count != 1");
+                                                //SALE-L02-00-0032 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0035 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFLUXLocation provided");
+                                            //SALE-L00-00-0035 - error
+                                        }
+                                        #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFLUXLocation
+
+                                        #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesBatch
+                                        //SALE-L00-00-0036
+                                        //Sales Batch
+                                        //Must exist
+                                        if (salesReportSalesDocument.SpecifiedSalesBatch != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0036 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch provided");
+
+                                            //SALE-L02-00-0034
+                                            //Sales Batch
+                                            //Only one occurrence
+                                            if (salesReportSalesDocument.SpecifiedSalesBatch.Count() == 1)
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0034 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch Count == 1");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0034 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch Count != 1");
+                                                //SALE-L02-00-0034 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0036 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch provided");
+                                            //SALE-L00-00-0036 - error
+                                        }
+                                        #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesBatch
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0022 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument provided");
+                                        //SALE-L00-00-0022 - error
+                                    }
+                                    #endregion SalesReport.SalesReport.IncludedSalesDocument
+                                }
+                                else
+                                {
+                                    Console.WriteLine("No SalesReport.FLUXReportDocument provided");
+                                }
+                                #endregion SalesReport.SalesReport
                             }
                             else
                             {
