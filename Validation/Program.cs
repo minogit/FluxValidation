@@ -13300,6 +13300,267 @@ namespace Validation
                                                 Console.WriteLine("SALE-L02-00-0034 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch Count != 1");
                                                 //SALE-L02-00-0034 - error
                                             }
+
+                                            //@Q As cardinality is up to 1, take and validate contents of the first element only
+                                            var salesDocumentSalesBatch = salesReportSalesDocument.SpecifiedSalesBatch.First();
+
+                                            //SALE-L02-00-0055, SALE-L00-00-0060, SALE-L01-00-0060, SALE-L02-00-0060, SALE-L01-00-0062, SALE-L01-00-0063, SALE-L01-00-0064, SALE-L01-00-0065,
+                                            //SALE-L01-00-0061, SALE-L00-00-0061, SALE-L01-00-0067, SALE-L00-00-0062, SALE-L01-00-0071, SALE-L01-00-0070, SALE-L02-00-0070, SALE-L00-00-0070,
+                                            //SALE-L02-00-0071, SALE-L00-00-0063, SALE-L00-00-0065
+                                            #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct
+                                            //SALE-L02-00-0055
+                                            //AAP_Product
+                                            //At least one must exist
+                                            if (salesDocumentSalesBatch.SpecifiedAAPProduct.Count() >= 1)
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0055 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct Count >= 1");
+
+                                                foreach (var salesBatchSpecifiedAAPProduct in salesDocumentSalesBatch.SpecifiedAAPProduct)
+                                                {
+                                                    //SALE-L00-00-0060
+                                                    //AAP Product/Species
+                                                    //Must be present
+                                                    if (salesBatchSpecifiedAAPProduct.SpeciesCode != null && salesBatchSpecifiedAAPProduct.SpeciesCode.Value?.ToString() != "")
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0060 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpeciesCode provided");
+
+                                                        Console.WriteLine("SALE-L01-00-0060 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpeciesCode.Value is from FAO_SPECIES list");
+                                                        //SALE-L01-00-0060
+                                                        //AAP Product/Species
+                                                        //Check code from the list listID
+                                                        //TODO: Check SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpeciesCode.Value is from FAO_SPECIES list
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0060 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpeciesCode Count provided");
+                                                        //SALE-L00-00-0060 - error
+                                                    }
+
+                                                    //SALE-L02-00-0060
+                                                    //AAP Product/Unit, AAP Product/Weight
+                                                    //One of the two must be available
+                                                    if (salesBatchSpecifiedAAPProduct.WeightMeasure != null ^ salesBatchSpecifiedAAPProduct.UnitQuantity != null)
+                                                    {
+                                                        Console.WriteLine("SALE-L02-00-0060 | OK | WeightMeasure or UnitQuantity in SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct provided");
+
+                                                        if (salesBatchSpecifiedAAPProduct.WeightMeasure != null)
+                                                        {
+                                                            //SALE-L01-00-0062
+                                                            //AAP Product/Weight
+                                                            //Check unit code: must be KGM
+                                                            if (salesBatchSpecifiedAAPProduct.WeightMeasure.unitCode?.ToString() == "KGM")
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0062 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.WeightMeasure.unitCode provided and == KGM");
+
+                                                                //SALE-L01-00-0063
+                                                                //AAP Product/Weight
+                                                                //Not a negative number
+                                                                if (salesBatchSpecifiedAAPProduct.WeightMeasure.Value > 0)
+                                                                {
+                                                                    Console.WriteLine("SALE-L01-00-0063 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.WeightMeasure.Value is not a negative number");
+                                                                }
+                                                                //SALE-L01-00-0064
+                                                                //AAP Product/Weight
+                                                                //Weight = 0
+                                                                else if (salesBatchSpecifiedAAPProduct.WeightMeasure.Value == 0)
+                                                                {
+                                                                    Console.WriteLine("SALE-L01-00-0064 | WARNING | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.WeightMeasure.Value == 0");
+                                                                    //SALE-L01-00-0064 - warning
+                                                                }
+                                                                else
+                                                                {
+                                                                    Console.WriteLine("SALE-L01-00-0063 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.WeightMeasure.Value is a negative number");
+                                                                    //SALE-L01-00-0063 - error
+                                                                }
+
+                                                                //SALE-L01-00-0065
+                                                                //AAP Product/Weight
+                                                                //No more than 2 decimals
+                                                                if (BitConverter.GetBytes(decimal.GetBits(salesBatchSpecifiedAAPProduct.WeightMeasure.Value)[3])[2] <= 2)
+                                                                {
+                                                                    Console.WriteLine("SALE-L01-00-0065 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.WeightMeasure.Value is a negative number");
+                                                                }
+                                                                else
+                                                                {
+                                                                    Console.WriteLine("SALE-L01-00-0065 | WARNING | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.WeightMeasure.Value is a negative number");
+                                                                    //SALE-L01-00-0065 - warning
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0062 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.WeightMeasure.unitCode provided or != KGM");
+                                                                //SALE-L01-00-0062 - error
+                                                            }
+                                                        }
+
+                                                        if (salesBatchSpecifiedAAPProduct.UnitQuantity != null)
+                                                        {
+                                                            //SALE-L01-00-0061
+                                                            //AAP Product/Unit
+                                                            //Positive number
+                                                            if (salesBatchSpecifiedAAPProduct.UnitQuantity.Value > 0)
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0061 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.UnitQuantity.Value > 0");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0061 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.UnitQuantity.Value <= 0");
+                                                                //SALE-L01-00-0061 - error
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L02-00-0060 | ERROR | Neither of WeightMeasure or UnitQuantity in SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct provided");
+                                                        //SALE-L02-00-0060
+                                                    }
+
+                                                    //SALE-L00-00-0061
+                                                    //AAP Product/Usage
+                                                    //Must be present
+                                                    if (salesBatchSpecifiedAAPProduct.UsageCode != null)
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0061 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.UsageCode provided");
+
+                                                        Console.WriteLine("SALE-L01-00-0067 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.UsageCode.Value is from PROD_USAGE list");
+                                                        //SALE-L01-00-0067
+                                                        //AAP Product/Usage
+                                                        //Check code from the list listID
+                                                        //TODO: Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.UsageCode.Value is from PROD_USAGE list
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0061 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.UsageCode provided");
+                                                        //SALE-L00-00-0061 - error
+                                                    }
+
+                                                    //SALE-L00-00-0062
+                                                    //AAP_Process
+                                                    //Must be present
+                                                    if (salesBatchSpecifiedAAPProduct.AppliedAAPProcess != null)
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0062 | OK | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess provided");
+
+                                                        //#Q As cardinality is up to 1, take and validate the first element only
+                                                        var specifiedAAPProductAppliedAAPProcess = salesBatchSpecifiedAAPProduct.AppliedAAPProcess.First();
+
+                                                        if (specifiedAAPProductAppliedAAPProcess.ConversionFactorNumeric != null)
+                                                        {
+                                                            //SALE-L01-00-0071
+                                                            //AAP Process/Conversion factor
+                                                            //Positive number
+                                                            if (specifiedAAPProductAppliedAAPProcess.ConversionFactorNumeric.Value > 0)
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0071 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess.ConversionFactorNumeric.Value > 0");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0071 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess.ConversionFactorNumeric.Value <= 0");
+                                                                //SALE-L01-00-0071 - error
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess.ConversionFactorNumeric provided");
+                                                        }
+
+                                                        //#Q Added cardinality check - min 2, max 3 for TypeCode
+                                                        if (specifiedAAPProductAppliedAAPProcess.TypeCode != null && (specifiedAAPProductAppliedAAPProcess.TypeCode.Count() == 2 || specifiedAAPProductAppliedAAPProcess.TypeCode.Count() == 3))
+                                                        {
+                                                            foreach (var appliedAAPProcessTypeCode in specifiedAAPProductAppliedAAPProcess.TypeCode)
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0070 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess.TypeCode.Value is from listID");
+                                                                //SALE-L01-00-0070
+                                                                //AAP Process/Type
+                                                                //Check code from the list listID
+                                                                //TODO: Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess.TypeCode.Value is from listID
+                                                                //FISH_FRESHNESS, FISH_PRESENTATION, FISH_PRESERVATION [+ Value]
+                                                                //ListID code from the FLUX_PROCESS_TYPE list
+                                                            }
+
+                                                            //SALE-L02-00-0070
+                                                            //AAP Process/Type
+                                                            //No duplicated type codes
+                                                            if (specifiedAAPProductAppliedAAPProcess.TypeCode.GroupBy(g => g.Value).Where(w => w.Count() > 1).Count() == 0)
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0070 | OK | No duplicates in SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess.TypeCode.Value");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0070 | ERROR | Duplicates in SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess.TypeCode.Value");
+                                                                //SALE-L02-00-0070 - error
+                                                            }
+
+                                                            //SALE-L00-00-0070
+                                                            //AAP Process/Type
+                                                            //Freshness must be present
+                                                            if (specifiedAAPProductAppliedAAPProcess.TypeCode.Any(a => a.listID?.ToString() == "FISH_FRESHNESS"))
+                                                            {
+                                                                Console.WriteLine("SALE-L00-00-0070 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess.TypeCode for freshness provided");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L00-00-0070 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess.TypeCode for freshness provided");
+                                                                //SALE-L00-00-0070 - error
+                                                            }
+
+                                                            //SALE-L02-00-0071
+                                                            //AAP Process/Type
+                                                            //Presentation & preservation must be present
+                                                            if (specifiedAAPProductAppliedAAPProcess.TypeCode.Any(a => a.listID?.ToString() == "FISH_PRESENTATION") && specifiedAAPProductAppliedAAPProcess.TypeCode.Any(a => a.listID?.ToString() == "FISH_PRESERVATION"))
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0071 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess.TypeCode for presentation and preservation provided");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0071 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess.TypeCode for presentation and preservation provided");
+                                                                //SALE-L02-00-0071 - error
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess.ConversionFactorNumeric provided or count != 2 || 3");
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0062 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess provided");
+                                                        //SALE-L00-00-0062 - error
+                                                    }
+
+                                                    //SALE-L00-00-0063
+                                                    //Size_Distribution
+                                                    //Must be present
+                                                    if (salesBatchSpecifiedAAPProduct.SpecifiedSizeDistribution != null)
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0063 | OK | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution provided");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0063 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution provided");
+                                                        //SALE-L00-00-0063 - error
+                                                    }
+
+                                                    //SALE-L00-00-0065
+                                                    //FLUX_location
+                                                    //Must be present
+                                                    if (salesBatchSpecifiedAAPProduct.OriginFLUXLocation != null)
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0065 | OK | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.OriginFLUXLocation provided");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0065 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.OriginFLUXLocation provided");
+                                                        //SALE-L00-00-0065 - error
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0055 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct Count < 1");
+                                                //SALE-L02-00-0055 - error
+                                            }
+                                            #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct
                                         }
                                         else
                                         {
