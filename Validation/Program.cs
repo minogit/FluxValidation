@@ -12313,6 +12313,8 @@ namespace Validation
                             {
                                 string valuePurposeCode = "";
                                 string valueSalesReportTypeCode = "";
+                                string valueClassCode = "";
+                                string valueUsageCode = "";
 
                                 bool hasReferencedIdentification = false;
                                 bool isReportResultingFromQuery = false;
@@ -12320,6 +12322,8 @@ namespace Validation
                                 DateTime dateTimeFluxReportDocumentCreation = new DateTime();
                                 DateTime dateTimeDelimitedPeriodStart = new DateTime();
                                 DateTime dateTimeSalesEventOccurance = new DateTime();
+
+                                List<decimal> listOfSalesPrices = new List<decimal>();
 
                                 #region SalesReport.FLUXReportDocument
                                 //SALE-L00-00-0001
@@ -12978,7 +12982,8 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesEvent
 
-                                        //SALE-L00-00-0033, SALE-L02-00-0031, SALE-L01-00-0042, SALE-L01-00-0043, SALE-L02-00-0044, SALE-L02-00-0041, SALE-L02-00-0042, SALE-L02-00-0043, SALE-L00-00-0040, SALE-L01-00-0041, SALE-L00-00-0041, SALE-L01-00-0040, SALE-L02-00-0040, SALE-L03-00-0041, SALE-L03-00-0040, SALE-L02-00-0045
+                                        //SALE-L00-00-0033, SALE-L02-00-0031, SALE-L01-00-0042, SALE-L01-00-0043, SALE-L02-00-0044, SALE-L02-00-0041, SALE-L02-00-0042, SALE-L02-00-0043, SALE-L00-00-0040,
+                                        //SALE-L01-00-0041, SALE-L00-00-0041, SALE-L01-00-0040, SALE-L02-00-0040, SALE-L03-00-0041, SALE-L03-00-0040, SALE-L02-00-0045, SALE-L00-00-0095
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesParty
                                         //SALE-L00-00-0033
                                         //Sales Party
@@ -13187,6 +13192,26 @@ namespace Validation
                                                             }
                                                         }
                                                     }
+
+                                                    if (salesDocumentSpecifiedSalesParty.SpecifiedFLUXOrganization != null)
+                                                    {
+                                                        //SALE-L00-00-0095
+                                                        //FLUX Organization/Name
+                                                        //Must be present
+                                                        if (salesDocumentSpecifiedSalesParty.SpecifiedFLUXOrganization.Name != null)
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0095 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFLUXOrganization.Name provided");
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0095 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFLUXOrganization.Name provided");
+                                                            //SALE-L00-00-0095 - error
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFLUXOrganization provided");
+                                                    }
                                                 }
                                             }
                                             else
@@ -13202,7 +13227,8 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesParty
 
-                                        //SALE-L00-00-0034, SALE-L02-00-0032, SALE-L02-00-0050
+                                        //SALE-L00-00-0034, SALE-L02-00-0032, SALE-L02-00-0050, SALE-L00-00-0100, SALE-L01-00-0101, SALE-L00-00-0101, SALE-L02-00-0100, SALE-L00-00-0110, SALE-L01-00-0110,
+                                        //SALE-L01-00-0111, SALE-L00-00-0102, SALE-L02-00-0101, SALE-L00-00-0103, SALE-L02-00-0102, SALE-L00-00-0104
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFishingActivity
                                         //SALE-L00-00-0034
                                         //Fishing Activity
@@ -13224,6 +13250,7 @@ namespace Validation
                                                 //SALE-L02-00-0032 - error
                                             }
 
+                                            //#Q As cardinality is up to one, take and validate the first element only
                                             var salesDocumentSpecifiedFishingActivity = salesReportSalesDocument.SpecifiedFishingActivity.First();
 
                                             //#Q Since cardinality of DelimitedPeriod is 1, take the First element for validation
@@ -13240,6 +13267,169 @@ namespace Validation
                                                 Console.WriteLine("SALE-L02-00-0050 | ERROR | dateTimeSalesEventOccurance is before SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod.Start");
                                                 //SALE-L02-00-0050 - error
                                             }
+
+                                            //SALE-L00-00-0100
+                                            //Fishing Activity/Type
+                                            //Must be present
+                                            if (salesDocumentSpecifiedFishingActivity.TypeCode != null)
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0100 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.TypeCode provided");
+
+                                                //SALE-L01-00-0101
+                                                //Fishing Activity/Type
+                                                //Check code: LAN
+                                                //There is no listID, just a code
+                                                if (salesDocumentSpecifiedFishingActivity.TypeCode.Value == "LAN")
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0101 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.TypeCode.Value == LAN");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0101 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.TypeCode.Value != LAN");
+                                                    //SALE-L01-00-0101 - error
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0100 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.TypeCode provided");
+                                                //SALE-L00-00-0100 - error
+                                            }
+
+                                            //SALE-L00-00-0101
+                                            //Delimited_Period
+                                            //Must be present
+                                            if (salesDocumentSpecifiedFishingActivity.SpecifiedDelimitedPeriod != null)
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0101 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod provided");
+
+                                                //SALE-L02-00-0100
+                                                //Delimited_Period
+                                                //Only one occurrence
+                                                if (salesDocumentSpecifiedFishingActivity.SpecifiedDelimitedPeriod.Count() == 1)
+                                                {
+                                                    Console.WriteLine("SALE-L02-00-0100 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod Count == 1");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L02-00-0100 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod Count != 1");
+                                                    //SALE-L02-00-0100 - error
+                                                }
+
+                                                //#Q As cardinality is up to one, take and validate the first element only
+                                                var specifiedFishingActivitySpecifiedDelimitedPeriod = salesDocumentSpecifiedFishingActivity.SpecifiedDelimitedPeriod.First();
+
+                                                //SALE-L00-00-0110
+                                                //Delimited Period/Start
+                                                //Must be present
+                                                if (specifiedFishingActivitySpecifiedDelimitedPeriod.StartDateTime != null)
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0110 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod.StartDateTime provided");
+
+                                                    //SALE-L01-00-0110
+                                                    //Delimited Period/Start
+                                                    //Check format
+                                                    if (specifiedFishingActivitySpecifiedDelimitedPeriod.StartDateTime.Item is DateTime)
+                                                    {
+                                                        Console.WriteLine("SALE-L01-00-0110 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod.StartDateTime.StartDateTime format OK");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L01-00-0110 | ERROR | Wrong SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod.StartDateTime.Item format");
+                                                        //SALE-L01-00-0110 - error
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0110 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod.StartDateTime provided");
+                                                    //SALE-L00-00-0110 - warning
+                                                }
+
+                                                //SALE-L01-00-0111
+                                                //Delimited Period/End
+                                                //Check format
+                                                if (specifiedFishingActivitySpecifiedDelimitedPeriod.EndDateTime?.Item is DateTime)
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0111 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod.EndDateTime.Item format OK");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0111 | ERROR | Wrong SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod.EndDateTime.Item format");
+                                                    //SALE-L01-00-0111
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0101 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedDelimitedPeriod provided");
+                                                //SALE-L00-00-0101 - error
+                                            }
+
+                                            //SALE-L00-00-0102
+                                            //Vessel_Tranport_Means
+                                            //Must be present
+                                            if (salesDocumentSpecifiedFishingActivity.RelatedVesselTransportMeans != null)
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0102 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans provided");
+
+                                                //SALE-L02-00-0101
+                                                //Vessel_Tranport_Means
+                                                //Only one occurrence
+                                                if (salesDocumentSpecifiedFishingActivity.RelatedVesselTransportMeans.Count() == 1)
+                                                {
+                                                    Console.WriteLine("SALE-L02-00-0101 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans Count == 1");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L02-00-0101 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans Count != 1");
+                                                    //SALE-L02-00-0101 - error
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0102 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans provided");
+                                                //SALE-L00-00-0102 - error
+                                            }
+
+                                            //SALE-L00-00-0103
+                                            //Fishing_Trip
+                                            //Must be present
+                                            if (salesDocumentSpecifiedFishingActivity.SpecifiedFishingTrip != null)
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0103 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedFishingTrip provided");
+
+                                                Console.WriteLine("########## GENERIC TYPE: " + salesDocumentSpecifiedFishingActivity.SpecifiedFishingTrip);
+
+                                                //SALE-L02-00-0102
+                                                //Fishing_Trip
+                                                //Only one occurrence
+                                                //#Q How [only one occurance] should be cheched, is this workable?
+                                                if (!salesDocumentSpecifiedFishingActivity.SpecifiedFishingTrip.GetType().IsArray)
+                                                {
+                                                    Console.WriteLine("SALE-L02-00-0102 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedFishingTrip provided is not an array");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L02-00-0102 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedFishingTrip provided is an array");
+                                                    //SALE-L02-00-0102 - error
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0103 | WARNING | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedFishingTrip provided");
+                                                //SALE-L00-00-0103 - warning
+                                            }
+
+                                            //SALE-L00-00-0104
+                                            //FLUX_Location
+                                            //Must be present
+                                            if (salesDocumentSpecifiedFishingActivity.RelatedFLUXLocation != null)
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0104 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedFLUXLocation provided");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0104 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedFLUXLocation provided");
+                                                //SALE-L00-00-0104 - error
+                                            }
                                         }
                                         else
                                         {
@@ -13248,7 +13438,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFishingActivity
 
-                                        //SALE-L00-00-0035, SALE-L02-00-0032, 
+                                        //SALE-L00-00-0035, SALE-L02-00-0032
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFLUXLocation
                                         //SALE-L00-00-0035
                                         //Flux Location
@@ -13279,7 +13469,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFLUXLocation
 
-                                        //SALE-L00-00-0036, SALE-L02-00-0034, 
+                                        //SALE-L00-00-0036, SALE-L02-00-0034
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesBatch
                                         //SALE-L00-00-0036
                                         //Sales Batch
@@ -13301,12 +13491,14 @@ namespace Validation
                                                 //SALE-L02-00-0034 - error
                                             }
 
-                                            //@Q As cardinality is up to 1, take and validate contents of the first element only
+                                            //#Q As cardinality is up to 1, take and validate contents of the first element only
                                             var salesDocumentSalesBatch = salesReportSalesDocument.SpecifiedSalesBatch.First();
 
                                             //SALE-L02-00-0055, SALE-L00-00-0060, SALE-L01-00-0060, SALE-L02-00-0060, SALE-L01-00-0062, SALE-L01-00-0063, SALE-L01-00-0064, SALE-L01-00-0065,
                                             //SALE-L01-00-0061, SALE-L00-00-0061, SALE-L01-00-0067, SALE-L00-00-0062, SALE-L01-00-0071, SALE-L01-00-0070, SALE-L02-00-0070, SALE-L00-00-0070,
-                                            //SALE-L02-00-0071, SALE-L00-00-0063, SALE-L00-00-0065
+                                            //SALE-L02-00-0071, SALE-L00-00-0063, SALE-L00-00-0065, SALE-L01-00-0071, SALE-L01-00-0070, SALE-L02-00-0070, SALE-L00-00-0070, SALE-L02-00-0071,
+                                            //SALE-L00-00-0063, SALE-L00-00-0065, SALE-L00-00-0080, SALE-L01-00-0080, SALE-L00-00-0081, SALE-L01-00-0082, SALE-L02-00-0081, SALE-L02-00-0080,
+                                            //SALE-L02-00-0090, SALE-L01-00-0090, SALE-L01-00-0091, SALE-L01-00-0092
                                             #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct
                                             //SALE-L02-00-0055
                                             //AAP_Product
@@ -13378,11 +13570,11 @@ namespace Validation
                                                                 //No more than 2 decimals
                                                                 if (BitConverter.GetBytes(decimal.GetBits(salesBatchSpecifiedAAPProduct.WeightMeasure.Value)[3])[2] <= 2)
                                                                 {
-                                                                    Console.WriteLine("SALE-L01-00-0065 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.WeightMeasure.Value is a negative number");
+                                                                    Console.WriteLine("SALE-L01-00-0065 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.WeightMeasure.Value decimal places <= 2");
                                                                 }
                                                                 else
                                                                 {
-                                                                    Console.WriteLine("SALE-L01-00-0065 | WARNING | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.WeightMeasure.Value is a negative number");
+                                                                    Console.WriteLine("SALE-L01-00-0065 | WARNING | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.WeightMeasure.Value decimal places > 2");
                                                                     //SALE-L01-00-0065 - warning
                                                                 }
                                                             }
@@ -13427,6 +13619,8 @@ namespace Validation
                                                         //AAP Product/Usage
                                                         //Check code from the list listID
                                                         //TODO: Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.UsageCode.Value is from PROD_USAGE list
+
+                                                        valueUsageCode = salesBatchSpecifiedAAPProduct.UsageCode.Value;
                                                     }
                                                     else
                                                     {
@@ -13534,11 +13728,152 @@ namespace Validation
                                                     if (salesBatchSpecifiedAAPProduct.SpecifiedSizeDistribution != null)
                                                     {
                                                         Console.WriteLine("SALE-L00-00-0063 | OK | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution provided");
+
+                                                        //SALE-L00-00-0080
+                                                        //Size Distribution/Class
+                                                        //Must be present
+                                                        if (salesBatchSpecifiedAAPProduct.SpecifiedSizeDistribution.ClassCode != null)
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0080 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution.ClassCode provided");
+
+                                                            //#Q As cardinality is up to one, take and validate the first element only
+                                                            var specifiedSizeDistributionClassCode = salesBatchSpecifiedAAPProduct.SpecifiedSizeDistribution.ClassCode.First();
+
+                                                            Console.WriteLine("SALE-L01-00-0080 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution.ClassCode.Value is from FISH_SIZE_CLASS list");
+                                                            //SALE-L01-00-0080
+                                                            //Size Distribution/Class
+                                                            //Check code from the list listID
+                                                            //TODO: Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution.ClassCode.Value is from FISH_SIZE_CLASS list
+
+                                                            valueClassCode = specifiedSizeDistributionClassCode.Value;
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0080 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution.ClassCode provided");
+                                                            //SALE-L00-00-0080 - error
+                                                        }
+
+                                                        //SALE-L00-00-0081
+                                                        //Size Distribution/Category
+                                                        //Must be present
+                                                        if (salesBatchSpecifiedAAPProduct.SpecifiedSizeDistribution.CategoryCode != null)
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0081 | OK | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution.CategoryCode provided");
+
+                                                            Console.WriteLine("SALE-L01-00-0082 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution.CategoryCode is from FISH_SIZE_CATEGORY list");
+                                                            //SALE-L01-00-0082
+                                                            //Size Distribution/Category
+                                                            //Check code from the list listID
+                                                            //TODO: Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution.CategoryCode is from FISH_SIZE_CATEGORY list
+
+                                                            if (valueClassCode == "BMS")
+                                                            {
+                                                                //SALE-L02-00-0081
+                                                                //Size Distribution/Class, Size Distribution/Category
+                                                                //If BMS species, the category should be N/A
+                                                                if (salesBatchSpecifiedAAPProduct.SpecifiedSizeDistribution.CategoryCode.Value?.ToString() == "N/A")
+                                                                {
+                                                                    Console.WriteLine("SALE-L02-00-0081 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution.CategoryCode.Value == N/A provided for Class BMS");
+                                                                }
+                                                                else
+                                                                {
+                                                                    Console.WriteLine("SALE-L02-00-0081 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution.CategoryCode.Value != N/A provided for Class BMS");
+                                                                    //SALE-L02-00-0081 - error
+                                                                }
+
+                                                                //SALE-L02-00-0080
+                                                                //AAP_Product/Usage, Size Distribution/Class
+                                                                //Usage must be for non direct human consumption if BMS species
+                                                                //#Q X to be replaced with the code for non direct human consumption
+                                                                if (valueUsageCode != "X")
+                                                                {
+                                                                    Console.WriteLine("SALE-L02-00-0080 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution.UsageCode.Value != X provided for Class BMS");
+                                                                }
+                                                                else
+                                                                {
+                                                                    Console.WriteLine("SALE-L02-00-0080 | WARNING | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution.UsageCode.Value == X provided for Class BMS");
+                                                                    //SALE-L02-00-0080 - warning
+                                                                }
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0081 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution.CategoryCode provided");
+                                                            //SALE-L00-00-0081 - error
+                                                        }
                                                     }
                                                     else
                                                     {
                                                         Console.WriteLine("SALE-L00-00-0063 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.SpecifiedSizeDistribution provided");
                                                         //SALE-L00-00-0063 - error
+                                                    }
+
+                                                    if (salesBatchSpecifiedAAPProduct.TotalSalesPrice != null)
+                                                    {
+                                                        //As cardinality is up to one, take and validate the first element only
+                                                        var specifiedAAPProductTotalSalesPrice = salesBatchSpecifiedAAPProduct.TotalSalesPrice.First();
+
+                                                        if (valueSalesReportTypeCode == "SN")
+                                                        {
+                                                            //SALE-L02-00-0090
+                                                            //Sales_Report/ItemType Sales Price/Charge
+                                                            //Mandatory for products of sales notes
+                                                            if (specifiedAAPProductTotalSalesPrice.Value != null)
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0090 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value provided for Sales Note");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0090 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.AppliedAAPProcess provided for Sales Note");
+                                                                //SALE-L02-00-0090 - error
+                                                            }
+                                                        }
+
+                                                        //SALE-L01-00-0090
+                                                        //Sales Price/Charge
+                                                        //Positive or zero value
+                                                        if (specifiedAAPProductTotalSalesPrice.Value >= 0)
+                                                        {
+                                                            Console.WriteLine("SALE-L01-00-0090 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value is positive or zero");
+
+                                                            listOfSalesPrices.Add(specifiedAAPProductTotalSalesPrice.Value);
+
+                                                            //SALE-L01-00-0091
+                                                            //Sales Price/Charge
+                                                            //Charge = 0
+                                                            if (specifiedAAPProductTotalSalesPrice.Value == 0)
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0091 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value != 0");
+
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0091 | WARNING | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value == 0");
+                                                                //SALE-L01-00-0091 - warning
+                                                            }
+
+                                                            //SALE-L01-00-0092
+                                                            //Sales Price/Charge
+                                                            //No more than 2 decimals
+                                                            if (BitConverter.GetBytes(decimal.GetBits(specifiedAAPProductTotalSalesPrice.Value)[3])[2] <= 2)
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0092 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value decimal places <= 2");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0092 | WARNING | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value decimal places > 2");
+                                                                //SALE-L01-00-0092 - warning
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L01-00-0090 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value is negative");
+                                                            //SALE-L01-00-0090 - error
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice provided");
                                                     }
 
                                                     //SALE-L00-00-0065
@@ -13568,6 +13903,79 @@ namespace Validation
                                             //SALE-L00-00-0036 - error
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesBatch
+
+                                        //SALE-L01-00-0090, SALE-L01-00-0091, SALE-L01-00-0092, SALE-L02-00-0092
+                                        #region SalesReport.SalesDocument.IncludedSalesDocument.TotalSalesPrice
+                                        //#Q Mainly the same as for every SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice
+                                        if (salesReportSalesDocument.TotalSalesPrice != null)
+                                        {
+                                            //As cardinality is up to one, take and validate the first element only
+                                            var salesReportSalesDocumentTotalSalesPrice = salesReportSalesDocument.TotalSalesPrice.First();
+
+                                            //SALE-L01-00-0090
+                                            //Sales Price/Charge
+                                            //Positive or zero value
+                                            if (salesReportSalesDocumentTotalSalesPrice.Value >= 0)
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0090 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value is positive or zero");
+
+                                                decimal valueTotalSalesPrice = salesReportSalesDocumentTotalSalesPrice.Value;
+                                                decimal sumOfProductSalesPrices = listOfSalesPrices.Sum();
+                                                
+                                                //SALE-L01-00-0091
+                                                //Sales Price/Charge
+                                                //Charge = 0
+                                                if (salesReportSalesDocumentTotalSalesPrice.Value == 0)
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0091 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value != 0");
+
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0091 | WARNING | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value == 0");
+                                                    //SALE-L01-00-0091 - warning
+                                                }
+
+                                                //SALE-L01-00-0092
+                                                //Sales Price/Charge
+                                                //No more than 2 decimals
+                                                if (BitConverter.GetBytes(decimal.GetBits(salesReportSalesDocumentTotalSalesPrice.Value)[3])[2] <= 2)
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0092 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value decimal places <= 2");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L01-00-0092 | WARNING | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value decimal places > 2");
+                                                    //SALE-L01-00-0092 - warning
+                                                }
+
+                                                //SALE-L02-00-0092
+                                                //Sales Price/Charge
+                                                //Total price, if present, must be the total of the product prices
+                                                if (valueTotalSalesPrice == sumOfProductSalesPrices)
+                                                {
+                                                    Console.WriteLine("SALE-L02-00-0092 | OK | SalesReport.SalesReport.IncludedSalesDocument.TotalSalesPrice.Value == Sum of all Product Sales Price");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L02-00-0092 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.TotalSalesPrice.Value == Sum of all Product Sales Price");
+                                                    //SALE-L02-00-0092 - error
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0090 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.TotalSalesPrice.Value is negative");
+                                                //SALE-L01-00-0090 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (valueSalesReportTypeCode == "SN")
+                                            {
+                                                Console.WriteLine("No SalesReport.SalesReport.IncludedSalesDocument.TotalSalesPrice provided for Sales Note");
+                                            }
+                                        }
+                                        #endregion SalesReport.SalesDocument.IncludedSalesDocument.TotalSalesPrice
                                     }
                                     else
                                     {
