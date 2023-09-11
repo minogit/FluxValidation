@@ -12307,6 +12307,7 @@ namespace Validation
                     {
                         case "SALE-L00-00-0001":
 
+                            //SALE-L00-00-0001, SALE-L02-00-0001
                             #region SalesReport
                             if (SalesReport != null)
                             {
@@ -12336,6 +12337,7 @@ namespace Validation
                                     {
                                         Console.WriteLine("SALE-L02-00-0001 | OK | SalesReport.FLUXReportDocument is not an array");
 
+                                        //SALE-L00-00-0010, SALE-L01-00-0010, SALE-L01-00-0011, SALE-L03-00-0010
                                         #region SalesReport.FLUXReportDocument.ID
                                         //SALE-L00-00-0010
                                         //FLUX_ ReportDocument/Identification
@@ -12381,6 +12383,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.FLUXReportDocument.ID
 
+                                        //SALE-L00-00-0012, SALE-L01-00-0014, SALE-L01-00-0015, SALE-L01-00-0016, 
                                         #region SalesReport.FLUXReportDocument.PurposeCode
                                         //SALE-L00-00-0012
                                         //FLUX_ ReportDocument/Purpose
@@ -12430,6 +12433,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.FLUXReportDocument.PurposeCode
 
+                                        //SALE-L02-00-0010, SALE-L02-00-0011, SALE-L01-00-0008, SALE-L01-00-0009
                                         #region SalesReport.FLUXReportDocument.ReferencedIdentification
                                         if (valuePurposeCode == "3" || valuePurposeCode == "5")  //3: deletion; 5: correction
                                         {
@@ -12459,20 +12463,14 @@ namespace Validation
                                             //SALE-L02-00-0011
                                             //FLUX_ ReportDocument/Purpose, FLUX_ ReportDocument/ Referenced Identification
                                             //If it is a new message (creation), the referenced identification, if provided, must be the one of a Query message
-                                            //#Q TODO: Check if the Referenced Identification is one of a Query message
+                                            
 
-                                            Console.WriteLine("SALE-L02-00-0011 | TODO | Check DB - SalesReport.FLUXReportDocument.ReferencedID.Value provided and one of a Query message");
-                                            bool referencedIdValueIsQueryMessage = true;
-                                            if (SalesReport.FLUXReportDocument.ReferencedID != null && referencedIdValueIsQueryMessage)
+                                            if (SalesReport.FLUXReportDocument.ReferencedID != null)
                                             {
-                                                Console.WriteLine("SALE-L02-00-0011 | OK | SalesReport.FLUXReportDocument.ReferencedID.Value provided and of a Query Message");
+                                                //#Q TODO: Check if the Referenced Identification is one of a Query message
+                                                Console.WriteLine("SALE-L02-00-0011 | TODO | Check DB - SalesReport.FLUXReportDocument.ReferencedID.Value provided and one of a Query message");
 
                                                 hasReferencedIdentification = true;
-                                            }
-                                            else
-                                            {
-                                                Console.WriteLine("SALE-L02-00-0011 | ERROR | No SalesReport.FLUXReportDocument.ReferencedID provided or not of a Query Message");
-                                                //SALE-L02-00-0011 - error
                                             }
                                         }
 
@@ -12499,6 +12497,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.FLUXReportDocument.ReferencedIdentification
 
+                                        //SALE-L00-00-0011, SALE-L01-00-0012, SALE-L01-00-0013
                                         #region SalesReport.FLUXReportDocument.CreationDateTime
                                         //SALE-L00-00-0011
                                         //FLUX_ ReportDocument/Creation
@@ -12543,6 +12542,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.FLUXReportDocument.CreationDateTime
 
+                                        //SALE-L00-00-0013, SALE-L00-00-0014, SALE-L00-00-0020, SALE-L01-00-0017, SALE-L01-00-0020, SALE-L03-00-0012
                                         #region SalesReport.FLUXReportDocument.OwnerFLUXParty
                                         //SALE-L00-00-0013
                                         //FLUXParty
@@ -12625,6 +12625,7 @@ namespace Validation
                                 }
                                 #endregion SalesReport.FLUXReportDocument
 
+                                //SALE-L02-00-0003
                                 #region SalesReport.SalesReport
                                 if (SalesReport.SalesReport != null)
                                 {
@@ -12646,13 +12647,17 @@ namespace Validation
                                             //SALE-L02-00-0003 - error
                                         }
 
-                                        //SALE-L03-00-0030 - is its place here?
+                                        //SALE-L03-00-0030 - is its place here or in SalesReport.IncludedSalesDocument.ID?
+                                        //Sales Document/Identification, FLUX Report_Document/ PurposeCode, FLUX Report_Document/Referenced Identification
+                                        //The reference must be unique for an original document (not resulting from a query)
+                                        //#Q Why is "Sales Document/Identification" mentioned?
                                     }
 
                                     //#Q "In the EU context, there is maximum one sales report by Sales Report message."
                                     //#Q As cardinality is 1, take and validate only the first element
                                     var salesReportSalesReport = SalesReport.SalesReport.First();
 
+                                    //SALE-L00-00-0021, SALE-L01-00-0022, SALE-L03-00-0020
                                     #region SalesReport.SalesReport.ItemTypeCode
                                     //SALE-L00-00-0021
                                     //Sales Report/Item Type
@@ -12698,6 +12703,7 @@ namespace Validation
                                     }
                                     #endregion SalesReport.SalesReport.ItemTypeCode
 
+                                    //SALE-L00-00-0022, SALE-L02-00-0020
                                     #region SalesReport.SalesReport.IncludedSalesDocument
                                     //SALE-L00-00-0022
                                     //Sales Report/Sales Document
@@ -12723,6 +12729,7 @@ namespace Validation
                                         //#Q As cardinality is 1, take and validate only the first element
                                         var salesReportSalesDocument = salesReportSalesReport.IncludedSalesDocument.First();
 
+                                        //SALE-L00-00-0030, SALE-L01-00-0031, SALE-L01-00-0032
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.ID
                                         //SALE-L00-00-0030
                                         //Sales Document/Identification
@@ -12772,7 +12779,15 @@ namespace Validation
                                                     //SALE-L01-00-0032 - error
                                                 }
 
-                                                //SALE-L03-00-0030 - is its place here?
+                                                if (valuePurposeCode == "9")
+                                                {
+                                                    Console.WriteLine("SALE-L03-00-0030 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.ID is unique");
+
+                                                    //SALE-L03-00-0030 - error
+                                                    //#Q Is its place here, does "the reference" means IncludedSalesDocument.ID?
+                                                    //Sales Document/Identification, FLUX Report_Document/ PurposeCode, FLUX Report_Document/Referenced Identification
+                                                    //The reference must be unique for an original document (not resulting from a query)
+                                                }
                                             }
                                         }
                                         else
@@ -12782,6 +12797,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.ID
 
+                                        //SALE-L00-00-0031, SALE-L01-00-0033, SALE-L03-00-0031
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.CurrencyCode
                                         //SALE-L00-00-0031
                                         //Sales Document/Sales Currency
@@ -12818,6 +12834,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.CurrencyCode
 
+                                        //SALE-L01-00-0034, SALE-L03-00-0032
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.TransportDocumentID
                                         if (salesReportSalesDocument.TransportDocumentID != null)
                                         {
@@ -12845,6 +12862,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.TransportDocumentID
 
+                                        //SALE-L01-00-0035, SALE-L03-00-0033
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.TakeoverDocumentID
                                         if (salesReportSalesDocument.TakeoverDocumentID != null)
                                         {
@@ -12870,6 +12888,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.TakeoverDocumentID
 
+                                        //SALE-L01-00-0036, SALE-L03-00-0034
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.SalesNoteID
                                         if (salesReportSalesDocument.SalesNoteID != null)
                                         {
@@ -12895,6 +12914,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.SalesNoteID
 
+                                        //SALE-L00-00-0032, SALE-L02-00-0030, SALE-L01-00-0050, SALE-L03-00-0050, 
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesEvent
                                         //SALE-L00-00-0032
                                         //Sales Event
@@ -12936,11 +12956,11 @@ namespace Validation
                                                     //If the report is not resulting from a query, the reception date (Creation) (by Market state) should not be later than 24h after the sale date/takeover date (Occurrence)
                                                     if (DateTime.Compare(dateTimeSalesEventOccuranceWithDelay, dateTimeFluxReportDocumentCreation) >= 0)  //dateTime1 is the same or later than dateTime2.
                                                     {
-                                                        Console.WriteLine("SALE-L01-00-0050 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesEvent.OccurrenceDateTime.Item +24h delay is not before FLUXDocumentCreation");
+                                                        Console.WriteLine("SALE-L03-00-0050 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesEvent.OccurrenceDateTime.Item +24h delay is not before FLUXDocumentCreation");
                                                     }
                                                     else
                                                     {
-                                                        Console.WriteLine("SALE-L01-00-0050 | WARNING | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesEvent.OccurrenceDateTime.Item +24h delay is before FLUXDocumentCreation");
+                                                        Console.WriteLine("SALE-L03-00-0050 | WARNING | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesEvent.OccurrenceDateTime.Item +24h delay is before FLUXDocumentCreation");
                                                         //SALE-L03-00-0050 - warning
                                                     }
                                                 }
@@ -12958,6 +12978,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesEvent
 
+                                        //SALE-L00-00-0033, SALE-L02-00-0031, SALE-L01-00-0042, SALE-L01-00-0043, SALE-L02-00-0044, SALE-L02-00-0041, SALE-L02-00-0042, SALE-L02-00-0043, SALE-L00-00-0040, SALE-L01-00-0041, SALE-L00-00-0041, SALE-L01-00-0040, SALE-L02-00-0040, SALE-L03-00-0041, SALE-L03-00-0040, SALE-L02-00-0045
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesParty
                                         //SALE-L00-00-0033
                                         //Sales Party
@@ -13070,11 +13091,18 @@ namespace Validation
                                                         //#Q As cardinality is up to 1, take and validate the first element only 
                                                         var salesPartyRoleCode = salesDocumentSpecifiedSalesParty.RoleCode.First();
 
-                                                        Console.WriteLine("SALE-L01-00-0041 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.RoleCode.listID codes are from FLUX_SALES_PARTY_ROLE list");
-                                                        //SALE-L01-00-0041
-                                                        //Sales Party/Role
-                                                        //Check code from the list listID
-                                                        //TODO: Check if salesPartyRoleCode.listID code are from FLUX_SALES_PARTY_ROLE list
+                                                        if (salesPartyRoleCode.listID?.ToString() == "FLUX_SALES_PARTY_ROLE")
+                                                        {
+                                                            Console.WriteLine("SALE-L01-00-0041 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.RoleCode.listID codes are from FLUX_SALES_PARTY_ROLE list");
+                                                            //SALE-L01-00-0041
+                                                            //Sales Party/Role
+                                                            //Check code from the list listID
+                                                            //TODO: Check if salesPartyRoleCode.listID code are from FLUX_SALES_PARTY_ROLE list
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesParty.RoleCode.listID provided or != FLUX_SALES_PARTY_ROLE");
+                                                        }
 
                                                         valueRoleCode = salesPartyRoleCode.Value?.ToString();                                                                                                                
                                                     }
@@ -13174,6 +13202,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesParty
 
+                                        //SALE-L00-00-0034, SALE-L02-00-0032, SALE-L02-00-0050
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFishingActivity
                                         //SALE-L00-00-0034
                                         //Fishing Activity
@@ -13219,6 +13248,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFishingActivity
 
+                                        //SALE-L00-00-0035, SALE-L02-00-0032, 
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFLUXLocation
                                         //SALE-L00-00-0035
                                         //Flux Location
@@ -13249,6 +13279,7 @@ namespace Validation
                                         }
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFLUXLocation
 
+                                        //SALE-L00-00-0036, SALE-L02-00-0034, 
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesBatch
                                         //SALE-L00-00-0036
                                         //Sales Batch
