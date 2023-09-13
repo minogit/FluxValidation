@@ -12315,6 +12315,8 @@ namespace Validation
                                 string valueSalesReportTypeCode = "";
                                 string valueClassCode = "";
                                 string valueUsageCode = "";
+                                string valueCFR = "";
+                                string valueVesselCountry = "";
 
                                 bool hasReferencedIdentification = false;
                                 bool isReportResultingFromQuery = false;
@@ -12441,12 +12443,12 @@ namespace Validation
                                         #region SalesReport.FLUXReportDocument.ReferencedIdentification
                                         if (valuePurposeCode == "3" || valuePurposeCode == "5")  //3: deletion; 5: correction
                                         {
+                                            Console.WriteLine("SALE-L02-00-0010 | TODO | Check DB - SalesReport.FLUXReportDocument.ReferencedID.Value provided and of an existing Sales Report");
                                             //SALE-L02-00-0010
                                             //FLUX_ ReportDocument/Purpose, FLUX_ReportDocument/Referenced Identification
                                             //If correction or deletion, the referenced identification must be provided and it must be the one of a an existing Sales Report message.
                                             //#Q TODO: Check if SalesReport.FLUXReportDocument.ReferencedID.Value is one of an existing Sales Report
 
-                                            Console.WriteLine("SALE-L02-00-0010 | TODO | Check DB - SalesReport.FLUXReportDocument.ReferencedID.Value provided and of an existing Sales Report");
                                             bool referencedIdValueIsExisting = true;
                                             if (SalesReport.FLUXReportDocument.ReferencedID != null && referencedIdValueIsExisting)
                                             {
@@ -12468,7 +12470,6 @@ namespace Validation
                                             //FLUX_ ReportDocument/Purpose, FLUX_ ReportDocument/ Referenced Identification
                                             //If it is a new message (creation), the referenced identification, if provided, must be the one of a Query message
                                             
-
                                             if (SalesReport.FLUXReportDocument.ReferencedID != null)
                                             {
                                                 //#Q TODO: Check if the Referenced Identification is one of a Query message
@@ -12634,7 +12635,7 @@ namespace Validation
                                 if (SalesReport.SalesReport != null)
                                 {
                                     //#Q Does "If the report is not resulting from a query" means it is a original report => purpose code = 9?
-                                    //#Q If so, will the validation be: if (valuePurposeCode != "3" || valuePurposeCode != "9"), as there cannot be 2 purpose codes at the same time?
+                                    //#Q If so, will the validation be: if (valuePurposeCode != "3" || valuePurposeCode == "9"), as there cannot be 2 purpose codes at the same time?
                                     isReportResultingFromQuery = true;
                                     if (valuePurposeCode != "3" && !isReportResultingFromQuery == false)
                                     {
@@ -12650,11 +12651,15 @@ namespace Validation
                                             Console.WriteLine("SALE-L02-00-0003 | ERROR | No or more than one SalesReport.SalesReport provided");
                                             //SALE-L02-00-0003 - error
                                         }
+                                    }
 
-                                        //SALE-L03-00-0030 - is its place here or in SalesReport.IncludedSalesDocument.ID?
+                                    if (valuePurposeCode == "9" && !hasReferencedIdentification)
+                                    {
+                                        Console.WriteLine("SALE-L03-00-0030 | TODO | Check if the reference is unique");
+                                        //SALE-L03-00-0030
                                         //Sales Document/Identification, FLUX Report_Document/ PurposeCode, FLUX Report_Document/Referenced Identification
                                         //The reference must be unique for an original document (not resulting from a query)
-                                        //#Q Why is "Sales Document/Identification" mentioned?
+                                        //TODO: Check if the reference is unique [SalesReport.SalesReport.IncludedSalesDocument.First().ID]
                                     }
 
                                     //#Q "In the EU context, there is maximum one sales report by Sales Report message."
@@ -12742,56 +12747,56 @@ namespace Validation
                                         {
                                             Console.WriteLine("SALE-L00-00-0030 | OK | SalesReport.SalesReport.IncludedSalesDocument.ID provided");
 
-                                            foreach (var salesDocumentId in salesReportSalesDocument.ID)
+                                            //#Q As cardinality is one, take and validate the first element only
+                                            var salesDocumentID = salesReportSalesDocument.ID.First();
+
+                                            string[] salesDocumentIdSubstrings = salesDocumentID.Value?.ToString().Trim().Split("-");
+                                            string salesDocumentIdNationalNumber = String.Join("-", salesDocumentID.Value?.ToString().Trim().Split("-").Skip(2));
+
+                                            Console.WriteLine("SALE-L01-00-0031 | TODO | Add SalesReport.SalesReport.IncludedSalesDocument.ID checks - sender/recipient");
+                                            //SALE-L01-00-0031
+                                            //Sales Document/Identification
+                                            //Check format of the part corresponding to the national number
+                                            //country specific. For the sender, this BR can be used to control the national format.
+                                            //For the recipient, it can verify the specific format of the sender if he knows it,
+                                            //otherwise it is to verify if that part has maximum 20 chars
+
+
+                                            if (salesDocumentIdNationalNumber.Length > 0 && salesDocumentIdNationalNumber.Length <= 20)
                                             {
-                                                string[] salesDocumentIdSubstrings = salesDocumentId.Value?.ToString().Trim().Split("-");
-                                                string salesDocumentIdNationalNumber = String.Join("-", salesDocumentId.Value?.ToString().Trim().Split("-").Skip(2));
+                                                Console.WriteLine("SALE-L01-00-0031 | OK | SalesReport.SalesReport.IncludedSalesDocument.ID salesDocumentIdNationalNumber provided and length <= 20");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0031 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.ID salesDocumentIdNationalNumber provided or length > 20");
+                                                //SALE-L01-00-0031 - error
+                                            }
 
-                                                //SALE-L01-00-0031
-                                                //Sales Document/Identification
-                                                //Check format of the part corresponding to the national number
-                                                //country specific. For the sender, this BR can be used to control the national format.
-                                                //For the recipient, it can verify the specific format of the sender if he knows it,
-                                                //otherwise it is to verify if that part has maximum 20 chars
+                                            //SALE-L01-00-0032
+                                            //Sales Document/Identification
+                                            //Check format of the common part
+                                            //ISO-3 code + '-' + type of report
+                                            //TODO: Check if salesDocumentIdSubstrings[0] is an ISO-3 code
+                                            Console.WriteLine("SALE-L01-00-0032 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.ID salesDocumentIdSubstrings[0] is valid ISO-3 code");
+                                            bool isFirstSubstringIso3Code = true;
+                                            if (isFirstSubstringIso3Code && (salesDocumentIdSubstrings[1] == valueSalesReportTypeCode))
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0032 | OK | SalesReport.SalesReport.IncludedSalesDocument.ID common part format valid");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0032 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.ID common part format not valid");
+                                                //SALE-L01-00-0032 - error
+                                            }
 
-                                                Console.WriteLine("SALE-L01-00-0031 | TODO | Add SalesReport.SalesReport.IncludedSalesDocument.ID checks - sender/recipient");
+                                            if (valuePurposeCode == "9")
+                                            {
+                                                Console.WriteLine("SALE-L03-00-0030 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.ID is unique");
 
-                                                if (salesDocumentIdNationalNumber.Length > 0 && salesDocumentIdNationalNumber.Length <= 20)
-                                                {
-                                                    Console.WriteLine("SALE-L01-00-0031 | OK | SalesReport.SalesReport.IncludedSalesDocument.ID salesDocumentIdNationalNumber provided and length <= 20");
-                                                }
-                                                else
-                                                {
-                                                    Console.WriteLine("SALE-L01-00-0031 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.ID salesDocumentIdNationalNumber provided or length > 20");
-                                                    //SALE-L01-00-0031 - error
-                                                }
-
-                                                //SALE-L01-00-0032
-                                                //Sales Document/Identification
-                                                //Check format of the common part
-                                                //ISO-3 code + '-' + type of report
-                                                //TODO: Check if salesDocumentIdSubstrings[0] is an ISO-3 code
-                                                Console.WriteLine("SALE-L01-00-0032 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.ID salesDocumentIdSubstrings[0] is valid ISO-3 code");
-                                                bool isFirstSubstringIso3Code = true;
-                                                if (isFirstSubstringIso3Code && (salesDocumentIdSubstrings[1] == valueSalesReportTypeCode))
-                                                {
-                                                    Console.WriteLine("SALE-L01-00-0032 | OK | SalesReport.SalesReport.IncludedSalesDocument.ID common part format valid");
-                                                }
-                                                else
-                                                {
-                                                    Console.WriteLine("SALE-L01-00-0032 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.ID common part format not valid");
-                                                    //SALE-L01-00-0032 - error
-                                                }
-
-                                                if (valuePurposeCode == "9")
-                                                {
-                                                    Console.WriteLine("SALE-L03-00-0030 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.ID is unique");
-
-                                                    //SALE-L03-00-0030 - error
-                                                    //#Q Is its place here, does "the reference" means IncludedSalesDocument.ID?
-                                                    //Sales Document/Identification, FLUX Report_Document/ PurposeCode, FLUX Report_Document/Referenced Identification
-                                                    //The reference must be unique for an original document (not resulting from a query)
-                                                }
+                                                //SALE-L03-00-0030 - error
+                                                //#Q Is its place here, does "the reference" means IncludedSalesDocument.ID?
+                                                //Sales Document/Identification, FLUX Report_Document/ PurposeCode, FLUX Report_Document/Referenced Identification
+                                                //The reference must be unique for an original document (not resulting from a query)
                                             }
                                         }
                                         else
@@ -12953,7 +12958,7 @@ namespace Validation
                                                 dateTimeSalesEventOccurance = salesDocumentSpecifiedSalesEvent.OccurrenceDateTime.Item;
                                                 TimeSpan timeSpanMaximumDelay = new TimeSpan(24, 0, 0);
                                                 DateTime dateTimeSalesEventOccuranceWithDelay = dateTimeSalesEventOccurance.Add(timeSpanMaximumDelay);
-                                                if (valuePurposeCode == "9")
+                                                if (valuePurposeCode == "9")  //#Q If the report is not resulting from a query
                                                 {
                                                     //SALE-L03-00-0050
                                                     //Sales Event/Occurrence, FLUX Report Document / Creation, FLUX Report Document / Referenced Identification
@@ -13228,7 +13233,9 @@ namespace Validation
                                         #endregion SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedSalesParty
 
                                         //SALE-L00-00-0034, SALE-L02-00-0032, SALE-L02-00-0050, SALE-L00-00-0100, SALE-L01-00-0101, SALE-L00-00-0101, SALE-L02-00-0100, SALE-L00-00-0110, SALE-L01-00-0110,
-                                        //SALE-L01-00-0111, SALE-L00-00-0102, SALE-L02-00-0101, SALE-L00-00-0103, SALE-L02-00-0102, SALE-L00-00-0104
+                                        //SALE-L01-00-0111, SALE-L00-00-0102, SALE-L02-00-0101, SALE-L00-00-0120, SALE-L01-00-0120, SALE-L00-00-0122, SALE-L02-00-0121, SALE-L01-00-0150, SALE-L00-00-0150,
+                                        //SALE-L02-00-0151, SALE-L02-00-0150, SALE-L02-00-0152, SALE-L02-00-0160, SALE-L01-00-0160, SALE-L02-00-0161, SALE-L01-00-0161, SALE-L02-00-0162, SALE-L01-00-0162,
+                                        //SALE-L00-00-0123, SALE-L00-00-0130, SALE-L01-00-0130, SALE-L00-00-0103, SALE-L02-00-0102, SALE-L00-00-0170, SALE-L01-00-0170, SALE-L01-00-0171, SALE-L00-00-0104
                                         #region SalesReport.SalesDocument.IncludedSalesDocument.SpecifiedFishingActivity
                                         //SALE-L00-00-0034
                                         //Fishing Activity
@@ -13382,6 +13389,256 @@ namespace Validation
                                                     Console.WriteLine("SALE-L02-00-0101 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans Count != 1");
                                                     //SALE-L02-00-0101 - error
                                                 }
+
+                                                //#Q As cardinality is up to one, take and validate the first element only
+                                                var specifiedFishingActivityRelatedVesselTransportMeans = salesDocumentSpecifiedFishingActivity.RelatedVesselTransportMeans.First();
+
+                                                //SALE-L00-00-0120
+                                                //Vessel Transport Means/Identification
+                                                //Must be present
+                                                if (specifiedFishingActivityRelatedVesselTransportMeans.ID?.First() != null)
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0120 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.ID provided");
+                                                    
+                                                    if (specifiedFishingActivityRelatedVesselTransportMeans.ID?.First().schemeID?.ToString() == "CFR")
+                                                    {
+                                                        //SALE-L01-00-0120
+                                                        //Vessel Transport Means/Identification
+                                                        //Check format of the CFR
+                                                        if (Regex.Match(specifiedFishingActivityRelatedVesselTransportMeans.ID?.First().Value.ToString(), "^[A-Z]{3}[0-9]{9}$").Success)
+                                                        {
+                                                            Console.WriteLine("SALE-L01-00-0120 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.ID.Value a valid CFR");
+
+                                                            valueCFR = specifiedFishingActivityRelatedVesselTransportMeans.ID?.First().Value.ToString();
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L01-00-0120 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.ID.Value not a valid CFR");
+                                                            //SALE-L01-00-0120 - error
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0120 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.ID provided");
+                                                    //SALE-L00-00-0120 - error
+                                                }
+
+                                                //SALE-L00-00-0122
+                                                //Contact Party
+                                                //Must be present
+                                                if (specifiedFishingActivityRelatedVesselTransportMeans.SpecifiedContactParty != null)
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0122 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty provided");
+
+                                                    //SALE-L02-00-0121
+                                                    //Contact Party
+                                                    //At least one occurrence and maximum two
+                                                    if (specifiedFishingActivityRelatedVesselTransportMeans.SpecifiedContactParty.Count() == 1 || specifiedFishingActivityRelatedVesselTransportMeans.SpecifiedContactParty.Count() == 2)
+                                                    {
+                                                        Console.WriteLine("SALE-L02-00-0121 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty Count == 1 || 2");
+
+                                                        Console.WriteLine("SALE-L01-00-0150 | TODO | Check SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.RoleCode.Value is from FLUX_CONTACT_ROLE list");
+                                                        //SALE-L01-00-0150
+                                                        //Contact Party/Role
+                                                        //Check code from the list listID
+                                                        //TODO: Check SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.RoleCode.Value is from FLUX_CONTACT_ROLE list
+
+                                                        //SALE-L00-00-0150
+                                                        //Contact Party/Role
+                                                        //Master or operator role must be present
+                                                        if (specifiedFishingActivityRelatedVesselTransportMeans.SpecifiedContactParty.Any(a => a.RoleCode.First().Value == "MASTER" || a.RoleCode.First().Value == "OPERATOR"))
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0150 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.RoleCode provided with Value == MASTER || OPERATOR");
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0150 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.RoleCode provided with Value == MASTER || OPERATOR");
+                                                            //SALE-L00-00-0150 - error
+                                                        }
+
+                                                        //SALE-L02-00-0151
+                                                        //Contact Party/Role
+                                                        //Codes other than master/operator are not allowed
+                                                        if (specifiedFishingActivityRelatedVesselTransportMeans.SpecifiedContactParty.Any(a => a.RoleCode.First().Value != "MASTER" || a.RoleCode.First().Value != "OPERATOR"))
+                                                        {
+                                                            Console.WriteLine("SALE-L02-00-0151 | OK | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.RoleCode provided with Value != MASTER || OPERATOR");
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L02-00-0151 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.RoleCode provided with Value != MASTER || OPERATOR");
+                                                            //SALE-L02-00-0151 - error
+                                                        }
+
+                                                        //SALE-L02-00-0150
+                                                        //Contact Party/Role
+                                                        //No duplicated role
+                                                        if (specifiedFishingActivityRelatedVesselTransportMeans.SpecifiedContactParty.GroupBy(g => g.RoleCode.First().Value).Where(w => w.Count() > 1).Count() == 0)
+                                                        {
+                                                            Console.WriteLine("SALE-L02-00-0121 | OK | No duplicates in SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.RoleCode");
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L02-00-0121 | ERROR | Duplicates in SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.RoleCode");
+                                                            //SALE-L02-00-0150 - error
+                                                        }
+
+                                                        //SALE-L02-00-0152
+                                                        //Contact Person
+                                                        //Must be present for each party
+                                                        if (specifiedFishingActivityRelatedVesselTransportMeans.SpecifiedContactParty.All(a => a.SpecifiedContactPerson.First() != null))
+                                                        {
+                                                            Console.WriteLine("SALE-L02-00-0152 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson provided for each ContactParty");
+
+                                                            foreach (var relatedVesselTransportMeansSpecifiedContactParty in specifiedFishingActivityRelatedVesselTransportMeans.SpecifiedContactParty)
+                                                            {
+                                                                //#Q As cardinality is up to one, take and validate the first element only
+                                                                var specifiedContactPartySpecifiedContactPerson = relatedVesselTransportMeansSpecifiedContactParty.SpecifiedContactPerson.First();
+
+                                                                if (specifiedContactPartySpecifiedContactPerson.Alias?.Value == null)
+                                                                {
+                                                                    //SALE-L02-00-0160
+                                                                    //Specified Contact_Person/GivenNameText, Specified Contact_Person/ AliasText
+                                                                    //Check presence of GivenName. Must be present if AliasText is not present.
+                                                                    if (specifiedContactPartySpecifiedContactPerson.GivenName != null)
+                                                                    {
+                                                                        Console.WriteLine("SALE-L02-00-0160 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.GivenName provided when Alias missing");
+
+                                                                        //SALE-L01-00-0160
+                                                                        //Specified Contact_Person/GivenNameText, Specified Contact_Person/ AliasText
+                                                                        //Non-empty GivenName
+                                                                        if (specifiedContactPartySpecifiedContactPerson.GivenName.Value != null)
+                                                                        {
+                                                                            Console.WriteLine("SALE-L01-00-0160 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.GivenName provided non-empty");
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            Console.WriteLine("SALE-L01-00-0160 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.GivenName provided empty");
+                                                                            //SALE-L01-00-0160 - error
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        Console.WriteLine("SALE-L02-00-0160 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson provided when Alias missing");
+                                                                        //SALE-L02-00-0160 - error
+                                                                    }
+
+                                                                    //SALE-L02-00-0161
+                                                                    //Specified Contact_Person/FamilyNameText, Specified Contact_Person/ AliasText
+                                                                    //Check presence of FamilyName. Must be present if AliasText is not present
+                                                                    if (specifiedContactPartySpecifiedContactPerson.FamilyName != null)
+                                                                    {
+                                                                        Console.WriteLine("SALE-L02-00-0161 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.FamilyName provided when Alias missing");
+
+                                                                        //SALE-L01-00-0161
+                                                                        //Specified Contact_Person/FamilyNameText, Specified Contact_Person/ AliasText
+                                                                        //Non-empty FamilyName
+                                                                        if (specifiedContactPartySpecifiedContactPerson.FamilyName.Value != null)
+                                                                        {
+                                                                            Console.WriteLine("SALE-L01-00-0161 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.FamilyName provided non-empty");
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            Console.WriteLine("SALE-L01-00-0161 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.FamilyName provided empty");
+                                                                            //SALE-L01-00-0161 - error
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        Console.WriteLine("SALE-L02-00-0161 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.FamilyName provided when Alias missing");
+                                                                        //SALE-L02-00-0161 - error
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    Console.WriteLine("No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.Alias provided");
+                                                                }
+
+                                                                if (specifiedContactPartySpecifiedContactPerson.GivenName?.Value == null && specifiedContactPartySpecifiedContactPerson.FamilyName?.Value == null)
+                                                                {
+                                                                    //SALE-L02-00-0162
+                                                                    //Specified Contact_Person/AliasText
+                                                                    //Check presence. Must be present if GivenNameText or FamilyNameText is not present.
+                                                                    if (specifiedContactPartySpecifiedContactPerson.Alias != null)
+                                                                    {
+                                                                        Console.WriteLine("SALE-L02-00-0162 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.Alias provided when GivenName and FamilyName missing");
+
+                                                                        //SALE-L01-00-0162
+                                                                        //Specified Contact_Person/AliasText
+                                                                        //Non-empty
+                                                                        if (specifiedContactPartySpecifiedContactPerson.Alias.Value != null)
+                                                                        {
+                                                                            Console.WriteLine("SALE-L01-00-0162 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.Alias provided non-empty");
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            Console.WriteLine("SALE-L01-00-0162 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.Alias provided empty");
+                                                                            //SALE-L01-00-0162 - error
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        Console.WriteLine("SALE-L02-00-0162 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.Alias provided when GivenName and FamilyName missing");
+                                                                        //SALE-L02-00-0162 - error
+                                                                    }
+                                                                }
+                                                                else
+                                                                {
+                                                                    Console.WriteLine("No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson.GivenName nor FamilyName provided");
+                                                                }
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L02-00-0152 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty.SpecifiedContactPerson provided for each ContactParty");
+                                                            //SALE-L02-00-0152 - error
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L02-00-0121 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty Count != 1 || 2");
+                                                        //SALE-L02-00-0121 - error
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0122 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.SpecifiedContactParty provided");
+                                                    //SALE-L00-00-0122 - error
+                                                }
+
+                                                //SALE-L00-00-0123
+                                                //Vessel Country
+                                                //Must be present
+                                                if (specifiedFishingActivityRelatedVesselTransportMeans.RegistrationVesselCountry != null)
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0123 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.RegistrationVesselCountry provided");
+
+                                                    //SALE-L00-00-0130
+                                                    //Vessel Country/Identification
+                                                    //Must be present
+                                                    if (specifiedFishingActivityRelatedVesselTransportMeans.RegistrationVesselCountry.ID != null)
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0130 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.RegistrationVesselCountry.ID provided");
+                                                        
+                                                        Console.WriteLine("SALE-L01-00-0130 | TODO | Check SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.RegistrationVesselCountry.ID.Value code");
+                                                        //SALE-L01-00-0130
+                                                        //Vessel Country/Identification
+                                                        //Check code
+                                                        //TODO: Check SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.RegistrationVesselCountry.ID.Value code
+
+                                                        valueVesselCountry = specifiedFishingActivityRelatedVesselTransportMeans.RegistrationVesselCountry.ID.Value.ToString();
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0130 | ERROR | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.RegistrationVesselCountry.ID provided");
+                                                        //SALE-L00-00-0130 - error
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0123 | ERROR | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedVesselTransportMeans.RegistrationVesselCountry provided");
+                                                    //SALE-L00-00-0123 - error
+                                                }                                                
                                             }
                                             else
                                             {
@@ -13396,8 +13653,6 @@ namespace Validation
                                             {
                                                 Console.WriteLine("SALE-L00-00-0103 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedFishingTrip provided");
 
-                                                Console.WriteLine("########## GENERIC TYPE: " + salesDocumentSpecifiedFishingActivity.SpecifiedFishingTrip);
-
                                                 //SALE-L02-00-0102
                                                 //Fishing_Trip
                                                 //Only one occurrence
@@ -13405,6 +13660,33 @@ namespace Validation
                                                 if (!salesDocumentSpecifiedFishingActivity.SpecifiedFishingTrip.GetType().IsArray)
                                                 {
                                                     Console.WriteLine("SALE-L02-00-0102 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedFishingTrip provided is not an array");
+
+                                                    //SALE-L00-00-0170
+                                                    //FishingTrip/ID
+                                                    //Check presence.Must be present.
+                                                    //At least one occurrence.
+                                                    //#Q As cardinality is up to one, take and validate the first element only
+                                                    if (salesDocumentSpecifiedFishingActivity.SpecifiedFishingTrip.ID.First() != null)
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0170 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedFishingTrip.ID provided");
+
+                                                        Console.WriteLine("SALE-L01-00-0170 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedFishingTrip.ID.schemaID == EU_TRIP_ID");
+                                                        //SALE-L01-00-0170
+                                                        //FishingTrip/ID
+                                                        //Check attribute schemeID. Must be EU_TRIP_ID
+                                                        //TODO: Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedFishingTrip.ID.schemaID == EU_TRIP_ID
+
+                                                        Console.WriteLine("SALE-L01-00-0171 | TODO | Check if format according to schemaID rules for SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedFishingTrip.ID");
+                                                        //SALE-L01-00-0171
+                                                        //FishingTrip/ID
+                                                        //Check format. Must be according to schemeID rules
+                                                        //TODO: Check format
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L00-00-0170 | WARNING | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.SpecifiedFishingTrip.ID provided");
+                                                        //SALE-L00-00-0170 - warning
+                                                    }
                                                 }
                                                 else
                                                 {
@@ -13423,7 +13705,7 @@ namespace Validation
                                             //Must be present
                                             if (salesDocumentSpecifiedFishingActivity.RelatedFLUXLocation != null)
                                             {
-                                                Console.WriteLine("SALE-L00-00-0104 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedFLUXLocation provided");
+                                                Console.WriteLine("SALE-L00-00-0104 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedFLUXLocation provided");                                                                                               
                                             }
                                             else
                                             {
@@ -13881,7 +14163,7 @@ namespace Validation
                                                     //Must be present
                                                     if (salesBatchSpecifiedAAPProduct.OriginFLUXLocation != null)
                                                     {
-                                                        Console.WriteLine("SALE-L00-00-0065 | OK | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.OriginFLUXLocation provided");
+                                                        Console.WriteLine("SALE-L00-00-0065 | OK | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.OriginFLUXLocation provided");                                                        
                                                     }
                                                     else
                                                     {
@@ -13989,6 +14271,28 @@ namespace Validation
                                     Console.WriteLine("No SalesReport.FLUXReportDocument provided");
                                 }
                                 #endregion SalesReport.SalesReport
+
+                                //SALE-L03-00-0130, SALE-L03-00-0110
+                                #region Boolean Validations
+                                if (valueCFR != "" && valueVesselCountry != "" && dateTimeDelimitedPeriodStart != DateTime.MinValue)
+                                {
+                                    Console.WriteLine("SALE-L03-00-0130 | TODO | Check if vessel with CFR [valueCFR] was under the flag state [valueVesselCountry] at landing date [dateTimeDelimitedPeriodStart]");
+                                    //SALE-L03-00-0130
+                                    //Vessel Transport Means/Identification, Vessel Country/ Identification, Delimited / Period / Start
+                                    //If CFR, the vessel should be in the EU fleet under the flag state at landing date
+                                    //TODO: Check if vessel with CFR was under the flag state at landing date
+                                }
+
+                                if (valuePurposeCode == "9" && dateTimeFluxReportDocumentCreation != DateTime.MinValue && dateTimeDelimitedPeriodStart != DateTime.MinValue && valueSalesReportTypeCode == "TOD")  //#Q Not resulting from a query
+                                {
+                                    Console.WriteLine("SALE-L03-00-0130 | TODO | Check if TOD reception date is in 24 after the landing declaration date");
+                                    //SALE-L03-00-0110
+                                    //FLUX Report Document/Creation, FLUX Report Document / Referenced Identification, FishingActivity / SpecifiedDelimitedPeriod
+                                    //If the report is not resulting from a query, the reception date (by the Take-Over state) should not be later than 24h after the landing declaration date 
+                                    //For take-over document (TOD) That's the maximum delay. Another rule should check if received under 24h under some conditions (financial turnover). 
+                                    //TODO: Check if reception date is in 24 after the landing declaration date
+                                }
+                                #endregion Boolean Validations
                             }
                             else
                             {
