@@ -13705,7 +13705,9 @@ namespace Validation
                                             //Must be present
                                             if (salesDocumentSpecifiedFishingActivity.RelatedFLUXLocation != null)
                                             {
-                                                Console.WriteLine("SALE-L00-00-0104 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedFLUXLocation provided");                                                                                               
+                                                Console.WriteLine("SALE-L00-00-0104 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedFLUXLocation provided");
+
+                                                FLUXLocationValidationElement(entity: "SpecifiedFishingActivity", locationElement: salesReportSalesDocument.SpecifiedFLUXLocation.First());
                                             }
                                             else
                                             {
@@ -13737,6 +13739,8 @@ namespace Validation
                                             {
                                                 Console.WriteLine("SALE-L02-00-0032 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFLUXLocation Count == 1");
                                                 Console.WriteLine("SALE-L02-00-0032 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFLUXLocation is market place or storage location");
+
+                                                FLUXLocationValidationElement(entity: "IncludedSalesDocument", locationElement: salesReportSalesDocument.SpecifiedFLUXLocation.First());
                                             }
                                             else
                                             {
@@ -14163,7 +14167,12 @@ namespace Validation
                                                     //Must be present
                                                     if (salesBatchSpecifiedAAPProduct.OriginFLUXLocation != null)
                                                     {
-                                                        Console.WriteLine("SALE-L00-00-0065 | OK | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.OriginFLUXLocation provided");                                                        
+                                                        Console.WriteLine("SALE-L00-00-0065 | OK | No SalesReport.SalesReport.IncludedSalesDocument.SpecifiedSalesBatch.SpecifiedAAPProduct.OriginFLUXLocation provided");
+
+                                                        foreach (var specifiedAAPProductOriginFLUXLocation in salesBatchSpecifiedAAPProduct.OriginFLUXLocation)
+                                                        {
+                                                            FLUXLocationValidationElement(entity: "SpecifiedAAPProduct", locationElement: specifiedAAPProductOriginFLUXLocation);
+                                                        }
                                                     }
                                                     else
                                                     {
@@ -14617,6 +14626,419 @@ namespace Validation
             //farep += "}"
 
             #endregion
+        }
+
+        //SALE-L00-00-0180, SALE-L01-00-0180, SALE-L01-00-0181, SALE-L02-00-0180, SALE-L02-00-0181, SALE-L02-00-0182, SALE-L01-00-0182, SALE-L01-00-0183, SALE-L02-00-0183, SALE-L01-00-0184,
+        //SALE-L01-00-0185, SALE-L01-00-0186, SALE-L01-00-0187, SALE-L02-00-0188, SALE-L02-00-0184, SALE-L02-00-0185, SALE-L02-00-0186, SALE-L02-00-0187, SALE-L00-00-0190, SALE-L01-00-0190,
+        //SALE-L01-00-0191, SALE-L00-00-0191, SALE-L01-00-0192, SALE-L01-00-0193, SALE-L00-00-0200, SALE-L00-00-0201, SALE-L01-00-0200, SALE-L00-00-0202, SALE-L02-00-0200
+        private static void FLUXLocationValidationElement(string entity, FLUXLocationType locationElement)
+        {
+            string valueLocationTypeCode = "";
+
+            //entity: SalesDocument, SpecifiedAAPProduct or SpecifiedFishingActivity
+            //cardinality: SalesDocument [1-1], FishingActivity [1-1], AAPProduct [1-*]
+            Console.WriteLine("########### FLUXLocation Validation Start ###########");
+            Console.WriteLine("#### ENTITY: " + entity);
+
+            if (locationElement != null)
+            {
+                //SALE-L00-00-0180
+                //FLUX_ Location/TypeCode
+                //Check presence. Must be present.
+                if (locationElement.TypeCode?.Value != null)
+                {
+                    Console.WriteLine("#### SALE-L00-00-0180 | OK | FLUXLocation.TypeCode provided");
+
+                    //SALE-L01-00-0180
+                    //FLUX_ Location/TypeCode
+                    //Check attribute listID. Must be FLUX_LOCATION_TYPE
+                    if (locationElement.TypeCode.listID?.ToString() == "FLUX_LOCATION_TYPE")
+                    {
+                        Console.WriteLine("#### SALE-L01-00-0180 | OK | FLUXLocation.TypeCode.listID provided and == FLUX_LOCATION_TYPE");
+
+                        Console.WriteLine("#### SALE-L01-00-0181 | TODO | Check if FLUXLocation.TypeCode.Value provided is in FLUX_LOCATION_TYPE list");
+                        //SALE-L01-00-0181
+                        //FLUX_ Location/TypeCode
+                        //Check code. Must be existing in the list specified in attribute listID
+                        //TODO: Check if FLUXLocation.TypeCode.Value is in FLUX_LOCATION_TYPE list
+
+                        valueLocationTypeCode = locationElement.TypeCode.Value.ToString();
+
+                        if (entity == "SpecifiedAAPProduct")
+                        {
+                            //SALE-L02-00-0180
+                            //FLUX_ Location, AAP_product
+                            //It must not be a LOCATION code for AAP products
+                            if (locationElement.TypeCode.Value.ToString() != "LOCATION")
+                            {
+                                Console.WriteLine("#### SALE-L02-00-0180 | OK | FLUXLocation.TypeCode.Value != LOCATION for SpecifiedAAPProduct entity");
+                            }
+                            else
+                            {
+                                Console.WriteLine("#### SALE-L02-00-0180 | ERROR | FLUXLocation.TypeCode.Value == LOCATION for SpecifiedAAPProduct entity");
+                                //SALE-L02-00-0180 - error
+                            }
+
+                            //SALE-L01-00-0187
+                            //AAP_Product and FLUX_ Location/Identification
+                            //FAO_AREA code is mandatory
+                            if (locationElement.ID?.schemeID?.ToString() == "FAO_AREA")
+                            {
+                                Console.WriteLine("#### SALE-L01-00-0187 | OK | FLUXLocation.ID.schemeID == FAO_AREA for SpecifiedAAPProduct entity");
+
+                                Console.WriteLine("#### SALE-L02-00-0188 | TODO | Check if only one FLUXLocation.ID.schemeID == FAO_AREA per product");
+                                //SALE-L02-00-0188
+                                //AAP_Product and FLUX_ Location/Identification
+                                //Only one FAO_AREA code per product
+                                //#Q How is this checked, as locationElement.ID is not an Array => there is only one ID, whatever its schemeID?
+                            }
+                            else
+                            {
+                                Console.WriteLine("#### SALE-L01-00-0187 | ERROR | FLUXLocation.ID.schemeID != FAO_AREA for SpecifiedAAPProduct entity");
+                                //SALE-L01-00-0187 - error
+                            }
+                        }
+                        else if (entity == "SpecifiedFishingActivity")
+                        {
+                            //SALE-L02-00-0181
+                            //FLUX_ Location, Fishing_Activity
+                            //It must be a LOCATION code for the landing
+                            if (locationElement.TypeCode.Value.ToString() == "LOCATION")
+                            {
+                                Console.WriteLine("#### SALE-L02-00-0181 | OK | FLUXLocation.TypeCode.Value == LOCATION for SpecifiedFishingActivity entity");
+                            }
+                            else
+                            {
+                                Console.WriteLine("#### SALE-L02-00-0181 | ERROR | FLUXLocation.TypeCode.Value != LOCATION for SpecifiedFishingActivity entity");
+                                //SALE-L02-00-0181 - error
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("#### SALE-L01-00-0180 | ERROR | No FLUXLocation.TypeCode.listID provided or != FLUX_LOCATION_TYPE");
+                        //SALE-L01-00-0180 - error
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("#### SALE-L00-00-0180 | OK | No FLUXLocation.TypeCode provided");
+                    //SALE-L00-00-0180 - error
+                }
+            }
+            else
+            {
+                Console.WriteLine("#### No FLUXLocation provided");
+            }
+
+            if (valueLocationTypeCode != "")
+            {
+                if (valueLocationTypeCode == "LOCATION" || valueLocationTypeCode == "ADDRESS")
+                {
+                    //SALE-L02-00-0182
+                    //FLUX_ Location/Country, FLUX_ Location/TypeCode
+                    //Check presence of the country. Must be present if Type is LOCATION or ADDRESS.
+                    if (locationElement.CountryID?.Value != null)
+                    {
+                        Console.WriteLine("#### SALE-L02-00-0182 | OK | FLUXLocation.CountryID.Value provided for TypeCode == LOCATION || ADDRESS");
+
+                        //SALE-L01-00-0182
+                        //FLUX_ Location/Country
+                        //Check attribute schemeID. Must be TERRITORY
+                        if (locationElement.CountryID.schemeID?.ToString() == "TERRITORY")
+                        {
+                            Console.WriteLine("#### SALE-L01-00-0182 | OK | FLUXLocation.CountryID.schemeID provided and == TERRITORY");
+
+                            Console.WriteLine("#### SALE-L01-00-0183 | TODO | Check if locationElement.CountryID.Value is in TERRITORY list");
+                            //SALE-L01-00-0183
+                            //FLUX_ Location/Country
+                            //Check code. Must be existing in the list specified in attribute schemeID
+                            //TODO: Check if locationElement.CountryID.Value is in TERRITORY list\
+
+                            if (valueLocationTypeCode == "LOCATION")
+                            {
+                                Console.WriteLine("#### SALE-L02-00-0184 | TODO | Check if locationElement.ID.Value is in FLUXLocation.CountryID.Value, for Type == LOCATION");
+                                //SALE-L02-00-0184
+                                //FLUX_ Location/Identification, FLUX_ Location/Country
+                                //If LOCATION code, the place must be in the country
+                                //TODO: Check if locationElement.ID.Value is in FLUXLocation.CountryID.Value, for Type == LOCATION
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("#### SALE-L01-00-0182 | ERROR | No FLUXLocation.CountryID.schemeID provided or != TERRITORY");
+                            //SALE-L01-00-0182 - error
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("#### SALE-L02-00-0182 | ERROR | No FLUXLocation.CountryID.Value provided for TypeCode == LOCATION || ADDRESS");
+                        //SALE-L02-00-0182 - error
+                    }
+                }
+
+                if (valueLocationTypeCode != "POSITION" && valueLocationTypeCode != "ADDRESS")
+                {
+                    //SALE-L02-00-0183
+                    //FLUX_ Location/Identification, FLUX_ Location/TypeCode
+                    //Check presence. Must be present, unless type is "POSITION" or "ADDRESS"
+                    if (locationElement.ID?.Value != null)
+                    {
+                        Console.WriteLine("#### SALE-L02-00-0183 | OK | FLUXLocation.ID.Value provided for TypeCode != POSITION || ADDRESS");
+
+                        //SALE-L01-00-0184
+                        //FLUX_ Location/Identification
+                        //Check attribute schemeID. In case Type= "AREA": must be FAO_ AREA, , TERRITORY. In case Type= "LOCATION": must be LOCATION, FARM
+                        if (valueLocationTypeCode == "AREA")
+                        {
+                            if (locationElement.ID.schemeID?.ToString() == "FAO_AREA" || locationElement.ID.schemeID?.ToString() == "TERRITORY")
+                            {
+                                Console.WriteLine("#### SALE-L01-00-0184 | OK | FLUXLocation.ID.schemeID provided for TypeCode AREA and == FAO_AREA || TERRITORY");
+
+                                if (locationElement.ID.schemeID?.ToString() == "FAO_AREA")
+                                {
+                                    Console.WriteLine("#### SALE-L01-00-0186 | TODO | Check if FLUXLocation.ID.Value is in FLUXLocation.ID.schemeID list provided");
+                                    //SALE-L01-00-0186 - error
+                                    //FLUX_ Location/Identification
+                                    //Check code. Must be existing in the list specified in attribute schemeID
+                                    //TODO: Check if FLUXLocation.ID.Value is in FLUXLocation.ID.schemeID list provided
+
+                                    Console.WriteLine("#### SALE-L01-00-0185 | TODO | Check if more precise area is mentioned");
+                                    //SALE-L01-00-0185 - warning
+                                    //FLUX_ Location/Identification
+                                    //If FAO_ AREA code, the more precise area must be mentioned
+                                    //In the FAO_AREA list, the terminal indicator is set to 'Y' for such areas
+                                    //TODO: Check if more precise area is mentioned
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("#### SALE-L01-00-0184 | ERROR | No FLUXLocation.ID.schemeID provided for TypeCode AREA or != FAO_AREA || TERRITORY");
+                                //SALE-L01-00-0184 - error
+                            }
+                        }
+                        else if (valueLocationTypeCode == "LOCATION")
+                        {
+                            if (locationElement.ID.schemeID?.ToString() == "LOCATION" || locationElement.ID.schemeID?.ToString() == "FARM")
+                            {
+                                Console.WriteLine("#### SALE-L01-00-0184 | OK | FLUXLocation.ID.schemeID provided for TypeCode LOCATION and == LOCATION || FARM");
+
+                                Console.WriteLine("#### SALE-L01-00-0186 | TODO | Check if FLUXLocation.ID.Value is in FLUXLocation.ID.schemeID list provided");
+                                //SALE-L01-00-0186 - error
+                                //FLUX_ Location/Identification
+                                //Check code. Must be existing in the list specified in attribute schemeID
+                                //TODO: Check if FLUXLocation.ID.Value is in FLUXLocation.ID.schemeID list provided
+                            }
+                            else
+                            {
+                                Console.WriteLine("#### SALE-L01-00-0184 | ERROR | No FLUXLocation.ID.schemeID provided for TypeCode LOCATION or != LOCATION || FARM");
+                                //SALE-L01-00-0184 - error
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("#### SALE-L02-00-0183 | ERROR | No FLUXLocation.CountryID.Value provided for TypeCode != POSITION || ADDRESS");
+                        //SALE-L02-00-0183 - error
+                    }
+                }
+
+                if (valueLocationTypeCode == "POSITION")
+                {
+                    //SALE-L02-00-0185
+                    //FLUX_ Location/TypeCode, FLUX, Geographical Coordinate
+                    //Check presence of the FLUX Geographical Coordinate. Must be present if TypeCode in Flux Location = POSITION.
+                    if (locationElement.SpecifiedPhysicalFLUXGeographicalCoordinate != null)
+                    {
+                        Console.WriteLine("#### SALE-L02-00-0185 | OK | FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate provided for TypeCode POSITION");
+                    }
+                    else
+                    {
+                        Console.WriteLine("#### SALE-L02-00-0185 | ERROR | No FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate provided for TypeCode POSITION");
+                        //SALE-L02-00-0185 - error
+                    }
+
+                    if (locationElement.ID == null && locationElement.PhysicalStructuredAddress == null)
+                    {
+                        //SALE-L02-00-0186
+                        //FLUX Geographical Coordinate/Latitude, FLUX Geographical, Coordinate/ Longitude, FLUX_ Location/ Identification
+                        //Latitude & longitude must be provided if there is no identification and no address
+                        if (locationElement.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure?.Value != null && locationElement.SpecifiedPhysicalFLUXGeographicalCoordinate.LongitudeMeasure?.Value != null)
+                        {
+                            Console.WriteLine("#### SALE-L02-00-0186 | OK | FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure.Value and LongitudeMeasure.Value provided for TypeCode POSITION when ID or Address missing");
+                        }
+                        else
+                        {
+                            Console.WriteLine("#### SALE-L02-00-0186 | ERROR | No FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure.Value and LongitudeMeasure.Value provided for TypeCode POSITION when ID or Address missing");
+                            //SALE-L02-00-0186 - error
+                        }
+                    }
+                }
+
+                if (valueLocationTypeCode == "ADDRESS")
+                {
+                    //SALE-L02-00-0187
+                    //Physical StructuredAddress, FLUX_ Location/TypeCode
+                    //Check presence. Must be present if location Type is ADDRESS.
+                    if (locationElement.PhysicalStructuredAddress != null)
+                    {
+                        Console.WriteLine("#### SALE-L02-00-0187 | OK | FLUXLocation.PhysicalStructuredAddress provided for TypeCode ADDRESS");
+                    }
+                    else
+                    {
+                        Console.WriteLine("#### SALE-L02-00-0187 | ERROR | No FLUXLocation.PhysicalStructuredAddress provided for TypeCode ADDRESS");
+                        //SALE-L02-00-0187 - error
+                    }
+                }
+            }
+
+            if (locationElement.SpecifiedPhysicalFLUXGeographicalCoordinate != null)
+            {
+                //SALE-L00-00-0190
+                //FLUX Geographical Coordinate/LatitudeMeasure
+                //Check presence. Must be present
+                if (locationElement.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure?.Value != null)
+                {
+                    Console.WriteLine("#### SALE-L00-00-0190 | OK | FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure.Value provided");
+
+                    //SALE-L01-00-0190
+                    //FLUX Geographical Coordinate/LatitudeMeasure
+                    //Check format. Must be number.
+                    //#Q Already returns decimal, is there a better way to check if it is a number?
+                    if (locationElement.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure.Value is decimal)
+                    {
+                        Console.WriteLine("#### SALE-L01-00-0190 | OK | FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure.Value is decimal");
+
+                        //SALE-L01-00-0191
+                        //FLUX Geographical Coordinate/LatitudeMeasure
+                        //Check range. Must be between -90 and 90
+                        //Boundaries follow the EPSG definition.
+                        if (locationElement.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure.Value >= -90 && locationElement.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure.Value <= 90)
+                        {
+                            Console.WriteLine("#### SALE-L01-00-0191 | OK | FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure.Value in range [-90, 90]");
+                        }
+                        else
+                        {
+                            Console.WriteLine("#### SALE-L01-00-0191 | ERROR | FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure.Value not in range [-90, 90]");
+                            //SALE-L01-00-0191 - error
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("#### SALE-L01-00-0190 | ERROR | FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure.Value is not decimal");
+                        //SALE-L01-00-0190 - error
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("#### SALE-L00-00-0190 | ERROR | No FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LatitudeMeasure.Value provided");
+                    //SALE-L00-00-0190 - error
+                }
+
+                //SALE-L00-00-0191
+                //FLUX Geographical Coordinate/LongitudeMeasure
+                //Check presence. Must be present.
+                if (locationElement.SpecifiedPhysicalFLUXGeographicalCoordinate.LongitudeMeasure?.Value != null)
+                {
+                    Console.WriteLine("#### SALE-L00-00-0191 | OK | FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LongitudeMeasure.Value provided");
+
+                    //SALE-L01-00-0192
+                    //FLUX Geographical Coordinate/LongitudeMeasure
+                    //Check format. Must be number.
+                    //#Q Already returns decimal, is there a better way to check if it is a number?
+                    if (locationElement.SpecifiedPhysicalFLUXGeographicalCoordinate.LongitudeMeasure.Value is decimal)
+                    {
+                        Console.WriteLine("#### SALE-L01-00-0192 | OK | FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LongitudeMeasure.Value is decimal");
+
+                        //SALE-L01-00-0193
+                        //FLUX Geographical Coordinate/LongitudeMeasure
+                        //Check range. Must be between -180 and 180
+                        //Boundaries follow the EPSG definition.
+                        if (locationElement.SpecifiedPhysicalFLUXGeographicalCoordinate.LongitudeMeasure.Value >= -180 && locationElement.SpecifiedPhysicalFLUXGeographicalCoordinate.LongitudeMeasure.Value <= 180)
+                        {
+                            Console.WriteLine("#### SALE-L01-00-0193 | OK | FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LongitudeMeasure.Value in range [-180, 180]");
+                        }
+                        else
+                        {
+                            Console.WriteLine("#### SALE-L01-00-0193 | ERROR | FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LongitudeMeasure.Value not in range [-180, 180]");
+                            //SALE-L01-00-0193 - error
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("#### SALE-L01-00-0192 | ERROR | FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LongitudeMeasure.Value is not decimal");
+                        //SALE-L01-00-0192 - error
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("#### SALE-L00-00-0191 | ERROR | No FLUXLocation.SpecifiedPhysicalFLUXGeographicalCoordinate.LongitudeMeasure.Value provided");
+                    //SALE-L00-00-0191 - error
+                }
+            }
+
+            if (locationElement.PhysicalStructuredAddress != null)
+            {
+                //SALE-L00-00-0200
+                //Structured Address/City Name
+                //Must be present
+                if (locationElement.PhysicalStructuredAddress.CityName?.Value != null)
+                {
+                    Console.WriteLine("#### SALE-L00-00-0200 | OK | FLUXLocation.PhysicalStructuredAddress.CityName.Value provided");
+                }
+                else
+                {
+                    Console.WriteLine("#### SALE-L00-00-0200 | ERROR | No FLUXLocation.PhysicalStructuredAddress.CityName.Value provided");
+                    //SALE-L00-00-0200 - error
+                }
+
+                //SALE-L00-00-0201
+                //Structured Address/Country
+                //Must be present
+                if (locationElement.PhysicalStructuredAddress.CountryID?.Value != null)
+                {
+                    Console.WriteLine("#### SALE-L00-00-0201 | OK | FLUXLocation.PhysicalStructuredAddress.CountryID.Value provided");
+
+                    Console.WriteLine("#### SALE-L01-00-0200 | TODO | Check if locationElement.PhysicalStructuredAddress.CountryID.Value is from schemeID list");
+                    //SALE-L01-00-0200
+                    //Structured Address/Country
+                    //Check code from the list schemeID
+                    //TODO: Check if locationElement.PhysicalStructuredAddress.CountryID.Value is from schemeID list
+
+                    //SALE-L02-00-0200
+                    //FLUX Location/Country, Structured Address/Country
+                    //Should be the same value
+                    if (locationElement.PhysicalStructuredAddress.CountryID.Value?.ToString() == locationElement.CountryID?.Value?.ToString())
+                    {
+                        Console.WriteLine("#### SALE-L02-00-0200 | OK | FLUXLocation.PhysicalStructuredAddress.CountryID.Value provided == FLUXLocation.CountryID.Value");
+                    }
+                    else
+                    {
+                        Console.WriteLine("#### SALE-L02-00-0200 | WARNING | FLUXLocation.PhysicalStructuredAddress.CountryID.Value provided != FLUXLocation.CountryID.Value");
+                        //SALE-L02-00-0200 - warning
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("#### SALE-L00-00-0201 | WARNING | No FLUXLocation.PhysicalStructuredAddress.CountryID.Value provided");
+                    //SALE-L00-00-0201 - warning
+                }
+
+                //SALE-L00-00-0202
+                //Structured Address/Street Name
+                //Must be present
+                if (locationElement.PhysicalStructuredAddress.StreetName?.Value != null)
+                {
+                    Console.WriteLine("#### SALE-L00-00-0202 | OK | FLUXLocation.PhysicalStructuredAddress.StreetName.Value provided");
+                }
+                else
+                {
+                    Console.WriteLine("#### SALE-L00-00-0202 | WARNING | FLUXLocation.PhysicalStructuredAddress.StreetName.Value provided");
+                    //SALE-L00-00-0202 - warning
+                }
+            }
+            
+            Console.WriteLine("########### FLUXLocation Validation End ###########");
         }
 
         private static void Settings_ValidationEventHandler(object sender, ValidationEventArgs e)
