@@ -1,0 +1,13 @@
+﻿<FLUXSalesResponseMessage xmlns:clm63155CommunicationChannelCode="urn:un:unece:uncefact:codelist:standard:UNECE:CommunicationMeansTypeCode:D16A" xmlns:qdt="urn:un:unece:uncefact:data:Standard:QualifiedDataType:20" xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20" xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20" xsi:schemaLocation="urn:un:unece:uncefact:data:standard:FLUXSalesResponseMessage:3 FLUXSalesResponseMessage_3p1.xsd" xmlns="urn:un:unece:uncefact:data:standard:FLUXSalesResponseMessage:3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<FLUXResponseDocument>
+		<ram:ID schemeID="UUID">7bef231a-1b14-43d9-aa39-02c3bb81c04c</ram:ID>
+		<ram:ReferencedID schemeID="UUID">d5da14d7-c2b3-4e36-978e-3f97662a0311</ram:ReferencedID>
+		<ram:CreationDateTime>
+			<udt:DateTime>2017-05-11T14:09:22Z</udt:DateTime>
+		</ram:CreationDateTime>
+		<ram:ResponseCode listID="FLUX_GP_RESPONSE">OK</ram:ResponseCode>
+		<ram:RespondentFLUXParty>
+			<ram:ID schemeID="FLUX_GP_PARTY">XEU</ram:ID>
+		</ram:RespondentFLUXParty>
+	</FLUXResponseDocument>
+</FLUXSalesResponseMessage>

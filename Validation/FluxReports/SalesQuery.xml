@@ -1,0 +1,28 @@
+﻿<FLUXSalesQueryMessage xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20" xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20" xsi:schemaLocation="urn:un:unece:uncefact:data:standard:FLUXSalesQueryMessage:3 FLUXSalesQueryMessage_3p0.xsd" xmlns="urn:un:unece:uncefact:data:standard:FLUXSalesQueryMessage:3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SalesQuery>
+		<ram:ID schemeID="UUID">a949870a-e782-4956-b326-3021ff9cefd9</ram:ID>
+		<ram:SubmittedDateTime>
+			<udt:DateTime>2017-05-20T14:09:22Z</udt:DateTime>
+		</ram:SubmittedDateTime>
+		<ram:TypeCode listID="FLUX_SALES_TYPE">SN+TOD</ram:TypeCode>
+		<ram:SpecifiedDelimitedPeriod>
+			<ram:StartDateTime>
+				<udt:DateTime>2017-05-10T05:09:22Z</udt:DateTime>
+			</ram:StartDateTime>
+			<ram:EndDateTime>
+				<udt:DateTime>2017-05-13T17:09:22Z</udt:DateTime>
+			</ram:EndDateTime>
+		</ram:SpecifiedDelimitedPeriod>
+		<ram:SubmitterFLUXParty>
+			<ram:ID schemeID="FLUX_GP_PARTY">BEL</ram:ID>
+		</ram:SubmitterFLUXParty>
+		<ram:SimpleSalesQueryParameter>
+			<ram:TypeCode listID="FLUX_SALES_QUERY_PARAM">VESSEL</ram:TypeCode>
+			<ram:ValueID schemeID="CFR">BEL123456789</ram:ValueID>
+		</ram:SimpleSalesQueryParameter>
+		<ram:SimpleSalesQueryParameter>
+			<ram:TypeCode listID="FLUX_SALES_QUERY_PARAM">ROLE</ram:TypeCode>
+			<ram:ValueCode listID="FLUX_SALES_QUERY_ROLE">FLAG</ram:ValueCode>
+		</ram:SimpleSalesQueryParameter>
+	</SalesQuery>
+</FLUXSalesQueryMessage>

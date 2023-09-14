@@ -49,6 +49,12 @@
     <None Update="FluxReports\SALESBRDEF.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="FluxReports\SalesQuery.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="FluxReports\SalesResponse.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="FluxReports\Samples_Fleet_Query_Vessel.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

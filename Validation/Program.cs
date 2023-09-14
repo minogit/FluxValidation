@@ -12300,6 +12300,46 @@ namespace Validation
 
                 #endregion
 
+                #region SalesQuery
+                string filePathSalesQuery = strWorkPath + @"\FluxReports\SalesQuery.xml";
+                xmlDoc = new XmlDocument();
+
+                if (File.Exists(filePathSalesQuery))
+                {
+                    xmlDoc.Load(filePathSalesQuery);
+                }
+
+                xdoc = XDocument.Load(filePathSalesQuery);
+
+                stringReader = new System.IO.StringReader(xdoc.ToString());
+                serializer = new XmlSerializer(typeof(FLUXFAQueryMessageType));
+                FLUXSalesQueryMessageType salesquery = serializer.Deserialize(stringReader) as FLUXSalesQueryMessageType;
+
+
+                salesquery = null;
+
+
+                #endregion
+
+                #region FAResponse
+                string filePathSalesResp = strWorkPath + @"\FluxReports\SalesResponse.xml";
+                xmlDoc = new XmlDocument();
+
+                if (File.Exists(filePathSalesResp))
+                {
+                    xmlDoc.Load(filePathSalesResp);
+                }
+
+                xdoc = XDocument.Load(filePathSalesResp);
+
+                stringReader = new System.IO.StringReader(xdoc.ToString());
+                serializer = new XmlSerializer(typeof(FLUXResponseMessageType));
+                FLUXSalesResponseMessageType Salesresp = serializer.Deserialize(stringReader) as FLUXSalesResponseMessageType;
+
+                Salesresp = null;
+
+                #endregion
+
                 foreach (var rule in SalesBrDef)
                 {
                     //#Q Changed switch(rule.Code) to switch(rule.BR) as there is nothing in col 2 in SALESBRDEF.csv and business rules codes are in column 11 - BR 
