@@ -1,4 +1,5 @@
-﻿<FLUXSalesQueryMessage xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20" xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20" xsi:schemaLocation="urn:un:unece:uncefact:data:standard:FLUXSalesQueryMessage:3 FLUXSalesQueryMessage_3p0.xsd" xmlns="urn:un:unece:uncefact:data:standard:FLUXSalesQueryMessage:3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<FLUXSalesQueryMessage xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:20" xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:20" xsi:schemaLocation="urn:un:unece:uncefact:data:standard:FLUXSalesQueryMessage:3 FLUXSalesQueryMessage_3p0.xsd" xmlns="urn:un:unece:uncefact:data:standard:FLUXSalesQueryMessage:3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SalesQuery>
 		<ram:ID schemeID="UUID">a949870a-e782-4956-b326-3021ff9cefd9</ram:ID>
 		<ram:SubmittedDateTime>

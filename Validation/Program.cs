@@ -12183,7 +12183,9 @@ namespace Validation
             if (SalesDomainDebug)
             {
 
-                #region Sales Report
+                #region Sales Domain
+
+                #region SalesReport
                 string filePathSalesReport = strWorkPath + @"\FluxReports\Samples_Sales_SN_Report_Message_Normal.xml";
                 XmlDocument xmlDoc = new XmlDocument();
 
@@ -12198,6 +12200,39 @@ namespace Validation
                 var stringReader = new System.IO.StringReader(xdoc.ToString());
                 var serializer = new XmlSerializer(typeof(FLUXSalesReportMessageType));
                 FLUXSalesReportMessageType SalesReport = serializer.Deserialize(stringReader) as FLUXSalesReportMessageType;
+                #endregion SalesReport
+
+                #region SalesQuery
+                string filePathSalesQuery = strWorkPath + @"\FluxReports\SalesQuery.xml";
+                xmlDoc = new XmlDocument();
+
+                if (File.Exists(filePathSalesQuery))
+                {
+                    xmlDoc.Load(filePathSalesQuery);
+                }
+
+                xdoc = XDocument.Load(filePathSalesQuery);
+
+                stringReader = new System.IO.StringReader(xdoc.ToString());
+                serializer = new XmlSerializer(typeof(FLUXSalesQueryMessageType));
+                FLUXSalesQueryMessageType SalesQuery = serializer.Deserialize(stringReader) as FLUXSalesQueryMessageType;
+                #endregion SalesQuery
+
+                #region SalesResponse
+                string filePathSalesResponse = strWorkPath + @"\FluxReports\SalesResponse.xml";
+                xmlDoc = new XmlDocument();
+
+                if (File.Exists(filePathSalesResponse))
+                {
+                    xmlDoc.Load(filePathSalesResponse);
+                }
+
+                xdoc = XDocument.Load(filePathSalesResponse);
+
+                stringReader = new System.IO.StringReader(xdoc.ToString());
+                serializer = new XmlSerializer(typeof(FLUXSalesResponseMessageType));
+                FLUXSalesResponseMessageType SalesResponse = serializer.Deserialize(stringReader) as FLUXSalesResponseMessageType;
+                #endregion SalesResponse
 
                 #region read csv Sales BRules
                 string fPathSalesBRules = strWorkPath + @"\FluxReports\SALESBRDEF.csv";
@@ -12298,47 +12333,11 @@ namespace Validation
 
                 #endregion
 
-                #endregion
+                #endregion Sales Domain
 
-                #region SalesQuery
-                string filePathSalesQuery = strWorkPath + @"\FluxReports\SalesQuery.xml";
-                xmlDoc = new XmlDocument();
-
-                if (File.Exists(filePathSalesQuery))
-                {
-                    xmlDoc.Load(filePathSalesQuery);
-                }
-
-                xdoc = XDocument.Load(filePathSalesQuery);
-
-                stringReader = new System.IO.StringReader(xdoc.ToString());
-                serializer = new XmlSerializer(typeof(FLUXFAQueryMessageType));
-                FLUXSalesQueryMessageType salesquery = serializer.Deserialize(stringReader) as FLUXSalesQueryMessageType;
-
-
-                salesquery = null;
-
-
-                #endregion
-
-                #region FAResponse
-                string filePathSalesResp = strWorkPath + @"\FluxReports\SalesResponse.xml";
-                xmlDoc = new XmlDocument();
-
-                if (File.Exists(filePathSalesResp))
-                {
-                    xmlDoc.Load(filePathSalesResp);
-                }
-
-                xdoc = XDocument.Load(filePathSalesResp);
-
-                stringReader = new System.IO.StringReader(xdoc.ToString());
-                serializer = new XmlSerializer(typeof(FLUXResponseMessageType));
-                FLUXSalesResponseMessageType Salesresp = serializer.Deserialize(stringReader) as FLUXSalesResponseMessageType;
-
-                Salesresp = null;
-
-                #endregion
+                SalesReport = null;
+                SalesQuery = null;
+                //SalesResponse = null;
 
                 foreach (var rule in SalesBrDef)
                 {
@@ -14345,11 +14344,978 @@ namespace Validation
                             }
                             else
                             {
-                                Console.WriteLine("No SalesReport provided");
+                                Console.WriteLine("SalesReport == null");
                             }
                             #endregion
 
                             break;
+
+                        case "SALE-L00-00-0400":
+
+                            #region SalesQuery
+                            if (SalesQuery != null)
+                            {
+                                string valueSalesQueryTypeCode = "";
+                                string valueFLUXPartyID = "";
+
+                                DateTime dateTimeDelimitedPeriodStartValue = new DateTime(); 
+                                DateTime dateTimeDelimitedPeriodEndValue = new DateTime();
+
+                                if (SalesQuery.SalesQuery != null)
+                                {
+                                    //SALE-L00-00-0400, SALE-L01-00-0400, SALE-L03-00-0400
+                                    #region SalesQuery.SalesQuery.ID
+                                    //SALE-L00-00-0400
+                                    //Sales Query/Identification
+                                    //Must be present
+                                    if (SalesQuery.SalesQuery.ID != null)
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0400 | OK | SalesQuery.SalesQuery.ID provided");
+
+                                        if (SalesQuery.SalesQuery.ID.schemeID?.ToString() == "UUID" && SalesQuery.SalesQuery.ID.Value != null)
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0400 | TODO | Check format of SalesQuery.SalesQuery.ID.Value to meet UUID");
+                                            //SALE-L01-00-0400
+                                            //Sales Query/Identification
+                                            //Check Format : UUID
+                                            //TODO: Check format of SalesQuery.SalesQuery.ID.Value to meet UUID
+
+                                            Console.WriteLine("SALE-L03-00-0400 | TODO | Check if SalesQuery.SalesQuery.ID.Value is unique");
+                                            //SALE-L03-00-0400
+                                            //Sales Query/Identification
+                                            //The reference must be unique
+                                            //TODO: Check if SalesQuery.SalesQuery.ID.Value is unique
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("No SalesQuery.SalesQuery.ID.schemeID provided or != UUID or ID has no Value");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0400 | ERROR | No SalesQuery.SalesQuery provided");
+                                        //SALE-L00-00-0400 - error
+                                    }
+                                    #endregion SalesQuery.SalesQuery.ID
+
+                                    //SALE-L00-00-0401, SALE-L01-00-0401
+                                    #region SalesQuery.SalesQuery.SubmittedDateTime
+                                    //SALE-L00-00-0401
+                                    //Sales Query/Submitted
+                                    //Must be present
+                                    if (SalesQuery.SalesQuery.SubmittedDateTime != null)
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0401 | OK | SalesQuery.SalesQuery.SubmittedDateTime provided");
+
+                                        //SALE-L01-00-0401
+                                        //Sales Query/Submitted
+                                        //Check format
+                                        if (SalesQuery.SalesQuery.SubmittedDateTime.Item is DateTime)
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0401 | OK | SalesQuery.SalesQuery.SubmittedDateTime.Item is DateTime");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0401 | ERROR | SalesQuery.SalesQuery.SubmittedDateTime.Item is DateTime");
+                                            //SALE-L00-00-0401 - error
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0401 | ERROR | No SalesQuery.SalesQuery.SubmittedDateTime provided");
+                                        //SALE-L00-00-0400 - error
+                                    }
+                                    #endregion SalesQuery.SalesQuery.SubmittedDateTime
+
+                                    //SALE-L00-00-0402, SALE-L01-00-0403, SALE-L01-00-0402
+                                    #region SalesQuery.SalesQuery.TypeCode
+                                    //SALE-L00-00-0402
+                                    //Sales Query/Type
+                                    //Must be present
+                                    if (SalesQuery.SalesQuery.TypeCode?.Value != null)
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0402 | OK | SalesQuery.SalesQuery.TypeCode provided with Value");
+
+                                        //SALE-L01-00-0403
+                                        //Sales Query/Type
+                                        //The listID must be FLUX_SALES_ TYPE
+                                        if (SalesQuery.SalesQuery.TypeCode.listID?.ToString() == "FLUX_SALES_TYPE")
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0403 | OK | SalesQuery.SalesQuery.TypeCode.listID provided and == FLUX_SALES_TYPE");
+
+                                            Console.WriteLine("SALE-L01-00-0402 | TODO | Check if SalesQuery.SalesQuery.TypeCode.Value from FLUX_SALES_TYPE list");
+                                            //SALE-L01-00-0402
+                                            //Sales Query/Type
+                                            //Check code from the list listID
+                                            //TODO: Check if SalesQuery.SalesQuery.TypeCode.Value from FLUX_SALES_TYPE list
+
+                                            valueSalesQueryTypeCode = SalesQuery.SalesQuery.TypeCode.ToString();
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0403 | ERROR | No SalesQuery.SalesQuery.TypeCode.listID provided or != FLUX_SALES_TYPE");
+                                            //SALE-L01-00-0403 - error
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0402 | ERROR | No SalesQuery.SalesQuery.TypeCode provided or with no Value");
+                                        //SALE-L00-00-0402 - error
+                                    }
+                                    #endregion SalesQuery.SalesQuery.TypeCode
+
+                                    //SALE-L02-00-0401, SALE-L02-00-0402, SALE-L00-00-0410, SALE-L01-00-0411, SALE-L01-00-0410, SALE-L03-00-0410 
+                                    #region SalesQuery.SalesQuery.SubmitterFLUXParty
+                                    //SALE-L02-00-0401
+                                    //Flux_Party
+                                    //Must be present
+                                    if (SalesQuery.SalesQuery.SubmitterFLUXParty != null)
+                                    {
+                                        Console.WriteLine("SALE-L02-00-0401 | OK | SalesQuery.SalesQuery.SubmitterFLUXParty provided");
+
+                                        //SALE-L02-00-0402
+                                        //Flux_Party
+                                        //Only one occurrence
+                                        //#Q How [only one occurance] should be cheched, is this workable?
+                                        if (!SalesQuery.SalesQuery.SubmitterFLUXParty.GetType().IsArray)
+                                        {
+                                            Console.WriteLine("SALE-L02-00-0402 | OK | SalesQuery.SalesQuery.SubmitterFLUXParty is not an Array = 1 occurance");
+
+                                            if (SalesQuery.SalesQuery.SubmitterFLUXParty.ID != null)
+                                            {
+                                                //SALE-L00-00-0410
+                                                //FLUX_Party/Identification
+                                                //Must be present
+                                                //#Q As cardinality is up to one, take and validate the first element only
+                                                var submitterFLUXPartyID = SalesQuery.SalesQuery.SubmitterFLUXParty.ID.First();
+
+                                                if (submitterFLUXPartyID.Value != null)
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0410 | OK | SalesQuery.SalesQuery.SubmitterFLUXParty.ID provided with Value");
+
+                                                    Console.WriteLine("SALE-L01-00-0410 | TODO | Check if SalesQuery.SalesQuery.SubmitterFLUXParty.ID.Value from FLUX_GP_PARTY list");
+                                                    //SALE-L01-00-0410
+                                                    //FLUX_Party/Identification
+                                                    //Check Code from the list schemeID
+                                                    //TODO: Chech if SalesQuery.SalesQuery.SubmitterFLUXParty.ID.Value from FLUX_GP_PARTY list
+
+                                                    valueFLUXPartyID = submitterFLUXPartyID.Value.ToString();
+
+                                                    //SALE-L01-00-0411
+                                                    //#Q missing in FLUX_P1000-5_Sales_domain_EU_Implementation
+                                                    //FLUX_Party/Identification
+                                                    //Check attribute schemeID. Must be FLUX_GP_PARTY
+                                                    if (submitterFLUXPartyID.schemeID?.ToString() == "FLUX_GP_PARTY")
+                                                    {
+                                                        Console.WriteLine("SALE-L01-00-0411 | OK | SalesQuery.SalesQuery.SubmitterFLUXParty.ID.schemaID provided and == FLUX_GP_PARTY");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L01-00-0411 | ERROR | No SalesQuery.SalesQuery.SubmitterFLUXParty.ID.schemaID provided or != FLUX_GP_PARTY");
+                                                        //SALE-L01-00-0411 - error
+                                                    }
+
+                                                    //SALE-L03-00-0410 
+                                                    //#Q missing in FLUX_P1000-5_Sales_domain_EU_Implementation
+                                                    //FLUX_Party/Identification
+                                                    //Check if OwnerFLUXParty.ID is consistent with FLUX TL values.
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0410 | ERROR | No SalesQuery.SalesQuery.SubmitterFLUXParty.ID provided or with no Value");
+                                                    //SALE-L00-00-0410 - error
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("No SalesQuery.SalesQuery.SubmitterFLUXParty.ID provided");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L02-00-0402 | ERROR | No SalesQuery.SalesQuery.SubmitterFLUXParty is an Array > 1 occurances");
+                                            //SALE-L02-00-0402 - error
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L02-00-0401 | ERROR | No SalesQuery.SalesQuery.SubmitterFLUXParty provided");
+                                        //SALE-L02-00-0401 - error
+                                    }
+                                    #endregion SalesQuery.SalesQuery.SubmitterFLUXParty
+
+                                    //SALE-L02-00-0403, SALE-L00-00-0420, SALE-L01-00-0420, SALE-L00-00-0421, SALE-L01-00-0421, SALE-L03-00-0420, SALE-L02-00-0420
+                                    #region SalesQuery.SalesQuery.SpecifiedDelimitedPeriod
+                                    //SALE-L02-00-0403
+                                    //Delimired_Period
+                                    //Only one occurrence
+                                    //#Q How [only one occurance] should be cheched, is this workable?
+                                    if (SalesQuery.SalesQuery.SpecifiedDelimitedPeriod != null && !SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.GetType().IsArray)
+                                    {
+                                        Console.WriteLine("SALE-L02-00-0403 | OK | SalesQuery.SalesQuery.SpecifiedDelimitedPeriod provided and is not an Array = 1 occurance");
+
+                                        //SALE-L00-00-0420
+                                        //Delimited Period/Start
+                                        //Must be present
+                                        if (SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.StartDateTime != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0420 | OK | SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.StartDateTime provided");
+
+                                            //SALE-L01-00-0420
+                                            //Delimited Period/Start
+                                            //Check format
+                                            if (SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.StartDateTime.Item is DateTime)
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0420 | OK | SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.StartDateTime.Item is DateTime");
+
+                                                dateTimeDelimitedPeriodStartValue = SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.StartDateTime.Item;
+                                                DateTime dateTimeUtcNowSystemDate = DateTime.UtcNow;
+
+                                                //SALE-L03-00-0420
+                                                //Delimited Period/Start
+                                                //StartDate >= SystemDate – 3 years
+                                                //Past data limited to three years from the current date
+                                                if (DateTime.Compare(dateTimeDelimitedPeriodStartValue, dateTimeUtcNowSystemDate.AddYears(-3)) >= 0)
+                                                {
+                                                    Console.WriteLine("SALE-L03-00-0420 | OK | SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.StartDateTime.Item is after dateTimeUtcNowSystemDate - 3 years");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L03-00-0420 | ERROR | SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.StartDateTime.Item is before dateTimeUtcNowSystemDate - 3 years");
+                                                    //SALE-L03-00-0420 - error
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0420 | ERROR | SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.StartDateTime.Item is not DateTime");
+                                                //SALE-L01-00-0420 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0420 | ERROR | No SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.StartDateTime provided");
+                                            //SALE-L00-00-0420 - error
+                                        }
+
+                                        //SALE-L00-00-0421
+                                        //Delimited Period/End
+                                        //Must be present
+                                        if (SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.EndDateTime != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0421 | OK | SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.EndDateTime provided");
+
+                                            //SALE-L01-00-0421
+                                            //Delimited Period/End
+                                            //Check format
+                                            if (SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.EndDateTime.Item is DateTime)
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0421 | OK | SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.EndDateTime is DateTime");
+
+                                                dateTimeDelimitedPeriodEndValue = SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.EndDateTime.Item;
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0421 | ERROR | SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.EndDateTime is not DateTime");
+                                                //SALE-L01-00-0421 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0421 | ERROR | No SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.EndDateTime provided");
+                                            //SALE-L00-00-0421 - error
+                                        }
+
+                                        if (dateTimeDelimitedPeriodStartValue != DateTime.MaxValue && dateTimeDelimitedPeriodEndValue != DateTime.MinValue)
+                                        {
+                                            //SALE-L02-00-0420
+                                            //Delimited Period/Start, Delimited Period / End
+                                            //Start <= End
+                                            if (DateTime.Compare(dateTimeDelimitedPeriodStartValue, dateTimeDelimitedPeriodEndValue) <= 0)
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0420 | OK | SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.StartDateTime <= SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.EndDateTime");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L02-00-0420 | ERROR | SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.StartDateTime > SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.EndDateTime");
+                                                //SALE-L02-00-0420 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("No SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.StartDateTime or SalesQuery.SalesQuery.SpecifiedDelimitedPeriod.EndDateTime provided or not properly set");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L02-00-0403 | ERROR | No SalesQuery.SalesQuery.SpecifiedDelimitedPeriod or is an Array > 1 occurance");
+                                        //SALE-L02-00-0403 - error
+                                    }
+                                    #endregion SalesQuery.SalesQuery.SpecifiedDelimitedPeriod
+
+                                    //SALE-L00-00-0404, SALE-L00-00-0430, SALE-L01-00-0430, SALE-L01-00-0431, SALE-L02-00-0430, SALE-L01-00-0432, SALE-L00-00-0431
+                                    #region SalesQuery.SalesQuery.SimpleSalesQueryParameter
+                                    //SALE-L00-00-0404
+                                    //Sales_Query parameter
+                                    //Must be present
+                                    if (SalesQuery.SalesQuery.SimpleSalesQueryParameter != null)
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0404 | OK | SalesQuery.SalesQuery.SimpleSalesQueryParameter provided");
+
+                                        //#Q As cardinality is up to *, validate each element
+                                        foreach (var salesQuerySimpleSalesQueryParameter in SalesQuery.SalesQuery.SimpleSalesQueryParameter)
+                                        {
+                                            //SALE-L00-00-0430
+                                            //Sales Query Parameter/Type
+                                            //Must be present
+                                            if (salesQuerySimpleSalesQueryParameter.TypeCode?.Value != null)
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0430 | OK | SalesQuery.SalesQuery.SimpleSalesQueryParameter.TypeCode provided with Value");
+
+                                                Console.WriteLine("SALE-L01-00-0430 | TODO | Check if SalesQuery.SalesQuery.SimpleSalesQueryParameter.TypeCode.Value from FLUX_SALES_QUERY_PARAM list");
+                                                //SALE-L01-00-0430
+                                                //Sales Query Parameter/Type
+                                                //Check code from the list listID
+                                                //TODO: Check if salesQuerySimpleSalesQueryParameter.TypeCode.Value from FLUX_SALES_QUERY_PARAM list
+
+                                                if (salesQuerySimpleSalesQueryParameter.TypeCode.Value.ToString() == "FLAG" || salesQuerySimpleSalesQueryParameter.TypeCode.Value?.ToString() == "ROLE" || salesQuerySimpleSalesQueryParameter.TypeCode.Value?.ToString() == "PLACE")
+                                                {
+                                                    if (salesQuerySimpleSalesQueryParameter.ValueCode?.Value != null && salesQuerySimpleSalesQueryParameter.ValueCode?.listID?.ToString() == "FLUX_SALES_QUERY_ROLE")
+                                                    {
+                                                        Console.WriteLine("SALE-L01-00-0431 | TODO | Check code SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueCode.Value");
+                                                        //SALE-L01-00-0431
+                                                        //Sales Query Parameter/Type, Sales Query Parameter/Value
+                                                        //If Type = FLAG/ROLE/PLACE, check code of the value
+                                                        //TODO: Check code salesQuerySimpleSalesQueryParameter.ValueCode.Value
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("No SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueCode.Value or listID provided or listID != FLUX_SALES_QUERY_ROLE");
+                                                    }
+
+                                                    if (salesQuerySimpleSalesQueryParameter.TypeCode.Value.ToString() == "FLAG")
+                                                    {
+                                                        //SALE-L02-00-0430
+                                                        //Sales Query Parameter/Type, FLUX_Party
+                                                        //Type=FLAG only for international organization
+                                                        //If the type is present but there is no value, the query is for all flag states
+                                                        if (salesQuerySimpleSalesQueryParameter.ValueCode?.Value?.ToString() != null)
+                                                        {
+                                                            Console.WriteLine("SALE-L02-00-0430 | TODO | Flag state provided, Check if international organization");
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L02-00-0430 | NOTE | SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueCode.listID == FLUX_SALES_QUERY_ROLE, but no Value => Query is for all flag states");
+                                                        }
+                                                    }
+
+                                                    if (salesQuerySimpleSalesQueryParameter.TypeCode.Value.ToString() == "ROLE")
+                                                    {
+                                                        //SALE-L02-00-0431
+                                                        //Sales Query Parameter/Type, Sales Query Parameter / Values, FLUX_Party / Identification
+                                                        //Type=ROLE, the values FLAG or LAND only for MS. INT for international organization
+                                                        //International organizations are identified by an iso-3 code starting with 'X'
+                                                                                                                
+                                                        if (valueFLUXPartyID != "" && valueFLUXPartyID.StartsWith("X"))  //#Q means it is international organization
+                                                        {
+                                                            if (salesQuerySimpleSalesQueryParameter.ValueCode?.Value?.ToString() == "INT")
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0431 | OK | SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueCode.Value == INT provided for internationl organization");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0431 | ERROR | SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueCode.Value != INT provided for internationl organization");
+                                                                //SALE-L02-00-0431 - error
+                                                            }
+                                                        }
+                                                        else  //#Q for MS 
+                                                        {
+                                                            if (salesQuerySimpleSalesQueryParameter.ValueCode?.Value?.ToString() == "FLAG" || salesQuerySimpleSalesQueryParameter.ValueCode?.Value?.ToString() == "LAND")
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0431 | OK | SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueCode.Value == FLAG || LAND provided for MS");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0431 | ERROR | SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueCode.Value != FLAG || LAND provided for MS");
+                                                                //SALE-L02-00-0431 - error
+                                                            }
+                                                        }                                                        
+                                                    }
+                                                }
+                                                else if (salesQuerySimpleSalesQueryParameter.TypeCode.Value.ToString() == "VESSEL")
+                                                {
+                                                    if (salesQuerySimpleSalesQueryParameter.ValueID?.schemeID?.ToString() == "CFR")
+                                                    {
+                                                        //SALE-L01-00-0432
+                                                        //Sales Query Parameter/Type, Sales Query Parameter/Value
+                                                        //If Type=VESSEL, check format of CFR
+                                                        //If the type is present but there is no value for CFR, the query is for all fishing vessels
+                                                        if (salesQuerySimpleSalesQueryParameter.ValueID.Value?.ToString() != null)
+                                                        {
+                                                            //#Q Regex used for start of string, 3 capital letters, followed by 9 numbers from 0 to 9 and end of string
+                                                            if (Regex.Match(salesQuerySimpleSalesQueryParameter.ValueID.Value.ToString(), "^[A-Z]{3}[0-9]{9}$").Success)
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0432 | OK | SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueID.Value is a valid CFR");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L01-00-0432 | ERROR | SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueID.Value is not a valid CFR");
+                                                                //SALE-L01-00-0432 - error
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L01-00-0432 | NOTE | No SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueID.schemeID == CFR, but no Value => Query is for all fishing vessels");
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("No SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueID.Value or schemeID provided or schemeID != CFR");
+                                                    }
+
+                                                    //SALE-L03-00-0430 - error
+                                                    //Sales Query Parameter/Type, Sales Query Parameter / Value, FLUX Party/ Identification, Delimited Period/ Start
+                                                    //If TYPE=VESSEL and if vessel identifiers are given, the flag of each vessel must be the country of the requester at start date
+                                                    //TODO: Check if the flag of each vessel is the country of the requester at start date
+                                                    if (salesQuerySimpleSalesQueryParameter.ValueID?.Value?.ToString() != null)
+                                                    {
+                                                        //type of query param (if VESSEL):  salesQuerySimpleSalesQueryParameter.TypeCode.Value
+                                                        //id of the vessel:                 salesQuerySimpleSalesQueryParameter.ValueID.Value
+                                                        //start date:                       dateTimeDelimitedPeriodStartValue
+                                                        //country of the requester:         valueFLUXPartyID
+
+                                                        Console.WriteLine("SALE-L03-00-0430 | TODO | Check if the flag of each vessel is the country of the requester at start date");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("No SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueID.Value provided for TypeCode == VESSEL");
+                                                    }
+                                                }
+                                                else if (salesQuerySimpleSalesQueryParameter.TypeCode.Value.ToString() == "SALES_ID" || salesQuerySimpleSalesQueryParameter.TypeCode.Value.ToString() == "TRIP_ID")
+                                                {
+                                                    var valueSalesQueryParameterValueID = salesQuerySimpleSalesQueryParameter.ValueID?.Value?.ToString() != null ? salesQuerySimpleSalesQueryParameter.ValueID?.Value?.ToString() : "";
+
+                                                    if (valueSalesQueryParameterValueID != "")
+                                                    {
+                                                        string[] salesQueryParameterValueIDSubstrings = valueSalesQueryParameterValueID.Trim().Split("-");
+                                                        string salesQueryParameterValueIDNationalNumber = String.Join("-", valueSalesQueryParameterValueID.Trim().Split("-").Skip(2));
+
+                                                        Console.WriteLine("SALE-L01-00-0433 | TODO | Add SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueID.Value checks for format of the part corresponding to the national number - salesQueryParameterValueIDNationalNumber");
+                                                        //SALE-L01-00-0433
+                                                        //Sales Query Parameter/Type, Sales Query Parameter / Values, FLUX_Party / Identification
+                                                        //If Type = SALES_ID or TRIP_ID, check format of the part corresponding to the national number
+                                                        //country specific The requester knows his national format(s). As the sender must send validated data,
+                                                        //this BR can be used to control the national formats if he knows it otherwise it is to verify if that part has max 20 chars.
+                                                        if (salesQueryParameterValueIDNationalNumber.Length > 0 && salesQueryParameterValueIDNationalNumber.Length <= 20)
+                                                        {
+                                                            Console.WriteLine("SALE-L01-00-0433 | OK | SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueID.Value salesQueryParameterValueIDNationalNumber provided and length <= 20");
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L01-00-0433 | ERROR | No  SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueID.Value salesQueryParameterValueIDNationalNumber provided or length > 20");
+                                                            //SALE-L01-00-0433 - error
+                                                        }
+
+                                                        //SALE-L01-00-0434
+                                                        //Sales Query Parameter/Type, Sales Query Parameter / Values
+                                                        //If Type = SALES_ID or TRIP_ID, check format of the common part
+                                                        //ISO-3 code + '-' + type of report
+                                                        //TODO: Check if salesQueryParameterValueIDSubstrings[0] is an ISO-3 code
+                                                        Console.WriteLine("SALE-L01-00-0434 | TODO | Check if SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueID.Value salesQueryParameterValueIDSubstrings[0] is valid ISO-3 code");
+                                                        bool isFirstSubstringIso3Code = true;
+                                                        if (isFirstSubstringIso3Code && valueSalesQueryTypeCode != "" && (salesQueryParameterValueIDSubstrings[1] == valueSalesQueryTypeCode))
+                                                        {
+                                                            Console.WriteLine("SALE-L01-00-0434 | OK | SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueID.Value common part format valid");
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L01-00-0434 | ERROR | SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueID.Value common part format not valid");
+                                                            //SALE-L01-00-0434 - error
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("No SalesQuery.SalesQuery.SimpleSalesQueryParameter.ValueID with Value provided for TypeCode == SALES_ID || TRIP_ID");
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L00-00-0430 | ERROR | No SalesQuery.SalesQuery.SimpleSalesQueryParameter.TypeCode provided or with no Value");
+                                                //SALE-L00-00-0430 - error
+                                            }
+                                        }
+
+                                        //SALE-L00-00-0431
+                                        //Sales Query Parameter/Type, Sales Query Parameter/Value
+                                        //A role must exist
+                                        if (SalesQuery.SalesQuery.SimpleSalesQueryParameter.Any(a => a.TypeCode?.Value?.ToString() == "ROLE"))
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0431 | OK | SalesQuery.SalesQuery.SimpleSalesQueryParameter.TypeCode provided with Value == ROLE");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0431 | ERROR | No SalesQuery.SalesQuery.SimpleSalesQueryParameter.TypeCode provided with Value == ROLE");
+                                            //SALE-L00-00-0431 - error
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0404 | ERROR | No SalesQuery.SalesQuery.SimpleSalesQueryParameter provided");
+                                        //SALE-L00-00-0404 - error
+                                    }
+                                    #endregion SalesQuery.SalesQuery.SimpleSalesQueryParameter
+                                }
+                                else
+                                {
+                                    Console.WriteLine("No SalesQuery.SalesQuery provided");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("SalesQuery == null");
+                            }
+                            #endregion SalesQuery
+
+                            break;
+
+                        case "SALE-L00-00-0470":
+
+                            #region SalesResponse
+                            if (SalesResponse != null)
+                            {
+                                string valueResponseDocumentResponseCode = "";
+                                DateTime dateTimeFLUXResponseDocumentCreation = new DateTime();
+                                bool hasRelatedValidationResultDocument = false;
+
+                                if (SalesResponse.FLUXResponseDocument != null)
+                                {
+                                    //SALE-L00-00-0450, SALE-L01-00-0450, ALE-L01-00-0451, SALE-L03-00-0450
+                                    #region SalesResponse.FLUXResponseDocument.ID
+                                    //SALE-L00-00-0450
+                                    //FLUX_Response_Document/Identification
+                                    //Must be present
+                                    if (SalesResponse.FLUXResponseDocument.ID != null)
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0450 | OK | SalesResponse.FLUXResponseDocument.ID provided");
+
+                                        //#Q As cardinality is up to one, take and validate the first element only
+                                        var salesResponseFLUXResponseDocumentID = SalesResponse.FLUXResponseDocument.ID.First();
+
+                                        //SALE-L01-00-0450
+                                        //FLUX_Response_Document/Identification
+                                        //Check attribute schemeID. Must be UUID.
+                                        if (salesResponseFLUXResponseDocumentID.schemeID?.ToString() == "UUID")
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0450 | OK | SalesResponse.FLUXResponseDocument.ID.schemeID provided and == UUID");
+
+                                            Console.WriteLine("SALE-L01-00-0451 | TODO | Check if format of SalesResponse.FLUXResponseDocument.ID.Value meets the schemeID provided");
+                                            //SALE-L01-00-0451 - error
+                                            //FLUX_Response_Document/Identification
+                                            //Check Format. Must be according to the specified schemeID.
+                                            //Must be according to RFC4122 format for UUID.
+                                            //TODO: Check if format of SalesResponse.FLUXResponseDocument.ID.Value meets the schemeID provided
+
+                                            Console.WriteLine("SALE-L03-00-0450 | TODO | Check if SalesResponse.FLUXResponseDocument.ID.Value is unique");
+                                            //SALE-L03-00-0450 - error
+                                            //FLUX_Response_Document/Identification
+                                            //The identification must be unique and not already exist
+                                            //TODO: Check if SalesResponse.FLUXResponseDocument.ID.Value is unique
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0450 | ERROR | SalesResponse.FLUXResponseDocument.ID provided or != UUID");
+                                            //SALE-L01-00-0450 - error
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0450 | ERROR | No SalesResponse.FLUXResponseDocument.ID provided");
+                                        //SALE-L00-00-0450 - error
+                                    }
+                                    #endregion SalesResponse.FLUXResponseDocument.ID
+
+                                    //SALE-L00-00-0451, SALE-L01-00-0452, SALE-L01-00-0453, SALE-L03-00-0452
+                                    #region SalesResponse.FLUXResponseDocument.ReferencedID
+                                    //SALE-L00-00-0451
+                                    //FLUX_Response_Document/Referenced Identification
+                                    //Must be present
+                                    if (SalesResponse.FLUXResponseDocument.ReferencedID != null)
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0451 | OK | SalesResponse.FLUXResponseDocument.ReferencedID provided");
+
+                                        Console.WriteLine("SALE-L01-00-0452 | TODO | Check if SalesResponse.FLUXResponseDocument.ReferencedID.schemeID is in FLUX_GP_MSG_ID list");
+                                        //SALE-L01-00-0452 - error
+                                        //FLUX_Response_Document/Referenced Identification
+                                        //Check attribute schemeID. Must be in the FLUX_GP_MSG_ID list
+                                        //TODO: Check if SalesResponse.FLUXResponseDocument.ReferencedID.schemeID is in FLUX_GP_MSG_ID list
+
+                                        Console.WriteLine("SALE-L01-00-0453 | TODO | Check if format of SalesResponse.FLUXResponseDocument.ReferencedID.Value meets the schemeID provided");
+                                        //SALE-L01-00-0453 - error
+                                        //FLUX_Response_Document/Referenced Identification
+                                        //Check Format. Must be according to the specified schemeID.
+                                        //Must be according to RFC4122 format for UUID.
+                                        //TODO: Check if format of SalesResponse.FLUXResponseDocument.ReferencedID.Value meets the schemeID provided
+
+                                        Console.WriteLine("SALE-L03-00-0452 | TODO | Check if SalesResponse.FLUXResponseDocument.ReferencedID.Value is a refference to a query or sales declaration");
+                                        //SALE-L03-00-0452 - error
+                                        //FLUX_Response_Document/Referenced Identification
+                                        //Must be a reference of a query or sales declaration
+                                        //TODO: Check if SalesResponse.FLUXResponseDocument.ReferencedID.Value is a refference to a query or sales declaration
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0451 | ERROR | No SalesResponse.FLUXResponseDocument.ReferencedID provided");
+                                        //SALE-L00-00-0451 - error
+                                    }
+                                    #endregion SalesResponse.FLUXResponseDocument.ReferencedID
+
+                                    //SALE-L00-00-0452, SALE-L01-00-0454, SALE-L01-00-0455
+                                    #region SalesResponse.FLUXResponseDocument.ResponseCode
+                                    //SALE-L00-00-0452
+                                    //FLUX_Response_Document/ResponseCode
+                                    //Must be present.
+                                    if (SalesResponse.FLUXResponseDocument.ResponseCode != null)
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0452 | OK | SalesResponse.FLUXResponseDocument.ResponseCode provided");
+
+                                        //SALE-L01-00-0454
+                                        //FLUX_Response_Document/ResponseCode
+                                        //Check attribute listID. Must be FLUX_GP_RESPONSE
+                                        if (SalesResponse.FLUXResponseDocument.ResponseCode.listID?.ToString() == "FLUX_GP_RESPONSE")
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0454 | OK | SalesResponse.FLUXResponseDocument.ResponseCode.listID provided and == FLUX_GP_RESPONSE");
+                                            
+                                            Console.WriteLine("SALE-L01-00-0455 | TODO | Check if SalesResponse.FLUXResponseDocument.ResponseCode.Value is code from FLUX_GP_RESPONSE list");
+                                            //SALE-L01-00-0455 - error
+                                            //FLUX_Response_Document/ResponseCode
+                                            //Check value. Code must be value of the specified code list in listID
+                                            //TODO: Check if SalesResponse.FLUXResponseDocument.ResponseCode.Value is code from the listID provided FLUX_GP_RESPONSE
+
+                                            valueResponseDocumentResponseCode = SalesResponse.FLUXResponseDocument.ResponseCode.Value.ToString();
+                                        }
+                                        else 
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0454 | ERROR | No SalesResponse.FLUXResponseDocument.ResponseCode.listID provided or != FLUX_GP_RESPONSE");
+                                            //SALE-L01-00-0454 - error
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0452 | ERROR | No SalesResponse.FLUXResponseDocument.ResponseCode provided");
+                                        //SALE-L00-00-0452 - error
+                                    }
+                                    #endregion SalesResponse.FLUXResponseDocument.ResponseCode
+
+                                    //SALE-L00-00-0453, SALE-L01-00-0456, SALE-L03-00-0453
+                                    #region SalesResponse.FLUXResponseDocument.CreationDateTime
+                                    //SALE-L00-00-0453
+                                    //FLUX_Response_Document/CreationDateTime
+                                    //Check presence. Must be present.
+                                    if (SalesResponse.FLUXResponseDocument.CreationDateTime != null)
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0453 | OK | SalesResponse.FLUXResponseDocument.CreationDateTime provided");
+
+                                        //SALE-L01-00-0456
+                                        //FLUX_Response_Document/CreationDateTime
+                                        //Check Format. Must be date in UTC according to ISO8601
+                                        //e.g. 2008-10- 31T15:07:38.6875 000Z.
+                                        //#Q Already returns DateTime, is there a better way to check format?
+                                        if (SalesResponse.FLUXResponseDocument.CreationDateTime.Item is DateTime)
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0456 | OK | SalesResponse.FLUXResponseDocument.CreationDateTime.Item is DateTime");
+
+                                            dateTimeFLUXResponseDocumentCreation = SalesResponse.FLUXResponseDocument.CreationDateTime.Item;
+                                            DateTime dateTimeUtcNow = DateTime.UtcNow;
+
+                                            //SALE-L03-00-0453
+                                            //FLUX_Response_Document/CreationDateTime
+                                            //Date must be in the past.
+                                            if (DateTime.Compare(SalesResponse.FLUXResponseDocument.CreationDateTime.Item, dateTimeUtcNow) < 0)
+                                            {
+                                                Console.WriteLine("SALE-L03-00-0453 | OK | SalesResponse.FLUXResponseDocument.CreationDateTime.Item is in the past");
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L03-00-0453 | ERROR | SalesResponse.FLUXResponseDocument.CreationDateTime.Item is not in the past");
+                                                //SALE-L03-00-0453 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L01-00-0456 | ERROR | SalesResponse.FLUXResponseDocument.CreationDateTime.Item is not DateTime");
+                                            //SALE-L01-00-0456 - error
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0453 | ERROR | No SalesResponse.FLUXResponseDocument.CreationDateTime provided");
+                                        //SALE-L00-00-0453 - error
+                                    }
+                                    #endregion SalesResponse.FLUXResponseDocument.CreationDateTime
+
+                                    //SALE-L02-00-0450, SALE-L00-00-0470, SALE-L01-00-0470, SALE-L00-00-0471, SALE-L01-00-0471, SALE-L02-00-0470
+                                    #region SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument
+                                    if (valueResponseDocumentResponseCode != "" && valueResponseDocumentResponseCode != "OK")
+                                    {
+                                        //SALE-L02-00-0450
+                                        //Validation Result Document
+                                        //Must be present if ResponseCode <> OK
+                                        //#Q Reading "<> OK" as "not equal to OK"
+                                        if (SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument != null)
+                                        {
+                                            Console.WriteLine("SALE-L02-00-0450 | OK | SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument provided for ResponseCode != OK");
+
+                                            hasRelatedValidationResultDocument = true;
+
+                                            //#Q As cardinality is up to *, validate each element
+                                            foreach (var relatedValidationResultDocument in SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument)
+                                            {
+                                                //SALE-L00-00-0470
+                                                //Validation Result Document/Identification
+                                                //Must be present
+                                                if (relatedValidationResultDocument.ValidatorID != null)
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0470 | OK | SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.ValidatorID provided");
+
+                                                    Console.WriteLine("SALE-L01-00-0470 | TODO | Check if SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.ValidatorID.Value is code from schemeID");
+                                                    //SALE-L01-00-0470 - error
+                                                    //Validation Result Document/Identification
+                                                    //Check code from the list schemeID
+                                                    //TODO: Check if SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.ValidatorID.Value is code from schemeID
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0470 | ERROR | No SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.ValidatorID provided");
+                                                    //SALE-L00-00-0470 - error
+                                                }
+
+                                                //SALE-L00-00-0471
+                                                //Validation Result Document/Creation
+                                                //Must be present
+                                                if (relatedValidationResultDocument.CreationDateTime != null)
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0471 | OK | SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.CreationDateTime provided");
+
+                                                    //SALE-L01-00-0471
+                                                    //Validation Result Document/Creation
+                                                    //Check Format
+                                                    //#Q Already returns DateTime, is there a better way to check format?
+                                                    if (relatedValidationResultDocument.CreationDateTime.Item is DateTime)
+                                                    {
+                                                        Console.WriteLine("SALE-L01-00-0471 | OK | SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.CreationDateTime.Item is DateTime");
+
+                                                        if (dateTimeFLUXResponseDocumentCreation != DateTime.MinValue)
+                                                        {
+                                                            //SALE-L02-00-0470
+                                                            //Validation Result Document/Creation, FLUX Response Document / Creation
+                                                            //The Creation must be <= to the Creation of the report
+                                                            //#Q Does "Creation of the report" means FLUX Response Document / Creation
+                                                            if (DateTime.Compare(relatedValidationResultDocument.CreationDateTime.Item, dateTimeFLUXResponseDocumentCreation) <= 0)
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0470 | OK | SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.CreationDateTime.Item is before or equal to the creation of the report");
+                                                            }
+                                                            else
+                                                            {
+                                                                Console.WriteLine("SALE-L02-00-0470 | WARNING | SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.CreationDateTime.Item is after the creation of the report");
+                                                                //SALE-L02-00-0470 - warning
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SalesResponse.FLUXResponseDocument.CreationDateTime.Item not set");
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("SALE-L01-00-0471 | ERROR | SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.CreationDateTime.Item is not DateTime");
+                                                        //SALE-L01-00-0471 - error
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0471 | ERROR | No SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.CreationDateTime provided");
+                                                    //SALE-L00-00-0471 - error
+                                                }
+
+                                                //SALE-L00-00-0472, SALE-L00-00-0480, SALE-L01-00-0480, SALE-L00-00-0481, SALE-L01-00-0481, SALE-L00-00-0482, SALE-L01-00-0482, SALE-L02-00-0480
+                                                #region SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis
+                                                //SALE-L00-00-0472
+                                                //Validation Quality Analysis
+                                                //Must be present if validation document
+                                                if (relatedValidationResultDocument.RelatedValidationQualityAnalysis != null)
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0472 | OK | SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis provided");
+
+                                                    //#Q As cardinality is up to *, validate each element
+                                                    foreach (var relatedValidationQualityAnalysis in relatedValidationResultDocument.RelatedValidationQualityAnalysis)
+                                                    {
+                                                        //SALE-L00-00-0480
+                                                        //Validation QualityAnalysis/Identification
+                                                        //Must be present.
+                                                        if (relatedValidationQualityAnalysis.ID?.Value != null)
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0480 | OK | SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.ID provided with Value");
+                                                            
+                                                            Console.WriteLine("SALE-L01-00-0480 | TODO | Check if SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.ID.Value is code from the listID provided");
+                                                            //SALE-L01-00-0480 - error
+                                                            //Validation QualityAnalysis/Identification
+                                                            //Check value. Code must be value of the specified code list in listID.
+                                                            //TODO: Check if SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.ID.Value is code from the listID provided
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0480 | ERROR | No SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.ID provided with Value");
+                                                            //SALE-L00-00-0480 - error
+                                                        }
+
+                                                        //SALE-L00-00-0481
+                                                        //Validation QualityAnalysis/Level
+                                                        //Must be present.
+                                                        if (relatedValidationQualityAnalysis.LevelCode?.Value != null)
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0481 | OK | SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.LevelCode provided with Value");
+
+                                                            Console.WriteLine("SALE-L01-00-0481 | TODO | Check if SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.LevelCode.Value is code from the listID provided");
+                                                            //SALE-L01-00-0481 - error
+                                                            //Validation QualityAnalysis/Level
+                                                            //Check Code. Must be in the list specified in listID.
+                                                            //TODO: Check if SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.LevelCode.Value is code from the listID provided
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0481 | ERROR | No SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.LevelCode provided with Value");
+                                                            //SALE-L00-00-0481 - error
+                                                        }
+
+                                                        //SALE-L00-00-0482
+                                                        //Validation QualityAnalysis/Type
+                                                        //Must be present.
+                                                        if (relatedValidationQualityAnalysis.TypeCode?.Value != null)
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0482 | OK | SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.TypeCode provided with Value");
+                                                            
+                                                            Console.WriteLine("SALE-L01-00-0482 | TODO | Check if SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.TypeCode.Value is code from the listID provided");
+                                                            //SALE-L01-00-0482
+                                                            //Validation QualityAnalysis/Type
+                                                            //Check Code. Must be in the list specified in listID.
+                                                            //TODO: Check if SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.TypeCode.Value is code from the listID provided
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L00-00-0482 | ERROR | No SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.TypeCode provided with Value");
+                                                            //SALE-L00-00-0482 - error
+                                                        }
+
+                                                        //SALE-L02-00-0480
+                                                        //Validation QualityAnalysis/Referenced_ItemText
+                                                        //At least one occurrence if the Quality Analysis is in a Response message
+                                                        if (relatedValidationQualityAnalysis.ReferencedItem.Count() > 0)
+                                                        {
+                                                            Console.WriteLine("SALE-L02-00-0480 | OK | At least one SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.ReferencedItem provided");
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("SALE-L02-00-0480 | WARNING | No SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis.ReferencedItem provided");
+                                                            //SALE-L02-00-0480 - warning
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("SALE-L00-00-0472 | ERROR | No SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis provided");
+                                                    //SALE-L00-00-0472 - error
+                                                }
+                                                #endregion SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument.RelatedValidationQualityAnalysis
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L02-00-0450 | ERROR | No SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument provided for ResponseCode != OK");
+                                            //SALE-L02-00-0450 - error
+                                        }
+                                    }
+                                    #endregion SalesResponse.FLUXResponseDocument.RelatedValidationResultDocument
+
+                                    //SALE-L00-00-0454, SALE-L00-00-0455, SALE-L00-00-0460, SALE-L01-00-0460, SALE-L03-00-0460
+                                    #region SalesResponse.FLUXResponseDocument.RespondentFLUXParty
+                                    //SALE-L00-00-0454
+                                    //FLUX_Party
+                                    //Must be present
+                                    if (SalesResponse.FLUXResponseDocument.RespondentFLUXParty != null)
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0454 | OK | SalesResponse.FLUXResponseDocument.RespondentFLUXParty provided");
+
+                                        //SALE-L00-00-0455
+                                        //FLUX_Party
+                                        //Only one occurence
+                                        //#Q Is this check workable
+                                        if (!SalesResponse.FLUXResponseDocument.RespondentFLUXParty.GetType().IsArray)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0455 | OK | SalesResponse.FLUXResponseDocument.RespondentFLUXParty is not an Array = 1 occurance");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0455 | ERROR | SalesResponse.FLUXResponseDocument.RespondentFLUXParty is an Array > 1 occurance");
+                                            //SALE-L00-00-0455 - error
+                                        }
+
+                                        //#Q As cardinality is up to one, take and validate the first element only
+                                        var respondentFLUXPartyID = SalesResponse.FLUXResponseDocument.RespondentFLUXParty.ID.First();
+
+                                        //SALE-L00-00-0460
+                                        //FLUXParty/Identification
+                                        //Must be present
+                                        if (respondentFLUXPartyID != null)
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0460 | OK | SalesResponse.FLUXResponseDocument.RespondentFLUXParty.ID provided");
+
+                                            //SALE-L01-00-0460
+                                            //FLUXParty/Identification
+                                            //Check attribute listID. Must be FLUX_GP_PARTY
+                                            //#Q It is schemeID and not listID
+                                            if (respondentFLUXPartyID.schemeID?.ToString() == "FLUX_GP_PARTY")
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0460 | OK | SalesResponse.FLUXResponseDocument.RespondentFLUXParty.ID.schemeID provided and == FLUX_GP_PARTY");
+
+                                                Console.WriteLine("SALE-L03-00-0460 | TODO | Check if SalesResponse.FLUXResponseDocument.RespondentFLUXParty.ID.Value is consistent with TL values");
+                                                //SALE-L03-00-0460 - warning
+                                                //FLUXParty/Identification
+                                                //Check if RespondentFLUXParty.ID is consistent with FLUX TL values.
+                                                //The party sending must be allowed to send the message
+                                                //TODO: Check if SalesResponse.FLUXResponseDocument.RespondentFLUXParty.ID.Value is consistent with TL values
+                                            }
+                                            else
+                                            {
+                                                Console.WriteLine("SALE-L01-00-0460 | ERROR | No SalesResponse.FLUXResponseDocument.RespondentFLUXParty.ID.schemeID provided or != FLUX_GP_PARTY");
+                                                //SALE-L01-00-0460 - error
+                                            }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("SALE-L00-00-0460 | ERROR | No SalesResponse.FLUXResponseDocument.RespondentFLUXParty.ID provided");
+                                            //SALE-L00-00-0460 - error
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("SALE-L00-00-0454 | ERROR | No SalesResponse.FLUXResponseDocument.RespondentFLUXParty provided");
+                                        //SALE-L00-00-0454 - error
+                                    }
+                                    #endregion SalesResponse.FLUXResponseDocument.RespondentFLUXParty
+                                }
+                                else
+                                {
+                                    Console.WriteLine("No SalesResponse.FLUXResponseDocument provided");
+                                }
+                            }
+                            else
+                            {
+                                Console.WriteLine("SalesResponse == null");
+                            }
+                            #endregion SalesResponse
+
+                            break;
+
                     }
                 }
             }
