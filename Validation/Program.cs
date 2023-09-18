@@ -5677,9 +5677,16 @@ namespace Validation
             }
 
 
-            bool VesselDomainDebug = false;
+            bool VesselDomainDebug = true;
             if (VesselDomainDebug)
             {
+                VesselDomainValidation salesDomainValidation = new VesselDomainValidation();
+
+                salesDomainValidation.VesselDomainValidate(strWorkPath: strWorkPath);
+
+
+                #region For Deletion: Vessel Domain Validation - old code
+                /*
                 #region VesselReport
                 string filePathVesselReport = strWorkPath + @"\FluxReports\VesselReport.xml";
                 XmlDocument xmlDoc = new XmlDocument();
@@ -9104,7 +9111,7 @@ namespace Validation
                                                         //Code from the specified list
                                                         //TODO: check DB nomenclature - FLUX_VESSEL_ADMIN_TYPE if Vesselreport.VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.Value exists
 
-                                                        /* Value Code */
+                                                        //Value Code
                                                         if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "LICENCE")
                                                         {
                                                             //VESSEL-L00-00-0130
@@ -9214,7 +9221,7 @@ namespace Validation
                                                             }
                                                         }
 
-                                                        /* Value Date */
+                                                        //Value Date
                                                         if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "EIS")
                                                         {
                                                             //VESSEL-L00-00-0082
@@ -9277,7 +9284,7 @@ namespace Validation
                                                             }
                                                         }
 
-                                                        /* Value Text */
+                                                        //Value Text
                                                         if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "AUTH_NAME")
                                                         {
                                                             //VESSEL-L01-00-0580
@@ -9326,7 +9333,7 @@ namespace Validation
                                                         //Code from the specified list
                                                         //TODO: check DB nomenclature - FLUX_VESSEL_TECH_TYPE if Vesselreport.VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.TypeCode.Value exists
 
-                                                        /* Value Code */
+                                                        //Value Code
                                                         if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.TypeCode.Value?.ToString() == "HULL")
                                                         {
                                                             //VESSEL-L00-00-0134
@@ -9351,7 +9358,7 @@ namespace Validation
                                                             }
                                                         }
 
-                                                        /* Value Text */
+                                                        //Value Text
                                                         if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.TypeCode.Value?.ToString() == "PROCESS_CLASS")
                                                         {
                                                             //VESSEL-L01-00-0690
@@ -12176,13 +12183,15 @@ namespace Validation
                             break;
                     }
                 }
+                */
+                #endregion For Deletion: Vessel Domain Validation - old code
             }
 
 
-            bool SalesDomainDebug = true;
+            bool SalesDomainDebug = false;
             if (SalesDomainDebug)
             {
-                FluxSalesDomainValidation salesDomainValidation = new FluxSalesDomainValidation();
+                SalesDomainValidation salesDomainValidation = new SalesDomainValidation();
 
                 salesDomainValidation.SalesDomainValidate(strWorkPath: strWorkPath);
 
