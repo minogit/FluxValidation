@@ -3,24 +3,12 @@ using ScortelApi.Models.FLUX.Noms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-using System;
-using ScortelApi;
 using System.Xml;
 using System.IO;
 using System.Xml.Linq;
-using System.Xml.XPath;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
 using System.Xml.Serialization;
-using System.Xml.Schema;
-using ScortelApi.ISSN;
-using ScortelApi.Tools;
-using System.Text.RegularExpressions;
 
 namespace Validation
 {

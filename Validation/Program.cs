@@ -1,11 +1,9 @@
 ﻿using System;
 using ScortelApi.Models.FLUX;
 using ScortelApi.Models.FLUX.Noms;
-using ScortelApi;
 using System.Xml;
 using System.IO;
 using System.Xml.Linq;
-using System.Xml.XPath;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +11,6 @@ using System.Xml.Serialization;
 using System.Xml.Schema; 
 using ScortelApi.ISSN;
 using ScortelApi.Tools;
-using System.Text.RegularExpressions;
 
 namespace Validation
 {
@@ -21,8 +18,6 @@ namespace Validation
     {
         static void Main(string[] args)
         {
-        
-
             string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             //This will strip just the working path name:
             //C:\Program Files\MyApplication
@@ -36,7 +31,6 @@ namespace Validation
                 FADomainValidation faDomainValidation = new FADomainValidation();
 
                 faDomainValidation.FADomainValidate(strWorkPath: strWorkPath, SysList: SysList);
-
 
                 #region For Deletion: FA Domain Validation - old code
 
@@ -5692,7 +5686,6 @@ namespace Validation
                 VesselDomainValidation salesDomainValidation = new VesselDomainValidation();
 
                 salesDomainValidation.VesselDomainValidate(strWorkPath: strWorkPath);
-
 
                 #region For Deletion: Vessel Domain Validation - old code
                 /*
@@ -15348,7 +15341,6 @@ namespace Validation
                 }
                 */
                 #endregion For Deletion: Sales Domain Validation - old code
-
             }
 
 
@@ -16086,11 +16078,12 @@ namespace Validation
         #endregion For Deletion: Sales Domain Flux Location Validation - old code
 
 
-
+        #region For Deletion: FA Domain method - old code
         private static void Settings_ValidationEventHandler(object sender, ValidationEventArgs e)
         {
             var error = e.Severity;
             var msg = e.Message;
         }
+        #endregion For Deletion: FA Domain method - old code
     }
 }
