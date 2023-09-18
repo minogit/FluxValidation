@@ -14,6 +14,7 @@ using System.Xml.Schema;
 using ScortelApi.ISSN;
 using ScortelApi.Tools;
 using System.Text.RegularExpressions;
+using Models.Models;
 
 namespace Validation
 {
@@ -21,7 +22,8 @@ namespace Validation
     {
         static void Main(string[] args)
         {
-        
+
+            ApplicationDbContext mContext = new ApplicationDbContext();
 
             string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             //This will strip just the working path name:
@@ -320,7 +322,7 @@ namespace Validation
                 #endregion
 
                 //TODO: zarejdaneto na pravilata da stava pri startirane na api i da se dyrvat kato struktura w pametta
-                  
+
                 foreach (var rule in FaBrDef)
                 {
                     switch (rule.Code)
@@ -576,7 +578,20 @@ namespace Validation
                                         }
 
                                         //3. FA-L03-00-0013  - The identification must exist for a FLUXFAQueryMessage
-                                        //TODO: check in DB if there is previous FLUXFAQueryMessage with such UUID
+
+                                        try
+                                        {
+                                            var foundprvfaquery = mContext.FLUXInnerMsg.FirstOrDefault(x => x.UUID == fdocrefid.Value);
+                                            if (foundprvfaquery == null)
+                                            {
+                                                //FA-L03-00-0013 - warning
+                                                SysList.Add("FA-L03-00-0013");
+                                            }
+                                        }
+                                        catch (Exception)
+                                        {
+
+                                        }
                                     }
                                 }
                                 else
@@ -626,7 +641,13 @@ namespace Validation
                                     FRD_OFP_IdValue = ids.Value;
                                     if (!string.IsNullOrEmpty(ids.Value))
                                     {
-                                        //TODO: check db nomenclatures
+
+                                        var fgpparty = mContext.MDR_FLUX_GP_Party.FirstOrDefault(x => x.Code == ids.Value);
+                                        if (fgpparty == null)
+                                        {
+                                            // FA-L01-00-0627 - error
+                                            SysList.Add("FA-L01-00-0627");
+                                        }
                                     }
                                     else
                                     {
@@ -636,6 +657,7 @@ namespace Validation
                                     // 4. FA-L03-00-0016 - The party sending the message must be the same as the one from the
                                     // FR value of the FLUX TL envelope. Only the part before the first colon is to be
                                     // considered: Eg. ABC:something => only ABC refres to the party for the purpose of this rule.
+                                    //TODO
                                 }
                             }
                             else
@@ -956,7 +978,19 @@ namespace Validation
                                                         }
                                                         // 3. FA-L01-00-0628 - Check ID value. Must be existing in the list specified in 
                                                         //                     attribute schemeID.
-                                                        // TODO: check in db FLUX_GP_PARTY
+
+                                                        try
+                                                        {
+                                                            var fgpparty = mContext.MDR_FLUX_GP_Party.FirstOrDefault(x => x.Code == ids.Value);
+                                                            if (fgpparty == null)
+                                                            {
+                                                                SysList.Add("FA-L01-00-0628");
+                                                            }
+                                                        }
+                                                        catch (Exception)
+                                                        {
+
+                                                        }
 
                                                         // 4. FA-L00-00-0045 - Check if FAReportDocument/RelatedFLUXReportDocument
                                                         // /OwnerFLUXParty/ID (owner of the report) is consistent with FLUXFAReportMessage/FLUXReport Document/OwnerFLUXParty/ID (party sending the message) .
@@ -976,7 +1010,7 @@ namespace Validation
                                             if (fardoc.AcceptanceDateTime.Item < fardoc.RelatedFLUXReportDocument.CreationDateTime.Item)
                                             {
                                                 // ok FA-L02-00-0042
-                                                 
+
                                             }
                                             else
                                             {
@@ -1035,8 +1069,9 @@ namespace Validation
                                             }
                                             else
                                             {
+                                                //TODO: the implementation is not ok
                                                 //FA-L03-00-0634 - error
-                                                SysList.Add("FA-L03-00-0634");
+                                                //SysList.Add("FA-L03-00-0634");
                                             }
 
                                             // FA-L00-00-0068
@@ -1096,8 +1131,13 @@ namespace Validation
                                                                     //FA-L01-00-0070
                                                                     //VesselTransportMeans/SpecifiedContactParty/RoleCode
                                                                     //Check code. Must be existing in the list specified in attribute listID
-
                                                                     // Check in DB nomenclature of  scprcode.Value
+                                                                    var scprcodeval = mContext.MDR_FLUX_Contact_Role
+                                                                        .FirstOrDefault(x => x.Code == scprcode.Value);
+                                                                    if (scprcodeval == null)
+                                                                    {
+                                                                        SysList.Add("FA-L01-00-0070");
+                                                                    }
 
                                                                     //FA-L02-00-0071
                                                                     //VesselTransportMeans/SpecifiedContactParty/RoleCode
@@ -1300,7 +1340,20 @@ namespace Validation
                                                                 //FA-L01-00-0088
                                                                 //StructuredAddress/CountryID
                                                                 //Check code. Must be existing in the list specified in attribute schemeID
-                                                                //TODO: Check DB nomeclature 
+                                                                //  Check DB nomeclature 
+                                                                try
+                                                                {
+                                                                    var cidval = mContext.MDR_Territory.FirstOrDefault(x => x.Code == ssa.CountryID.Value);
+                                                                    if (cidval == null)
+                                                                    {
+                                                                        SysList.Add("FA-L01-00-0088");
+                                                                    }
+                                                                }
+                                                                catch (Exception)
+                                                                {
+
+
+                                                                }
                                                             }
                                                             else
                                                             {
@@ -1461,7 +1514,19 @@ namespace Validation
                                                             // FA-L01-00-0057  
                                                             //VesselTransportMeans/RoleCode
                                                             // Check code. Must be existing in the list specified in attribute listID
-                                                            //TODO: check DB FA_VESSEL_ROLE ==  sfa_rvtm.RoleCode.Value
+                                                            //check DB FA_VESSEL_ROLE ==  sfa_rvtm.RoleCode.Value
+                                                            try
+                                                            {
+                                                                var favesrole = mContext.FA_MDR_FA_Vessel_Role.FirstOrDefault(x => x.Code == sfa_rvtm.RoleCode.Value);
+                                                                if (favesrole == null)
+                                                                {
+                                                                    SysList.Add("FA-L01-00-0057 ");
+                                                                }
+                                                            }
+                                                            catch (Exception)
+                                                            {
+
+                                                            }
 
                                                             if (sfa_rvtm.RoleCode.Value == "PAIR_FISHING_PARTNER")
                                                             {
@@ -1511,7 +1576,19 @@ namespace Validation
                                                                 //"FA-L01-00-0060":
                                                                 //VesselTransportMeans/RegistrationVesselCountry/ID
                                                                 //Check code. Must be existing in the list specified in attribute schemeID
-                                                                // TODO: check in DB - find which nomenclature
+                                                                //  check in DB - find which nomenclature
+                                                                try
+                                                                {
+                                                                    var tercode = mContext.MDR_Territory.FirstOrDefault(x => x.Code == sfa_rvtm.RegistrationVesselCountry.ID.Value);
+                                                                    if (tercode == null)
+                                                                    {
+                                                                        SysList.Add("FA-L01-00-0060");
+                                                                    }
+                                                                }
+                                                                catch (Exception)
+                                                                {
+
+                                                                }
 
                                                                 //FA-L03-00-0631
                                                                 bool IsRvtmIdCfr = false;
@@ -1602,8 +1679,21 @@ namespace Validation
                                                         }
 
                                                         //FA-L01-00-0092
+                                                        //FishingActivity/TypeCode
                                                         //Check code. Must be existing in the list specified in attribute listID
                                                         //TODO: check DB nomenclature FLUX_FA_TYPE
+                                                        try
+                                                        {
+                                                            var sfatcl = mContext.FA_MDR_FLUX_FA_Type.FirstOrDefault(x => x.Code == sfa.TypeCode.Value);
+                                                            if (sfatcl == null)
+                                                            {
+                                                                SysList.Add("FA-L01-00-0092");
+                                                            }
+                                                        }
+                                                        catch (Exception)
+                                                        {
+
+                                                        }
                                                         if (sfa.TypeCode.Value == "DEPARTURE")
                                                         {
                                                             IsFADeparture = true;
@@ -2328,7 +2418,7 @@ namespace Validation
                                                         {
                                                             IsFATransOrRelocDec = true;
                                                         }
-                                                         
+
                                                         if (IsFADiscard || IsFALandDec || IsFATransOrRelocDec)
                                                         {
                                                             //FA-L02-00-0622
@@ -3769,7 +3859,7 @@ namespace Validation
                                                         //FACatch / AppliedAAPProcess / ResultA APProduct / WeightMeasure
                                                         bool IsSfaFcWeight = false;
                                                         bool IsAAPWeight = false;
-                                                        if (sfafc.WeightMeasure != null)
+                                                        if (sfafc.WeightMeasure == null)
                                                         {
                                                             if (sfafc.UnitQuantity == null)
                                                             {
@@ -3785,7 +3875,7 @@ namespace Validation
                                                                 {
                                                                     foreach (var ares in aap.ResultAAPProduct)
                                                                     {
-                                                                        if (ares.WeightMeasure != null)
+                                                                        if (ares.WeightMeasure == null)
                                                                         {
                                                                             if (sfafc.UnitQuantity == null)
                                                                             {
@@ -3893,7 +3983,8 @@ namespace Validation
                                                                         //FA-L01-00-0172
                                                                         //AAPProcess/TypeCode
                                                                         //The value of the listID attribute must be on the list FLUX_PROCESS_TYPE.
-                                                                        if (aaptc.listID != "FLUX_PROCESS_TYPE")
+                                                                        var aaptclid = mContext.MDR_FLUX_Process_Type.FirstOrDefault(x => x.Code == aaptc.listID);
+                                                                        if (aaptclid == null)
                                                                         {
                                                                             //FA-L01-00-0172 - error
                                                                             SysList.Add("FA-L01-00-0172");
@@ -4116,13 +4207,14 @@ namespace Validation
                                                         }
                                                         else
                                                         {
-                                                            //FA-L00-00-0641 - error
-                                                            SysList.Add("FA-L00-00-0641");
+                                                            ////FA-L00-00-0641 - error
+                                                            //SysList.Add("FA-L00-00-0641");
                                                         }
                                                         #endregion
 
                                                         #region Specified Flux Location
                                                         bool IsSFLocIDSch = false;
+                                                        int IsSFLocIDSchCount = 0;
                                                         int IsSFLocIDSchGSACount = 0;
                                                         int IsSFLocIDSchEZCount = 0;
                                                         if (sfafc.SpecifiedFLUXLocation != null)
@@ -4139,6 +4231,7 @@ namespace Validation
                                                                     if (sfl.ID.schemeID == "FAO_AREA")
                                                                     {
                                                                         IsSFLocIDSch = true;
+                                                                        IsSFLocIDSchCount++;
                                                                     }
                                                                     //FA-L02-00-0663
                                                                     //FACatch/SpecifiedFLUXLocation/ID
@@ -4159,10 +4252,13 @@ namespace Validation
                                                                 }
                                                             }
                                                         }
-                                                        if (!IsSFLocIDSch)
+                                                        if (IsSFLocIDSch)
                                                         {
-                                                            //FA-L02-00-0662 - error
-                                                            SysList.Add("FA-L02-00-0662");
+                                                            if (IsSFLocIDSchCount > 1)
+                                                            {
+                                                                //FA-L02-00-0662 - error
+                                                                SysList.Add("FA-L02-00-0662");
+                                                            }
                                                         }
                                                         if (IsSFLocIDSchGSACount > 1)
                                                         {
@@ -4240,6 +4336,7 @@ namespace Validation
                                                         bool IsSFARFLLoc = false;
                                                         bool IsSFARFLPos = false;
                                                         bool IsSFARFLTCode = false;
+                                                        bool IsSFARFLAdd = false;
                                                         foreach (var sfarfl in sfa.RelatedFLUXLocation)
                                                         {
                                                             //FA-L00-00-0195
@@ -4269,6 +4366,10 @@ namespace Validation
                                                                 if (sfarfl.TypeCode.Value == "POSITION" || sfarfl.TypeCode.Value == "ADDRESS")
                                                                 {
                                                                     IsSFARFLPosOrAdd = true;
+                                                                }
+                                                                if (sfarfl.TypeCode.Value == "ADDRESS")
+                                                                {
+                                                                    IsSFARFLAdd = true;
                                                                 }
                                                                 if (sfarfl.TypeCode.Value == "AREA")
                                                                 {
@@ -4503,7 +4604,7 @@ namespace Validation
                                                                     SysList.Add("FA-L02-00-0206");
                                                                 }
                                                             }
-                                                            if (IsSFARFLTCode)
+                                                            if (IsSFARFLAdd)
                                                             {
                                                                 //FA-L02-00-0215
                                                                 //PhysicalStructuredAddress, FLUXLocation/TypeCode
@@ -4959,7 +5060,12 @@ namespace Validation
                                             //VesselTransportMeans/ID
                                             // "Check schemeID. SchemeIDs must be present in 
                                             // the list FLUX_VESSEL_ID_TYPE"
-                                            //TODO: check in DB FLUX_VESSEL_ID_TYPE == ids.schemeID
+                                            // check in DB FLUX_VESSEL_ID_TYPE == ids.schemeID
+                                            var ischeme = mContext.MDR_FLUX_Vessel_Id_Type.FirstOrDefault(x => x.Code == ids.schemeID);
+                                            if (ischeme == null)
+                                            {
+                                                SysList.Add("FA-L01-00-0051");
+                                            }
 
                                             // 3. FA-L01-00-0052
                                             //VesselTransportMeans/ID
@@ -4976,6 +5082,59 @@ namespace Validation
                                                 if (vtm_scheme == "UVI")
                                                 {
                                                     // Calculate
+                                                    if (!string.IsNullOrEmpty(ids.Value))
+                                                    {
+                                                        try
+                                                        {
+                                                            if (ids.Value.Length > 7)
+                                                            {
+                                                                SysList.Add("FA-L01-00-0636");
+                                                            }
+                                                            else
+                                                            {
+                                                                int sum = 0;
+                                                                int cntlvalue = -1;
+                                                                for (var i = 0; i < ids.Value.Length; i++)
+                                                                {
+
+                                                                    int tmp = int.Parse(ids.Value.Substring(i, 1));
+                                                                    switch (i)
+                                                                    {
+                                                                        case 0:
+                                                                            sum += (tmp * 7);
+                                                                            break;
+                                                                        case 1:
+                                                                            sum += (tmp * 6);
+                                                                            break;
+                                                                        case 2:
+                                                                            sum += (tmp * 5);
+                                                                            break;
+                                                                        case 3:
+                                                                            sum += (tmp * 4);
+                                                                            break;
+                                                                        case 4:
+                                                                            sum += (tmp * 3);
+                                                                            break;
+                                                                        case 5:
+                                                                            sum += (tmp * 2);
+                                                                            break;
+                                                                        case 6:
+                                                                            cntlvalue = tmp;
+                                                                            break;
+                                                                    }
+                                                                }
+                                                                string sumstr = sum.ToString();
+                                                                if (cntlvalue.ToString() != sumstr.Substring(sumstr.Length - 1, 1))
+                                                                {
+                                                                    SysList.Add("FA-L01-00-0636");
+                                                                }
+                                                            }
+                                                        }
+                                                        catch (Exception)
+                                                        {
+
+                                                        }
+                                                    }
                                                 }
 
                                                 // 5. FA-L02-00-0053
@@ -5031,7 +5190,7 @@ namespace Validation
                                         }
                                         else
                                         {
-                                          
+
                                         }
                                     }
 
@@ -5052,625 +5211,626 @@ namespace Validation
                             //TECHNOLOGICA
                             break;
                         case "FA-L00-00-0350":
-                            if (IsFAQuaery)
-                            {
-                                if (faquery.FAQuery != null)
-                                {
-                                    //FA-L00-00-0350
-                                    //FAQuery/TypeCode
-                                    //Check presence. Must be present.
-                                    if (faquery.FAQuery.TypeCode != null)
-                                    {
-                                        if (faquery.FAQuery.TypeCode.Value == "")
-                                        {
-                                            //FA-L00-00-0350 - error
-                                        }
-                                        else
-                                        {
-                                            //FA-L02-00-0361
-                                            //FAQuery/SpecifiedDelimitedPeriod, FAQuery/TypeCode
-                                            //Check presence. Must be present if FAQuery/TypeCode is VESSEL
-                                            if (faquery.FAQuery.TypeCode.Value == "VESSEL")
-                                            {
-                                                if (faquery.FAQuery.SpecifiedDelimitedPeriod != null)
-                                                {
-                                                    //FA-L02-00-0361 - error
-                                                }
-                                            }
-                                        }
-                                        //FA-L01-00-0351
-                                        //FAQuery/TypeCode
-                                        //Check attribute listID. Must be FA_QUERY_TYPE
-                                        if (faquery.FAQuery.TypeCode.listID != "FA_QUERY_TYPE")
-                                        {
-                                            //FA-L01-00-0351 - error
-                                        }
-                                        //FA-L01-00-0352
-                                        //FAQuery/TypeCode
-                                        //Check code. Must be existing in the list specified in attribute listID
-                                        string fqtcodelistid = faquery.FAQuery.TypeCode.listID;
-                                        // TODO: check db 
-                                    }
-                                    else
-                                    {
-                                        //FA-L00-00-0350 - error
-                                    }
+                            //if (IsFAQuaery)
+                            //{
+                            //    if (faquery.FAQuery != null)
+                            //    {
+                            //        //FA-L00-00-0350
+                            //        //FAQuery/TypeCode
+                            //        //Check presence. Must be present.
+                            //        if (faquery.FAQuery.TypeCode != null)
+                            //        {
+                            //            if (faquery.FAQuery.TypeCode.Value == "")
+                            //            {
+                            //                //FA-L00-00-0350 - error
+                            //            }
+                            //            else
+                            //            {
+                            //                //FA-L02-00-0361
+                            //                //FAQuery/SpecifiedDelimitedPeriod, FAQuery/TypeCode
+                            //                //Check presence. Must be present if FAQuery/TypeCode is VESSEL
+                            //                if (faquery.FAQuery.TypeCode.Value == "VESSEL")
+                            //                {
+                            //                    if (faquery.FAQuery.SpecifiedDelimitedPeriod != null)
+                            //                    {
+                            //                        //FA-L02-00-0361 - error
+                            //                    }
+                            //                }
+                            //            }
+                            //            //FA-L01-00-0351
+                            //            //FAQuery/TypeCode
+                            //            //Check attribute listID. Must be FA_QUERY_TYPE
+                            //            if (faquery.FAQuery.TypeCode.listID != "FA_QUERY_TYPE")
+                            //            {
+                            //                //FA-L01-00-0351 - error
+                            //            }
+                            //            //FA-L01-00-0352
+                            //            //FAQuery/TypeCode
+                            //            //Check code. Must be existing in the list specified in attribute listID
+                            //            string fqtcodelistid = faquery.FAQuery.TypeCode.listID;
+                            //            // TODO: check db 
+                            //        }
+                            //        else
+                            //        {
+                            //            //FA-L00-00-0350 - error
+                            //        }
 
-                                    //FA-L00-00-0353
-                                    //FAQuery/ID
-                                    //Check attribute schemeID. Must be UUID
-                                    if (faquery.FAQuery.ID != null)
-                                    {
-                                        if (faquery.FAQuery.ID.schemeID != "UUID")
-                                        {
-                                            //FA-L00-00-0353 - error
-                                        }
-                                        //FA-L01-00-0354
-                                        //FAQuery/ID
-                                        //Identifier must comply to the schemeID rules.
-                                        //TODO: how to check
+                            //        //FA-L00-00-0353
+                            //        //FAQuery/ID
+                            //        //Check attribute schemeID. Must be UUID
+                            //        if (faquery.FAQuery.ID != null)
+                            //        {
+                            //            if (faquery.FAQuery.ID.schemeID != "UUID")
+                            //            {
+                            //                //FA-L00-00-0353 - error
+                            //            }
+                            //            //FA-L01-00-0354
+                            //            //FAQuery/ID
+                            //            //Identifier must comply to the schemeID rules.
+                            //            //TODO: how to check
 
-                                        //FA-L03-00-0650
-                                        //FAQuery/ID
-                                        //The identification must be unique and not already exist
-                                        //TODO: check db for uuid
-                                    }
-                                    else
-                                    {
-                                        //FA-L00-00-0353 - error
-                                    }
+                            //            //FA-L03-00-0650
+                            //            //FAQuery/ID
+                            //            //The identification must be unique and not already exist
+                            //            //TODO: check db for uuid
+                            //        }
+                            //        else
+                            //        {
+                            //            //FA-L00-00-0353 - error
+                            //        }
 
-                                    //FA-L00-00-0355
-                                    //FAQuery/SubmittedDateTime
-                                    //Check presence. Must be present.
-                                    if (faquery.FAQuery.SubmittedDateTime != null)
-                                    {
-                                        //FA-L01-00-0356
-                                        //FAQuery/SubmittedDateTime
-                                        //Check Format. Must be according to the definition provided in 7.1(2)
-                                        //TODO: check format the model has chenged from string to datetime
+                            //        //FA-L00-00-0355
+                            //        //FAQuery/SubmittedDateTime
+                            //        //Check presence. Must be present.
+                            //        if (faquery.FAQuery.SubmittedDateTime != null)
+                            //        {
+                            //            //FA-L01-00-0356
+                            //            //FAQuery/SubmittedDateTime
+                            //            //Check Format. Must be according to the definition provided in 7.1(2)
+                            //            //TODO: check format the model has chenged from string to datetime
 
-                                        //FA-L03-00-0357
-                                        //FAQuery/SubmittedDateTime
-                                        //Date must be in the past.
-                                        DateTime dt = DateTime.UtcNow;
-                                        if (dt <= faquery.FAQuery.SubmittedDateTime.Item)
-                                        {
-                                            //FA-L03-00-0357 - warning
-                                        }
-                                    }
-                                    else
-                                    {
-                                        //FA-L00-00-0355 - error
-                                    }
-                                    if (faquery.FAQuery.SubmitterFLUXParty != null)
-                                    {
+                            //            //FA-L03-00-0357
+                            //            //FAQuery/SubmittedDateTime
+                            //            //Date must be in the past.
+                            //            DateTime dt = DateTime.UtcNow;
+                            //            if (dt <= faquery.FAQuery.SubmittedDateTime.Item)
+                            //            {
+                            //                //FA-L03-00-0357 - warning
+                            //            }
+                            //        }
+                            //        else
+                            //        {
+                            //            //FA-L00-00-0355 - error
+                            //        }
+                            //        if (faquery.FAQuery.SubmitterFLUXParty != null)
+                            //        {
 
-                                    }
-                                    else
-                                    {
-                                        //FA-L00-00-0358
-                                        //FAQuery/SubmitterFLUXParty/ID
-                                        //Check presence. Must be present
+                            //        }
+                            //        else
+                            //        {
+                            //            //FA-L00-00-0358
+                            //            //FAQuery/SubmitterFLUXParty/ID
+                            //            //Check presence. Must be present
 
-                                        //FA-L00-00-0358
-                                        if (faquery.FAQuery.SubmitterFLUXParty.ID != null)
-                                        {
-                                            //FA-L01-00-0359
-                                            //FAQuery/SubmitterFLUXParty/ID
-                                            //Check attribute schemeID. Must be FLUX_GP_PARTY
-                                            var fqids = faquery.FAQuery.SubmitterFLUXParty.ID.FirstOrDefault(z => z.schemeID == "FLUX_GP_PARTY");
-                                            if (fqids == null)
-                                            {
-                                                //FA-L01-00-0359 - error
-                                            }
-                                            else
-                                            {
-                                                //FA-L03-00-0360
-                                                //FAQuery/SubmitterFLUXParty/ID
-                                                //Check if SubmitterFLUXParty / ID is consistent with FLUX TL envelope values.
-                                                //The party sending the message must be the same as the one from the FR value
-                                                //of the FLUX TL envelope. Only the part before the first colon is to be
-                                                //considered: Eg. ABC:something => only ABC refres to the party for
-                                                //the purpose of this rule
-                                                //TODO: ???
+                            //            //FA-L00-00-0358
+                            //            if (faquery.FAQuery.SubmitterFLUXParty.ID != null)
+                            //            {
+                            //                //FA-L01-00-0359
+                            //                //FAQuery/SubmitterFLUXParty/ID
+                            //                //Check attribute schemeID. Must be FLUX_GP_PARTY
+                            //                var fqids = faquery.FAQuery.SubmitterFLUXParty.ID.FirstOrDefault(z => z.schemeID == "FLUX_GP_PARTY");
+                            //                if (fqids == null)
+                            //                {
+                            //                    //FA-L01-00-0359 - error
+                            //                }
+                            //                else
+                            //                {
+                            //                    //FA-L03-00-0360
+                            //                    //FAQuery/SubmitterFLUXParty/ID
+                            //                    //Check if SubmitterFLUXParty / ID is consistent with FLUX TL envelope values.
+                            //                    //The party sending the message must be the same as the one from the FR value
+                            //                    //of the FLUX TL envelope. Only the part before the first colon is to be
+                            //                    //considered: Eg. ABC:something => only ABC refres to the party for
+                            //                    //the purpose of this rule
+                            //                    //TODO: ???
 
-                                                //FA-L02-00-0651
-                                                //FAQuery/SubmitterFLUXParty/ID
-                                                //Check value of ID. Must be existing on the list specified in the schemeID.
-                                                //TODO: ???
-                                            }
-
-
-                                        }
-                                        else
-                                        {
-                                            //FA-L00-00-0358 - error
-                                        }
-                                    }
-
-                                    if (faquery.FAQuery.SpecifiedDelimitedPeriod != null)
-                                    {
-                                        //FA-L00-00-0362
-                                        //FAQuery/SpecifiedDelimitedPeriod/StartDateTime
-                                        //Check presence. Must be present if SpecifiedDelimitedPeriod is present.
-                                        if (faquery.FAQuery.SpecifiedDelimitedPeriod.StartDateTime == null)
-                                        {
-                                            //FA-L00-00-0362 - error
-                                        }
-                                        else
-                                        {
-                                            // FA-L01-00-0363
-                                            //FAQuery/SpecifiedDelimitedPeriod/StartDateTime
-                                            //Check Format. Must be according to the definition provided in 7.1(2)
-                                            //TODO: check format
-                                        }
-                                        //FA-L00-00-0364
-                                        //FAQuery/SpecifiedDelimitedPeriod/EndDateTime
-                                        //Check presence. Must be present if SpecifiedDelimitedPeriod is present.
-                                        if (faquery.FAQuery.SpecifiedDelimitedPeriod.EndDateTime == null)
-                                        {
-                                            //FA-L00-00-0364 - error
-                                        }
-                                        else
-                                        {
-                                            //FA-L01-00-0365
-                                            //FAQuery/SpecifiedDelimitedPeriod/EndDateTime
-                                            //Check Format. Must be according to the definition provided in 7.1(2)
-                                            //TODO: check format
-                                        }
-                                    }
-                                    if (faquery.FAQuery.SimpleFAQueryParameter != null)
-                                    {
-                                        //FA-L02-00-0366
-                                        //FAQuery/SimpleFAQueryParameter
-                                        //Check presence. 2 occurrences must be present.
-                                        if (faquery.FAQuery.SimpleFAQueryParameter.Length < 2)
-                                        {
-                                            //FA-L02-00-0366 - error
-                                        }
-
-                                        //FA-L01-00-0367
-                                        //FAQuery/SimpleFAQueryParameter/TypeCode
-                                        //Exactly one occurrence must be value CONSOLIDATED.
-                                        var spartc = faquery.FAQuery.SimpleFAQueryParameter.FirstOrDefault(x => x.TypeCode.Value == "CONSOLIDATED");
-                                        if (spartc == null)
-                                        {
-                                            //FA-L01-00-0367 - error
-                                        }
-                                        else
-                                        {
-                                            //FA-L02-00-0378
-                                            //FAQueryParameter/ValueCode, FAQueryParameter/TypeCode
-                                            //Check presence. Must be present if TypeCode is CONSOLIDATED
-                                            if (spartc.ValueID != null)
-                                            {
-                                                //FA-L01-00-0379
-                                                //FAQueryParameter/ValueCode
-                                                //Check value. Must be Y or N.
-                                                if (spartc.ValueID.Value == "Y" || spartc.ValueID.Value == "N")
-                                                {
-                                                }
-                                                else
-                                                {
-                                                    //FA-L01-00-0379 - error
-                                                }
-                                                //FA-L02-00-0652
-                                                //FAQueryParameter/ValueCode, FAQueryParameter/TypeCode
-                                                //Check attribute listID. Must be BOOLEAN_TYPE if TypeCode is CONSOLIDATED
-                                                if (spartc.ValueID.schemeID != "BOOLEAN_TYPE")
-                                                {
-                                                    //FA-L02-00-0652 - error
-                                                }
-                                            }
-                                            else
-                                            {
-                                                //FA-L02-00-0378 - error
-                                            }
-                                        }
-
-                                        //FA-L00-00-0375
-                                        //FAQuery/SimpleFAQueryParameter/TypeCode
-                                        //At most one occurrence with TypeCode VESSELID
-                                        var spartc1 = faquery.FAQuery.SimpleFAQueryParameter.FirstOrDefault(x => x.TypeCode.Value == "VESSELID");
-                                        if (spartc1 == null)
-                                        {
-                                            //FA-L00-00-0375- error
-                                        }
-                                        else
-                                        {
-                                            //FA-L02-00-0372
-                                            //FAQueryParameter/ValueID, FAQueryParameter/TypeCode
-                                            //Check presence. Must be present if Type is VESSELID or TRIPID
-                                            if (spartc1.ValueID == null)
-                                            {
-                                                //FA-L02-00-0372 - error
-                                                //FA-L02-00-0373 - error
-                                            }
-                                            else
-                                            {
-                                                //FA-L02-00-0373
-                                                //FAQueryParameter/ValueID, FAQueryParameter/TypeCode
-                                                //Check schemeID. Must be value from the list FLUX_VESSEL_ID_TYPE if TypeCode is VESSELID
-                                                //TODO: check in db FLUX_VESSEL_ID_TYPE = spartc1.ValueID.Value
-
-                                                //FA-L02-00-0374
-                                                //FAQueryParameter/ValueID, FAQueryParameter/TypeCode
-                                                //Check schemeID. Must be value CFR or IRCS29 if Type is VESSELID
-                                                if (spartc1.ValueID.schemeID == "CFR" || spartc1.ValueID.schemeID == "IRCS")
-                                                {
-                                                }
-                                                else
-                                                {
-                                                    //FA-L02-00-0374 - error
-                                                }
-
-                                            }
-
-                                        }
-                                        var spartctripid = faquery.FAQuery.SimpleFAQueryParameter.FirstOrDefault(x => x.TypeCode.Value == "TRIPID");
-                                        if (spartctripid != null)
-                                        {
-                                            if (spartctripid.ValueID == null)
-                                            {
-                                                //FA-L02-00-0372 - error
-                                            }
-                                        }
+                            //                    //FA-L02-00-0651
+                            //                    //FAQuery/SubmitterFLUXParty/ID
+                            //                    //Check value of ID. Must be existing on the list specified in the schemeID.
+                            //                    //TODO: ???
+                            //                }
 
 
-                                        //FA-L02-00-0371
-                                        //FAQueryParameter/TypeCode, FAQuery/TypeCode
-                                        //Must be value VESSELID if FAQuery/TypeCode is VESSEL or must be value TRIPID if FAQuery/TypeCode is TRIP
-                                        if (faquery.FAQuery.TypeCode.Value == "VESSEL")
-                                        {
-                                            if (spartc1 == null)
-                                            {
-                                                //FA-L02-00-0371 - error
-                                            }
-                                        }
-                                        if (faquery.FAQuery.TypeCode.Value == "TRIP")
-                                        {
-                                            var spartctrip = faquery.FAQuery.SimpleFAQueryParameter.FirstOrDefault(x => x.TypeCode.Value == "TRIPID");
-                                            if (spartctrip == null)
-                                            {
-                                                //FA-L02-00-0371 - error
-                                            }
-                                            else
-                                            {
-                                                //FA-L02-00-0376
-                                                //FAQueryParameter/ValueID, FAQueryParameter/TypeCode
-                                                //Check schemeID. Must be value EU_TRIP_ID if TypeCode is TRIPID
-                                                if (spartctrip.ValueID != null)
-                                                {
-                                                    if (spartctrip.ValueID.schemeID != "EU_TRIP_ID")
-                                                    {
-                                                        //FA-L02-00-0376 - error
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        //FA-L01-00-0369
-                                        //FAQueryParameter/TypeCode
-                                        //Check attribute listID. Must be FA_QUERY_PARAMETER
-                                        var spartc2 = faquery.FAQuery.SimpleFAQueryParameter.FirstOrDefault(x => x.TypeCode.listID != "FA_QUERY_PARAMETER");
-                                        if (spartc2 != null)
-                                        {
+                            //            }
+                            //            else
+                            //            {
+                            //                //FA-L00-00-0358 - error
+                            //            }
+                            //        }
 
-                                        }
-                                        //FA-L01-00-0370
-                                        //FAQueryParameter/TypeCode
-                                        //Check code. Must be existing in the list specified in attribute listID
-                                        //TODO: check in db
+                            //        if (faquery.FAQuery.SpecifiedDelimitedPeriod != null)
+                            //        {
+                            //            //FA-L00-00-0362
+                            //            //FAQuery/SpecifiedDelimitedPeriod/StartDateTime
+                            //            //Check presence. Must be present if SpecifiedDelimitedPeriod is present.
+                            //            if (faquery.FAQuery.SpecifiedDelimitedPeriod.StartDateTime == null)
+                            //            {
+                            //                //FA-L00-00-0362 - error
+                            //            }
+                            //            else
+                            //            {
+                            //                // FA-L01-00-0363
+                            //                //FAQuery/SpecifiedDelimitedPeriod/StartDateTime
+                            //                //Check Format. Must be according to the definition provided in 7.1(2)
+                            //                //TODO: check format
+                            //            }
+                            //            //FA-L00-00-0364
+                            //            //FAQuery/SpecifiedDelimitedPeriod/EndDateTime
+                            //            //Check presence. Must be present if SpecifiedDelimitedPeriod is present.
+                            //            if (faquery.FAQuery.SpecifiedDelimitedPeriod.EndDateTime == null)
+                            //            {
+                            //                //FA-L00-00-0364 - error
+                            //            }
+                            //            else
+                            //            {
+                            //                //FA-L01-00-0365
+                            //                //FAQuery/SpecifiedDelimitedPeriod/EndDateTime
+                            //                //Check Format. Must be according to the definition provided in 7.1(2)
+                            //                //TODO: check format
+                            //            }
+                            //        }
+                            //        if (faquery.FAQuery.SimpleFAQueryParameter != null)
+                            //        {
+                            //            //FA-L02-00-0366
+                            //            //FAQuery/SimpleFAQueryParameter
+                            //            //Check presence. 2 occurrences must be present.
+                            //            if (faquery.FAQuery.SimpleFAQueryParameter.Length < 2)
+                            //            {
+                            //                //FA-L02-00-0366 - error
+                            //            }
+
+                            //            //FA-L01-00-0367
+                            //            //FAQuery/SimpleFAQueryParameter/TypeCode
+                            //            //Exactly one occurrence must be value CONSOLIDATED.
+                            //            var spartc = faquery.FAQuery.SimpleFAQueryParameter.FirstOrDefault(x => x.TypeCode.Value == "CONSOLIDATED");
+                            //            if (spartc == null)
+                            //            {
+                            //                //FA-L01-00-0367 - error
+                            //            }
+                            //            else
+                            //            {
+                            //                //FA-L02-00-0378
+                            //                //FAQueryParameter/ValueCode, FAQueryParameter/TypeCode
+                            //                //Check presence. Must be present if TypeCode is CONSOLIDATED
+                            //                if (spartc.ValueID != null)
+                            //                {
+                            //                    //FA-L01-00-0379
+                            //                    //FAQueryParameter/ValueCode
+                            //                    //Check value. Must be Y or N.
+                            //                    if (spartc.ValueID.Value == "Y" || spartc.ValueID.Value == "N")
+                            //                    {
+                            //                    }
+                            //                    else
+                            //                    {
+                            //                        //FA-L01-00-0379 - error
+                            //                    }
+                            //                    //FA-L02-00-0652
+                            //                    //FAQueryParameter/ValueCode, FAQueryParameter/TypeCode
+                            //                    //Check attribute listID. Must be BOOLEAN_TYPE if TypeCode is CONSOLIDATED
+                            //                    if (spartc.ValueID.schemeID != "BOOLEAN_TYPE")
+                            //                    {
+                            //                        //FA-L02-00-0652 - error
+                            //                    }
+                            //                }
+                            //                else
+                            //                {
+                            //                    //FA-L02-00-0378 - error
+                            //                }
+                            //            }
+
+                            //            //FA-L00-00-0375
+                            //            //FAQuery/SimpleFAQueryParameter/TypeCode
+                            //            //At most one occurrence with TypeCode VESSELID
+                            //            var spartc1 = faquery.FAQuery.SimpleFAQueryParameter.FirstOrDefault(x => x.TypeCode.Value == "VESSELID");
+                            //            if (spartc1 == null)
+                            //            {
+                            //                //FA-L00-00-0375- error
+                            //            }
+                            //            else
+                            //            {
+                            //                //FA-L02-00-0372
+                            //                //FAQueryParameter/ValueID, FAQueryParameter/TypeCode
+                            //                //Check presence. Must be present if Type is VESSELID or TRIPID
+                            //                if (spartc1.ValueID == null)
+                            //                {
+                            //                    //FA-L02-00-0372 - error
+                            //                    //FA-L02-00-0373 - error
+                            //                }
+                            //                else
+                            //                {
+                            //                    //FA-L02-00-0373
+                            //                    //FAQueryParameter/ValueID, FAQueryParameter/TypeCode
+                            //                    //Check schemeID. Must be value from the list FLUX_VESSEL_ID_TYPE if TypeCode is VESSELID
+                            //                    //TODO: check in db FLUX_VESSEL_ID_TYPE = spartc1.ValueID.Value
+
+                            //                    //FA-L02-00-0374
+                            //                    //FAQueryParameter/ValueID, FAQueryParameter/TypeCode
+                            //                    //Check schemeID. Must be value CFR or IRCS29 if Type is VESSELID
+                            //                    if (spartc1.ValueID.schemeID == "CFR" || spartc1.ValueID.schemeID == "IRCS")
+                            //                    {
+                            //                    }
+                            //                    else
+                            //                    {
+                            //                        //FA-L02-00-0374 - error
+                            //                    }
+
+                            //                }
+
+                            //            }
+                            //            var spartctripid = faquery.FAQuery.SimpleFAQueryParameter.FirstOrDefault(x => x.TypeCode.Value == "TRIPID");
+                            //            if (spartctripid != null)
+                            //            {
+                            //                if (spartctripid.ValueID == null)
+                            //                {
+                            //                    //FA-L02-00-0372 - error
+                            //                }
+                            //            }
 
 
-                                    }
+                            //            //FA-L02-00-0371
+                            //            //FAQueryParameter/TypeCode, FAQuery/TypeCode
+                            //            //Must be value VESSELID if FAQuery/TypeCode is VESSEL or must be value TRIPID if FAQuery/TypeCode is TRIP
+                            //            if (faquery.FAQuery.TypeCode.Value == "VESSEL")
+                            //            {
+                            //                if (spartc1 == null)
+                            //                {
+                            //                    //FA-L02-00-0371 - error
+                            //                }
+                            //            }
+                            //            if (faquery.FAQuery.TypeCode.Value == "TRIP")
+                            //            {
+                            //                var spartctrip = faquery.FAQuery.SimpleFAQueryParameter.FirstOrDefault(x => x.TypeCode.Value == "TRIPID");
+                            //                if (spartctrip == null)
+                            //                {
+                            //                    //FA-L02-00-0371 - error
+                            //                }
+                            //                else
+                            //                {
+                            //                    //FA-L02-00-0376
+                            //                    //FAQueryParameter/ValueID, FAQueryParameter/TypeCode
+                            //                    //Check schemeID. Must be value EU_TRIP_ID if TypeCode is TRIPID
+                            //                    if (spartctrip.ValueID != null)
+                            //                    {
+                            //                        if (spartctrip.ValueID.schemeID != "EU_TRIP_ID")
+                            //                        {
+                            //                            //FA-L02-00-0376 - error
+                            //                        }
+                            //                    }
+                            //                }
+                            //            }
+                            //            //FA-L01-00-0369
+                            //            //FAQueryParameter/TypeCode
+                            //            //Check attribute listID. Must be FA_QUERY_PARAMETER
+                            //            var spartc2 = faquery.FAQuery.SimpleFAQueryParameter.FirstOrDefault(x => x.TypeCode.listID != "FA_QUERY_PARAMETER");
+                            //            if (spartc2 != null)
+                            //            {
 
-                                }
-                            }
+                            //            }
+                            //            //FA-L01-00-0370
+                            //            //FAQueryParameter/TypeCode
+                            //            //Check code. Must be existing in the list specified in attribute listID
+                            //            //TODO: check in db
+
+
+                            //        }
+
+                            //    }
+                            //}
                             break;
                         case "FA-L00-00-0380":
-                            if (IsFAResp)
-                            {
-                                if (FAresp.FLUXResponseDocument != null)
-                                {
-                                    if (FAresp.FLUXResponseDocument.ID != null)
-                                    {
-                                        //FA-L00-00-0380
-                                        //FLUXResponseDocument/ID
-                                        //Check attribute schemeID. Must be UUID
-                                        var respdocid = FAresp.FLUXResponseDocument.ID.FirstOrDefault(x => x.schemeID == "UUID");
-                                        if (respdocid == null)
-                                        {
-                                            //FA-L00-00-0380 - error
-                                        }
-                                        else
-                                        {
-                                            //FA-L01-00-0381
-                                            //FLUXResponseDocument/ID
-                                            //Check Format. Must be according to the specified schemeID.
-                                            //Must be according to RFC4122 format for UUID. Check is case insensitive.
-                                            //TODO: check RFC4122
-                                            // bool isValid = Guid.TryParse(inputString, out guidOutput)
+                            //if (IsFAResp)
+                            //{
+                            //    if (FAresp.FLUXResponseDocument != null)
+                            //    {
+                            //        if (FAresp.FLUXResponseDocument.ID != null)
+                            //        {
+                            //            //FA-L00-00-0380
+                            //            //FLUXResponseDocument/ID
+                            //            //Check attribute schemeID. Must be UUID
+                            //            var respdocid = FAresp.FLUXResponseDocument.ID.FirstOrDefault(x => x.schemeID == "UUID");
+                            //            if (respdocid == null)
+                            //            {
+                            //                //FA-L00-00-0380 - error
+                            //            }
+                            //            else
+                            //            {
+                            //                //FA-L01-00-0381
+                            //                //FLUXResponseDocument/ID
+                            //                //Check Format. Must be according to the specified schemeID.
+                            //                //Must be according to RFC4122 format for UUID. Check is case insensitive.
+                            //                //TODO: check RFC4122
+                            //                // bool isValid = Guid.TryParse(inputString, out guidOutput)
 
-                                            //FA-L03-00-0382
-                                            //FLUXResponseDocument/ID
-                                            //The identification must be unique and not already exist.
-                                            //TODO: check db if there already a UUID
-                                        }
-                                    }
-                                    if (FAresp.FLUXResponseDocument.ReferencedID != null)
-                                    {
-                                        //FA-L00-00-0383
-                                        //FLUXResponseDocument/ReferencedID
-                                        //Check attribute schemeID. Must be a valid value from code list FLUX_GP_MSG_ID.
-                                        //TODO: check value if in FLUX_GP_MSG_ID.
-                                        //resp.FLUXResponseDocument.ReferencedID.schemeID 
+                            //                //FA-L03-00-0382
+                            //                //FLUXResponseDocument/ID
+                            //                //The identification must be unique and not already exist.
+                            //                //TODO: check db if there already a UUID
+                            //            }
+                            //        }
+                            //        if (FAresp.FLUXResponseDocument.ReferencedID != null)
+                            //        {
+                            //            //FA-L00-00-0383
+                            //            //FLUXResponseDocument/ReferencedID
+                            //            //Check attribute schemeID. Must be a valid value from code list FLUX_GP_MSG_ID.
+                            //            //TODO: check value if in FLUX_GP_MSG_ID.
+                            //            //resp.FLUXResponseDocument.ReferencedID.schemeID 
 
-                                        //FA-L01-00-0384
-                                        //FLUXResponseDocument/ReferencedID
-                                        //Check Format. Must be according to the specified schemeID.
-                                        //string title = "STRING";
-                                        //bool contains = title.IndexOf("string", StringComparison.OrdinalIgnoreCase) >= 0;
+                            //            //FA-L01-00-0384
+                            //            //FLUXResponseDocument/ReferencedID
+                            //            //Check Format. Must be according to the specified schemeID.
+                            //            //string title = "STRING";
+                            //            //bool contains = title.IndexOf("string", StringComparison.OrdinalIgnoreCase) >= 0;
 
-                                        //FA-L03-00-0385
-                                        //FLUXResponseDocument/ReferencedID
-                                        //The identification must exist for a FLUXFAReportMessage or for a FLUXFAQuery message
-                                        //TODO: check in database for reverenced FAReport or FAQuery
+                            //            //FA-L03-00-0385
+                            //            //FLUXResponseDocument/ReferencedID
+                            //            //The identification must exist for a FLUXFAReportMessage or for a FLUXFAQuery message
+                            //            //TODO: check in database for reverenced FAReport or FAQuery
 
-                                    }
-                                    //FA-L00-00-0386
-                                    //FLUXResponseDocument/ResponseCode
-                                    //Check presence. Must be present
-                                    if (FAresp.FLUXResponseDocument.ResponseCode == null)
-                                    {
-                                        //FA-L00-00-0386 - error
-                                    }
-                                    else
-                                    {
-                                        //FA-L02-00-0387
-                                        //FLUXResponseDocument/ResponseCode
-                                        //Check attribute listID. Must be FLUX_GP_RESPONSE
-                                        if (FAresp.FLUXResponseDocument.ResponseCode.listID != "FLUX_GP_RESPONSE")
-                                        {
-                                            //FA-L02-00-0387 - error
-                                        }
+                            //        }
+                            //        //FA-L00-00-0386
+                            //        //FLUXResponseDocument/ResponseCode
+                            //        //Check presence. Must be present
+                            //        if (FAresp.FLUXResponseDocument.ResponseCode == null)
+                            //        {
+                            //            //FA-L00-00-0386 - error
+                            //        }
+                            //        else
+                            //        {
+                            //            //FA-L02-00-0387
+                            //            //FLUXResponseDocument/ResponseCode
+                            //            //Check attribute listID. Must be FLUX_GP_RESPONSE
+                            //            if (FAresp.FLUXResponseDocument.ResponseCode.listID != "FLUX_GP_RESPONSE")
+                            //            {
+                            //                //FA-L02-00-0387 - error
+                            //            }
 
-                                        //FA-L02-00-0388
-                                        //FLUXResponseDocument/ResponseCode
-                                        //Check value. Code must be value of the specified code list in listID
-                                        //TODO: Check DB listid
+                            //            //FA-L02-00-0388
+                            //            //FLUXResponseDocument/ResponseCode
+                            //            //Check value. Code must be value of the specified code list in listID
+                            //            //TODO: Check DB listid
 
-                                        //FA-L02-00-0368
-                                        //"FLUXResponseDocument/ValidationResultDocument,
-                                        //FLUXResponseDocument / ResponseCode"
-                                        //At least one occurrence if ResponseCode <> OK
-                                        if (FAresp.FLUXResponseDocument.ResponseCode.Value != "OK")
-                                        {
-                                            if (FAresp.FLUXResponseDocument.RelatedValidationResultDocument == null)
-                                            {
-                                                //FA-L02-00-0368 - error
-                                            }
-                                            else
-                                            {
-                                                if (FAresp.FLUXResponseDocument.RelatedValidationResultDocument.Length < 1)
-                                                {
-                                                    //FA-L02-00-0368 - error
-                                                }
-                                            }
+                            //            //FA-L02-00-0368
+                            //            //"FLUXResponseDocument/ValidationResultDocument,
+                            //            //FLUXResponseDocument / ResponseCode"
+                            //            //At least one occurrence if ResponseCode <> OK
+                            //            if (FAresp.FLUXResponseDocument.ResponseCode.Value != "OK")
+                            //            {
+                            //                if (FAresp.FLUXResponseDocument.RelatedValidationResultDocument == null)
+                            //                {
+                            //                    //FA-L02-00-0368 - error
+                            //                }
+                            //                else
+                            //                {
+                            //                    if (FAresp.FLUXResponseDocument.RelatedValidationResultDocument.Length < 1)
+                            //                    {
+                            //                        //FA-L02-00-0368 - error
+                            //                    }
+                            //                }
 
-                                            //FA-L02-00-0554
-                                            //"ValidationResultDocument/ValidationQualityAnalysis,
-                                            //FLUXResponseDocument / ResponseCode"
-                                            //At least one occurrence must be present if ResponseCode<> OK
-                                            var rcasys = FAresp.FLUXResponseDocument.RelatedValidationResultDocument
-                                                .Select(x => x.RelatedValidationQualityAnalysis).ToList();
-                      
-                                            if (rcasys != null && rcasys.Count() > 1)
-                                            {
-                                                foreach (var asysitem in rcasys)
-                                                {
-                                                    foreach (var asys in asysitem)
-                                                    {
-                                                        //FA-L00-00-0397
-                                                        //ValidationQualityAnalysis/ID
-                                                        //Check presence. Must be present.
-                                                        if (asys.ID == null)
-                                                        {
-                                                            //FA-L00-00-0397 - error
-                                                        }
-                                                        else
-                                                        {
-                                                            //FA-L01-00-0398
-                                                            //ValidationQualityAnalysis/ID
-                                                            //Check schemeID. Must be FA_BR.
-                                                            if (asys.ID.schemeID != "FA_BR")
-                                                            {
-                                                                //FA-L01-00-0398 - error
-                                                            }
+                            //                //FA-L02-00-0554
+                            //                //"ValidationResultDocument/ValidationQualityAnalysis,
+                            //                //FLUXResponseDocument / ResponseCode"
+                            //                //At least one occurrence must be present if ResponseCode<> OK
+                            //                var rcasys = FAresp.FLUXResponseDocument.RelatedValidationResultDocument
+                            //                    .Select(x => x.RelatedValidationQualityAnalysis).ToList();
 
-                                                            //FA-L01-00-0399
-                                                            //ValidationQualityAnalysis/ID
-                                                            //Check value. Code must be value of the specified code list in listID.
-                                                            //TODO: check db FA_BR value
-                                                        }
-                                                        //FA-L02-00-0400
-                                                        //ValidationQualityAnalysis/LevelCode
-                                                        //Check presence. Must be present.
-                                                        if (asys.LevelCode == null)
-                                                        {
-                                                            //FA-L02-00-0400 - error
-                                                        }
-                                                        else
-                                                        {
-                                                            //FA-L01-00-0401
-                                                            //ValidationQualityAnalysis/LevelCode
-                                                            //Check listID. Must be FLUX_GP_VALIDATION_LEVEL.
-                                                            if (asys.LevelCode.listID != "FLUX_GP_VALIDATION_LEVEL")
-                                                            {
-                                                                //FA-L01-00-0401 - error
-                                                            }
+                            //                if (rcasys != null && rcasys.Count() > 1)
+                            //                {
+                            //                    foreach (var asysitem in rcasys)
+                            //                    {
+                            //                        foreach (var asys in asysitem)
+                            //                        {
+                            //                            //FA-L00-00-0397
+                            //                            //ValidationQualityAnalysis/ID
+                            //                            //Check presence. Must be present.
+                            //                            if (asys.ID == null)
+                            //                            {
+                            //                                //FA-L00-00-0397 - error
+                            //                            }
+                            //                            else
+                            //                            {
+                            //                                //FA-L01-00-0398
+                            //                                //ValidationQualityAnalysis/ID
+                            //                                //Check schemeID. Must be FA_BR.
+                            //                                if (asys.ID.schemeID != "FA_BR")
+                            //                                {
+                            //                                    //FA-L01-00-0398 - error
+                            //                                }
 
-                                                            //FA-L01-00-0402
-                                                            //ValidationQualityAnalysis/LevelCode
-                                                            //Check Code. Must be in the list specified in listID.
-                                                            //TODO: check db list FLUX_GP_VALIDATION_LEVEL = value exist
-                                                        }
-                                                        if (asys.TypeCode != null)
-                                                        {
-                                                            //FA-L01-00-0403
-                                                            //ValidationQualityAnalysis/TypeCode
-                                                            //Check listID. Must be FLUX_GP_VALIDATION_TYPE.
-                                                            if (asys.TypeCode.listID != "FLUX_GP_VALIDATION_TYPE")
-                                                            {
-                                                                //FA-L01-00-0403 - error
-                                                            }
+                            //                                //FA-L01-00-0399
+                            //                                //ValidationQualityAnalysis/ID
+                            //                                //Check value. Code must be value of the specified code list in listID.
+                            //                                //TODO: check db FA_BR value
+                            //                            }
+                            //                            //FA-L02-00-0400
+                            //                            //ValidationQualityAnalysis/LevelCode
+                            //                            //Check presence. Must be present.
+                            //                            if (asys.LevelCode == null)
+                            //                            {
+                            //                                //FA-L02-00-0400 - error
+                            //                            }
+                            //                            else
+                            //                            {
+                            //                                //FA-L01-00-0401
+                            //                                //ValidationQualityAnalysis/LevelCode
+                            //                                //Check listID. Must be FLUX_GP_VALIDATION_LEVEL.
+                            //                                if (asys.LevelCode.listID != "FLUX_GP_VALIDATION_LEVEL")
+                            //                                {
+                            //                                    //FA-L01-00-0401 - error
+                            //                                }
 
-                                                            //FA-L01-00-0406
-                                                            //ValidationQualityAnalysis/TypeCode
-                                                            //Check value of TypeCode. Must be in the list specified in listID
-                                                            //TODO: check db FLUX_GP_VALIDATION_TYPE
+                            //                                //FA-L01-00-0402
+                            //                                //ValidationQualityAnalysis/LevelCode
+                            //                                //Check Code. Must be in the list specified in listID.
+                            //                                //TODO: check db list FLUX_GP_VALIDATION_LEVEL = value exist
+                            //                            }
+                            //                            if (asys.TypeCode != null)
+                            //                            {
+                            //                                //FA-L01-00-0403
+                            //                                //ValidationQualityAnalysis/TypeCode
+                            //                                //Check listID. Must be FLUX_GP_VALIDATION_TYPE.
+                            //                                if (asys.TypeCode.listID != "FLUX_GP_VALIDATION_TYPE")
+                            //                                {
+                            //                                    //FA-L01-00-0403 - error
+                            //                                }
 
-                                                            //FA-L01-00-0405
-                                                            //"ValidationQualityAnalysis/ReferencedItem, 
-                                                            //ValidationQualityAnalysis / TypeCode"
-                                                            //At least one non-empty occurrence if TypeCode is ERR or WAR
-                                                            if (asys.TypeCode.Value == "ERR" || asys.TypeCode.Value == "WAR")
-                                                            {
-                                                                if (asys.ReferencedItem != null && asys.ReferencedItem.Length > 0)
-                                                                {
-                                                                }
-                                                                else
-                                                                {
-                                                                    //FA-L01-00-0405 - warning
-                                                                }
-                                                            }
-                                                        }
-                                                        //FA-L00-00-0404
-                                                        //ValidationQualityAnalysis/Result
-                                                        //Must be non-empty
-                                                        if (asys.Result == null)
-                                                        {
-                                                            //FA-L00-00-0404 - warning
-                                                        }
-                                                        else
-                                                        {
-                                                            if (asys.Result.Length < 1)
-                                                            {
-                                                                //FA-L00-00-0404 - warning
-                                                            }
-                                                        }
+                            //                                //FA-L01-00-0406
+                            //                                //ValidationQualityAnalysis/TypeCode
+                            //                                //Check value of TypeCode. Must be in the list specified in listID
+                            //                                //TODO: check db FLUX_GP_VALIDATION_TYPE
 
-                                                    }
-                                                }
-                                            }
-                                            else
-                                            {
-                                                //FA-L02-00-0554 - error
-                                            }
-                                        }
-                                    }
-                                    //FA-L00-00-0389
-                                    //FLUXResponseDocument/CreationDateTime
-                                    //Check presence. Must be present.
-                                    if (FAresp.FLUXResponseDocument.CreationDateTime == null)
-                                    {
-                                        //FA-L00-00-0389 - error
-                                    }
-                                    else
-                                    {
-                                        //FA-L01-00-0390
-                                        //FLUXResponseDocument/CreationDateTime
-                                        //Check Format. Must be according to the definition provided in 7.1(2).
-                                        //TODO: Check db  - if decoded correctly its ok / the original value is in string
+                            //                                //FA-L01-00-0405
+                            //                                //"ValidationQualityAnalysis/ReferencedItem, 
+                            //                                //ValidationQualityAnalysis / TypeCode"
+                            //                                //At least one non-empty occurrence if TypeCode is ERR or WAR
+                            //                                if (asys.TypeCode.Value == "ERR" || asys.TypeCode.Value == "WAR")
+                            //                                {
+                            //                                    if (asys.ReferencedItem != null && asys.ReferencedItem.Length > 0)
+                            //                                    {
+                            //                                    }
+                            //                                    else
+                            //                                    {
+                            //                                        //FA-L01-00-0405 - warning
+                            //                                    }
+                            //                                }
+                            //                            }
+                            //                            //FA-L00-00-0404
+                            //                            //ValidationQualityAnalysis/Result
+                            //                            //Must be non-empty
+                            //                            if (asys.Result == null)
+                            //                            {
+                            //                                //FA-L00-00-0404 - warning
+                            //                            }
+                            //                            else
+                            //                            {
+                            //                                if (asys.Result.Length < 1)
+                            //                                {
+                            //                                    //FA-L00-00-0404 - warning
+                            //                                }
+                            //                            }
 
-                                        //FA-L01-00-0391
-                                        //FLUXResponseDocument/CreationDateTime
-                                        //Date must be in the past.
-                                        if (FAresp.FLUXResponseDocument.CreationDateTime.Item < DateTime.UtcNow)
-                                        {
-                                            //FA-L01-00-0391 - warning
-                                        }
-                                    }
-                                    //FA-L00-00-0553
-                                    //FLUXResponseDocument/RespondentFLUXParty
-                                    //Check presence. Must be present
-                                    if (FAresp.FLUXResponseDocument.RespondentFLUXParty != null)
-                                    {
+                            //                        }
+                            //                    }
+                            //                }
+                            //                else
+                            //                {
+                            //                    //FA-L02-00-0554 - error
+                            //                }
+                            //            }
+                            //        }
+                            //        //FA-L00-00-0389
+                            //        //FLUXResponseDocument/CreationDateTime
+                            //        //Check presence. Must be present.
+                            //        if (FAresp.FLUXResponseDocument.CreationDateTime == null)
+                            //        {
+                            //            //FA-L00-00-0389 - error
+                            //        }
+                            //        else
+                            //        {
+                            //            //FA-L01-00-0390
+                            //            //FLUXResponseDocument/CreationDateTime
+                            //            //Check Format. Must be according to the definition provided in 7.1(2).
+                            //            //TODO: Check db  - if decoded correctly its ok / the original value is in string
 
-                                    }
-                                    else
-                                    {
-                                        //FA-L00-00-0553 - error
-                                    }
+                            //            //FA-L01-00-0391
+                            //            //FLUXResponseDocument/CreationDateTime
+                            //            //Date must be in the past.
+                            //            if (FAresp.FLUXResponseDocument.CreationDateTime.Item < DateTime.UtcNow)
+                            //            {
+                            //                //FA-L01-00-0391 - warning
+                            //            }
+                            //        }
+                            //        //FA-L00-00-0553
+                            //        //FLUXResponseDocument/RespondentFLUXParty
+                            //        //Check presence. Must be present
+                            //        if (FAresp.FLUXResponseDocument.RespondentFLUXParty != null)
+                            //        {
 
-                                    //FA-L00-00-0392
-                                    //RespondentFLUXParty/ID
-                                    //Check presence. Must be present
-                                    if (FAresp.FLUXResponseDocument.RespondentFLUXParty != null)
-                                    {
-                                        if (FAresp.FLUXResponseDocument.RespondentFLUXParty.ID == null)
-                                        {
-                                            //FA-L00-00-0392 - error
-                                        }
-                                        else
-                                        {
-                                            //FA-L01-00-0393
-                                            //RespondentFLUXParty/ID
-                                            //Check attribute schemeID. Must be FLUX_GP_PARTY
-                                            var fpidschemeid = FAresp.FLUXResponseDocument.RespondentFLUXParty.ID.
-                                                FirstOrDefault(x => x.schemeID == "FLUX_GP_PARTY");
-                                            if (fpidschemeid == null)
-                                            {
-                                                //FA-L01-00-0393 - error
-                                            }
-                                            else
-                                            {
-                                                //FA-L03-00-0394
-                                                //RespondentFLUXParty/ID
-                                                //Check if RespondentFLUXParty/ID is consistent with FLUX TL values.
-                                                //The party sending the response must be the same as the one from the FR value of the
-                                                //FLUX TL envelope. Only the part before the first colon is to be considered:
-                                                //Eg. ABC:something => only ABC refres to the party for the purpose of this rule
-                                                //TODO: check value is equal to FR
-                                                //fpidschemeid.Value 
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        //FA-L00-00-0392 - error
-                                    }
+                            //        }
+                            //        else
+                            //        {
+                            //            //FA-L00-00-0553 - error
+                            //        }
 
-                                    if (FAresp.FLUXResponseDocument.RelatedValidationResultDocument != null)
-                                    {
-                                        foreach (var rvd in FAresp.FLUXResponseDocument.RelatedValidationResultDocument)
-                                        {
-                                            //FA-L00-00-0395
-                                            //ValidationResultDocument/ValidatorID
-                                            //Check presence. Must be present.
-                                            if (rvd.ValidatorID == null)
-                                            {
-                                                //FA-L00-00-0395 - error
-                                            } else
-                                            {
-                                                //FA-L01-00-0396
-                                                //ValidationResultDocument/ValidatorID
-                                                //Check schemeID. Must be FLUX_GP_PARTY
-                                                if (rvd.ValidatorID.schemeID != "FLUX_GP_PARTY")
-                                                {
-                                                    //FA-L01-00-0396 - error
-                                                }
+                            //        //FA-L00-00-0392
+                            //        //RespondentFLUXParty/ID
+                            //        //Check presence. Must be present
+                            //        if (FAresp.FLUXResponseDocument.RespondentFLUXParty != null)
+                            //        {
+                            //            if (FAresp.FLUXResponseDocument.RespondentFLUXParty.ID == null)
+                            //            {
+                            //                //FA-L00-00-0392 - error
+                            //            }
+                            //            else
+                            //            {
+                            //                //FA-L01-00-0393
+                            //                //RespondentFLUXParty/ID
+                            //                //Check attribute schemeID. Must be FLUX_GP_PARTY
+                            //                var fpidschemeid = FAresp.FLUXResponseDocument.RespondentFLUXParty.ID.
+                            //                    FirstOrDefault(x => x.schemeID == "FLUX_GP_PARTY");
+                            //                if (fpidschemeid == null)
+                            //                {
+                            //                    //FA-L01-00-0393 - error
+                            //                }
+                            //                else
+                            //                {
+                            //                    //FA-L03-00-0394
+                            //                    //RespondentFLUXParty/ID
+                            //                    //Check if RespondentFLUXParty/ID is consistent with FLUX TL values.
+                            //                    //The party sending the response must be the same as the one from the FR value of the
+                            //                    //FLUX TL envelope. Only the part before the first colon is to be considered:
+                            //                    //Eg. ABC:something => only ABC refres to the party for the purpose of this rule
+                            //                    //TODO: check value is equal to FR
+                            //                    //fpidschemeid.Value 
+                            //                }
+                            //            }
+                            //        }
+                            //        else
+                            //        {
+                            //            //FA-L00-00-0392 - error
+                            //        }
 
-                                                //FA-L01-00-0555
-                                                //ValidationResultDocument/ValidatorID
-                                                //Check value. Must be value from the code list specified in schemeID.
-                                                //TODO: check db codelist - FLUX_GP_PARTY
-                                            }
-                                            
-                                        }
-                                    }
-                                }
-                            }
+                            //        if (FAresp.FLUXResponseDocument.RelatedValidationResultDocument != null)
+                            //        {
+                            //            foreach (var rvd in FAresp.FLUXResponseDocument.RelatedValidationResultDocument)
+                            //            {
+                            //                //FA-L00-00-0395
+                            //                //ValidationResultDocument/ValidatorID
+                            //                //Check presence. Must be present.
+                            //                if (rvd.ValidatorID == null)
+                            //                {
+                            //                    //FA-L00-00-0395 - error
+                            //                }
+                            //                else
+                            //                {
+                            //                    //FA-L01-00-0396
+                            //                    //ValidationResultDocument/ValidatorID
+                            //                    //Check schemeID. Must be FLUX_GP_PARTY
+                            //                    if (rvd.ValidatorID.schemeID != "FLUX_GP_PARTY")
+                            //                    {
+                            //                        //FA-L01-00-0396 - error
+                            //                    }
+
+                            //                    //FA-L01-00-0555
+                            //                    //ValidationResultDocument/ValidatorID
+                            //                    //Check value. Must be value from the code list specified in schemeID.
+                            //                    //TODO: check db codelist - FLUX_GP_PARTY
+                            //                }
+
+                            //            }
+                            //        }
+                            //    }
+                            //}
                             break;
                     }
                 }
