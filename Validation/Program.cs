@@ -24,8 +24,8 @@ namespace Validation
             bool VesselDomainDebug = false;
             if (VesselDomainDebug)
             {
-                VesselDomainValidation salesDomainValidation = new VesselDomainValidation();
-                salesDomainValidation.VesselDomainValidate(strWorkPath: strWorkPath);
+                VesselDomainValidation vesselDomainValidation = new VesselDomainValidation();
+                vesselDomainValidation.VesselDomainValidate(strWorkPath: strWorkPath);
             }
 
 

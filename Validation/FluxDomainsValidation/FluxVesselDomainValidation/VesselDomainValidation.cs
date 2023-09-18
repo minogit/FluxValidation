@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using ScortelApi.Models.FLUX;
 using ScortelApi.Models.FLUX.Noms;
-using System.Text.RegularExpressions;
 using System.Xml;
 using System.IO;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 using System.Xml.Serialization;
+using Validation.FluxDomainsValidation.FluxVesselDomainValidation;
 
 namespace Validation
 {
@@ -149,7 +148,8 @@ namespace Validation
 
                         if (VesselReport != null)
                         {
-                            VesselReportValidate(VesselReport: VesselReport);
+                            VesselReportValidation vesselReportValidation = new VesselReportValidation();
+                            vesselReportValidation.VesselReportValidate(VesselReport: VesselReport);
                         }
                         else
                         {
@@ -160,7 +160,7 @@ namespace Validation
                 }
             }
         }
-
+        /*
         public void VesselReportValidate(FLUXReportVesselInformationType VesselReport)
         {
             string valueCurrentFluxVesselReportType = ""; //SUB     [submission of vessel data for VCD & VED vessels except EU fishing vessels]
@@ -3459,7 +3459,7 @@ namespace Validation
                                     //Code from the specified list
                                     //TODO: check DB nomenclature - FLUX_VESSEL_ADMIN_TYPE if VesselReport.VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.TypeCode.Value exists
 
-                                    /* Value Code */
+                                    //Value Code
                                     if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "LICENCE")
                                     {
                                         //VESSEL-L00-00-0130
@@ -3569,7 +3569,7 @@ namespace Validation
                                         }
                                     }
 
-                                    /* Value Date */
+                                    //Value Date
                                     if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "EIS")
                                     {
                                         //VESSEL-L00-00-0082
@@ -3632,7 +3632,7 @@ namespace Validation
                                         }
                                     }
 
-                                    /* Value Text */
+                                    //Value Text
                                     if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.TypeCode.Value?.ToString() == "AUTH_NAME")
                                     {
                                         //VESSEL-L01-00-0580
@@ -3681,7 +3681,7 @@ namespace Validation
                                     //Code from the specified list
                                     //TODO: check DB nomenclature - FLUX_VESSEL_TECH_TYPE if VesselReport.VesselEvent.RelatedVesselTransportMeans.ApplicableVesselTechnicalCharacteristic.TypeCode.Value exists
 
-                                    /* Value Code */
+                                    //Value Code
                                     if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.TypeCode.Value?.ToString() == "HULL")
                                     {
                                         //VESSEL-L00-00-0134
@@ -3706,7 +3706,7 @@ namespace Validation
                                         }
                                     }
 
-                                    /* Value Text */
+                                    //Value Text
                                     if (relatedVesselTransportMeansApplicableVesselTechnicalCharacteristic.TypeCode.Value?.ToString() == "PROCESS_CLASS")
                                     {
                                         //VESSEL-L01-00-0690
@@ -6522,5 +6522,6 @@ namespace Validation
             }
             #endregion
         }
+        */
     }
 }
