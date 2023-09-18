@@ -33,6 +33,13 @@ namespace Validation
             List<string> SysList = new List<string>();
             if (FADomainDebug)
             {
+                FADomainValidation faDomainValidation = new FADomainValidation();
+
+                faDomainValidation.FADomainValidate(strWorkPath: strWorkPath, SysList: SysList);
+
+
+                #region For Deletion: FA Domain Validation - old code
+
                 #region FA Domain
                 #region FAReport
                 string filePathFAReport = strWorkPath + @"\FluxReports\FAReport1.xml";
@@ -5674,10 +5681,12 @@ namespace Validation
                             break;
                     }
                 }
+
+                #endregion For Deletion: FA Domain Validation - old code
             }
 
 
-            bool VesselDomainDebug = true;
+            bool VesselDomainDebug = false;
             if (VesselDomainDebug)
             {
                 VesselDomainValidation salesDomainValidation = new VesselDomainValidation();
