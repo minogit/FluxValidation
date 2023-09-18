@@ -12182,7 +12182,12 @@ namespace Validation
             bool SalesDomainDebug = true;
             if (SalesDomainDebug)
             {
+                FluxSalesDomainValidation salesDomainValidation = new FluxSalesDomainValidation();
 
+                salesDomainValidation.SalesDomainValidate(strWorkPath: strWorkPath);
+
+                #region For Deletion: Sales Domain Validation - old code
+                /*
                 #region Sales Domain
 
                 #region SalesReport
@@ -12335,9 +12340,9 @@ namespace Validation
 
                 #endregion Sales Domain
 
-                SalesReport = null;
+                //SalesReport = null;
                 SalesQuery = null;
-                //SalesResponse = null;
+                SalesResponse = null;
 
                 foreach (var rule in SalesBrDef)
                 {
@@ -12350,6 +12355,7 @@ namespace Validation
                             #region SalesReport
                             if (SalesReport != null)
                             {
+                                
                                 string valuePurposeCode = "";
                                 string valueSalesReportTypeCode = "";
                                 string valueClassCode = "";
@@ -13746,7 +13752,7 @@ namespace Validation
                                             {
                                                 Console.WriteLine("SALE-L00-00-0104 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFishingActivity.RelatedFLUXLocation provided");
 
-                                                FLUXLocationValidationElement(entity: "SpecifiedFishingActivity", locationElement: salesReportSalesDocument.SpecifiedFLUXLocation.First());
+                                                //FLUXLocationValidationElement(entity: "SpecifiedFishingActivity", locationElement: salesReportSalesDocument.SpecifiedFLUXLocation.First());
                                             }
                                             else
                                             {
@@ -13779,7 +13785,7 @@ namespace Validation
                                                 Console.WriteLine("SALE-L02-00-0032 | OK | SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFLUXLocation Count == 1");
                                                 Console.WriteLine("SALE-L02-00-0032 | TODO | Check if SalesReport.SalesReport.IncludedSalesDocument.SpecifiedFLUXLocation is market place or storage location");
 
-                                                FLUXLocationValidationElement(entity: "IncludedSalesDocument", locationElement: salesReportSalesDocument.SpecifiedFLUXLocation.First());
+                                                //FLUXLocationValidationElement(entity: "IncludedSalesDocument", locationElement: salesReportSalesDocument.SpecifiedFLUXLocation.First());
                                             }
                                             else
                                             {
@@ -14210,7 +14216,7 @@ namespace Validation
 
                                                         foreach (var specifiedAAPProductOriginFLUXLocation in salesBatchSpecifiedAAPProduct.OriginFLUXLocation)
                                                         {
-                                                            FLUXLocationValidationElement(entity: "SpecifiedAAPProduct", locationElement: specifiedAAPProductOriginFLUXLocation);
+                                                           //FLUXLocationValidationElement(entity: "SpecifiedAAPProduct", locationElement: specifiedAAPProductOriginFLUXLocation);
                                                         }
                                                     }
                                                     else
@@ -14341,6 +14347,7 @@ namespace Validation
                                     //TODO: Check if reception date is in 24 after the landing declaration date
                                 }
                                 #endregion Boolean Validations
+                                
                             }
                             else
                             {
@@ -14355,6 +14362,7 @@ namespace Validation
                             #region SalesQuery
                             if (SalesQuery != null)
                             {
+                                
                                 string valueSalesQueryTypeCode = "";
                                 string valueFLUXPartyID = "";
 
@@ -14869,6 +14877,7 @@ namespace Validation
                                 {
                                     Console.WriteLine("No SalesQuery.SalesQuery provided");
                                 }
+                                
                             }
                             else
                             {
@@ -14883,6 +14892,7 @@ namespace Validation
                             #region SalesResponse
                             if (SalesResponse != null)
                             {
+                                
                                 string valueResponseDocumentResponseCode = "";
                                 DateTime dateTimeFLUXResponseDocumentCreation = new DateTime();
                                 bool hasRelatedValidationResultDocument = false;
@@ -15307,6 +15317,7 @@ namespace Validation
                                 {
                                     Console.WriteLine("No SalesResponse.FLUXResponseDocument provided");
                                 }
+                                
                             }
                             else
                             {
@@ -15315,9 +15326,11 @@ namespace Validation
                             #endregion SalesResponse
 
                             break;
-
                     }
                 }
+                */
+                #endregion For Deletion: Sales Domain Validation - old code
+
             }
 
 
@@ -15634,6 +15647,11 @@ namespace Validation
             #endregion
         }
 
+
+
+
+        #region For Deletion: Sales Domain Flux Location Validation - old code
+        /*
         //SALE-L00-00-0180, SALE-L01-00-0180, SALE-L01-00-0181, SALE-L02-00-0180, SALE-L02-00-0181, SALE-L02-00-0182, SALE-L01-00-0182, SALE-L01-00-0183, SALE-L02-00-0183, SALE-L01-00-0184,
         //SALE-L01-00-0185, SALE-L01-00-0186, SALE-L01-00-0187, SALE-L02-00-0188, SALE-L02-00-0184, SALE-L02-00-0185, SALE-L02-00-0186, SALE-L02-00-0187, SALE-L00-00-0190, SALE-L01-00-0190,
         //SALE-L01-00-0191, SALE-L00-00-0191, SALE-L01-00-0192, SALE-L01-00-0193, SALE-L00-00-0200, SALE-L00-00-0201, SALE-L01-00-0200, SALE-L00-00-0202, SALE-L02-00-0200
@@ -16046,6 +16064,10 @@ namespace Validation
             
             Console.WriteLine("########### FLUXLocation Validation End ###########");
         }
+        */
+        #endregion For Deletion: Sales Domain Flux Location Validation - old code
+
+
 
         private static void Settings_ValidationEventHandler(object sender, ValidationEventArgs e)
         {
