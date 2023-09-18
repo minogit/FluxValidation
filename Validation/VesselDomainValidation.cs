@@ -1,23 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using ScortelApi.Models.FLUX;
 using ScortelApi.Models.FLUX.Noms;
 using System.Text.RegularExpressions;
-
-using ScortelApi;
 using System.Xml;
 using System.IO;
 using System.Xml.Linq;
-using System.Xml.XPath;
 using Newtonsoft.Json;
 using System.Xml.Serialization;
-using System.Xml.Schema;
-using ScortelApi.ISSN;
-using ScortelApi.Tools;
 
 namespace Validation
 {
