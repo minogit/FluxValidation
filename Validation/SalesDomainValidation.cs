@@ -24,7 +24,7 @@ using System.Text.RegularExpressions;
 
 namespace Validation
 {
-    class FluxSalesDomainValidation
+    class SalesDomainValidation
     {
         public void SalesDomainValidate(string strWorkPath)
         {
