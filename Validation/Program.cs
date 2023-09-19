@@ -1,5 +1,13 @@
 ﻿using System.Collections.Generic;
 using Models.Models;
+using Validation.FluxDomainsValidation.FluxACDRDomainValidation;
+using Validation.FluxDomainsValidation.FluxFADomainValidation;
+using Validation.FluxDomainsValidation.FluxFLAPDomainValidation;
+using Validation.FluxDomainsValidation.FluxISDomainValidation;
+using Validation.FluxDomainsValidation.FluxMDMDomainValidation;
+using Validation.FluxDomainsValidation.FluxSalesDomainValidation;
+using Validation.FluxDomainsValidation.FluxVesselDomainValidation;
+using Validation.FluxDomainsValidation.FluxVPDomainValidation;
 
 namespace Validation
 {
@@ -24,7 +32,6 @@ namespace Validation
                 faDomainValidation.FADomainValidate(strWorkPath: strWorkPath, SysList: SysList, mContext: mContext);
             }
 
-
             bool VesselDomainDebug = false;
             if (VesselDomainDebug)
             {
@@ -32,12 +39,46 @@ namespace Validation
                 vesselDomainValidation.VesselDomainValidate(strWorkPath: strWorkPath);
             }
 
-
             bool SalesDomainDebug = false;
             if (SalesDomainDebug)
             {
                 SalesDomainValidation salesDomainValidation = new SalesDomainValidation();
                 salesDomainValidation.SalesDomainValidate(strWorkPath: strWorkPath);
+            }
+
+            bool acdrDomainDebug = false;
+            if (acdrDomainDebug)
+            {
+                ACDRDomainValidation acdrDomainValidation = new ACDRDomainValidation();
+                acdrDomainValidation.ACDRDomainValidate(strWorkPath: strWorkPath);
+            }
+
+            bool flapDomainDebug = false;
+            if (flapDomainDebug)
+            {
+                FLAPDomainValidation flapDomainValidation = new FLAPDomainValidation();
+                flapDomainValidation.FLAPDomainValidate(strWorkPath: strWorkPath);
+            }
+
+            bool isDomainDebug = false;
+            if (isDomainDebug)
+            {
+                ISDomainValidation isDomainValidation = new ISDomainValidation();
+                isDomainValidation.ISDomainValidate(strWorkPath: strWorkPath);
+            }
+
+            bool mdmDomainDebug = false;
+            if (mdmDomainDebug)
+            {
+                MDMDomainValidation mdmDomainValidation = new MDMDomainValidation();
+                mdmDomainValidation.MDMDomainValidate(strWorkPath: strWorkPath);
+            }
+
+            bool vpDomainDebug = false;
+            if (vpDomainDebug)
+            {
+                VPDomainValidation vpDomainValidation = new VPDomainValidation();
+                vpDomainValidation.VPDomainValidate(strWorkPath: strWorkPath);
             }
 
             #region Commented XML XPATH Methods

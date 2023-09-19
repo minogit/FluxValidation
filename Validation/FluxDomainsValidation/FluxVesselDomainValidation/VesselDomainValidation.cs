@@ -7,9 +7,8 @@ using System.IO;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 using System.Xml.Serialization;
-using Validation.FluxDomainsValidation.FluxVesselDomainValidation;
 
-namespace Validation
+namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
 {
     class VesselDomainValidation
     {

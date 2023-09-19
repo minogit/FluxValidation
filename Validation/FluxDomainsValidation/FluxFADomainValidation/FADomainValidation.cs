@@ -13,7 +13,7 @@ using ScortelApi.ISSN;
 using ScortelApi.Tools;
 using Models.Models;
 
-namespace Validation
+namespace Validation.FluxDomainsValidation.FluxFADomainValidation
 {
     class FADomainValidation
     {

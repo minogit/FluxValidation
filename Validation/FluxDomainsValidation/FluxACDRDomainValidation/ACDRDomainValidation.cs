@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Validation.FluxDomainsValidation.FluxACDRDomainValidation
 {
-    class ACDRDoaminValidation
+    class ACDRDomainValidation
     {
-        public void ACDRDoaminValidate(string strWorkPath) 
+        public void ACDRDomainValidate(string strWorkPath) 
         {
 
         }
