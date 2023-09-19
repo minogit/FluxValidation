@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 using System.Xml.Serialization;
 using Validation.FluxDomainsValidation.FluxSalesDomainValidation;
 
-namespace Validation
+namespace Validation.FluxDomainsValidation.FluxSalesDomainValidation
 {
     class SalesDomainValidation
     {
