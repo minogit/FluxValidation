@@ -12,6 +12,7 @@ using System.Xml.Schema;
 using ScortelApi.ISSN;
 using ScortelApi.Tools;
 using Models.Models;
+using System.Reflection;
 
 namespace Validation.FluxDomainsValidation.FluxFADomainValidation
 {
@@ -305,7 +306,8 @@ namespace Validation.FluxDomainsValidation.FluxFADomainValidation
             //var L3List = FaBrDef.Where(x => x.Code.IndexOf("L03") > 0).ToList();
             #endregion
 
-            //TODO: zarejdaneto na pravilata da stava pri startirane na api i da se dyrvat kato struktura w pametta
+            // Path of location of sample xsd schemmes
+            //string valpath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\FluxReports\";
 
             foreach (var rule in FaBrDef)
             {
@@ -313,7 +315,7 @@ namespace Validation.FluxDomainsValidation.FluxFADomainValidation
                 {
                     case "FA-L00-00-0000":
                         #region Check XML Schemma - FAReportMessageType
-                        using (FileStream stream = File.OpenRead(@"D:\Projects\Projects\Fishery\Projects\Api\ScortelApi\Validation\bin\Debug\net5.0\FluxReports\FLUXFAReportMessage_3p1.xsd"))
+                        using (FileStream stream = File.OpenRead(@"\FluxReports\FLUXFAReportMessage_3p1.xsd"))
                         {
 
                             XmlReaderSettings settings = new XmlReaderSettings();
@@ -323,26 +325,26 @@ namespace Validation.FluxDomainsValidation.FluxFADomainValidation
                             settings.ValidationType = ValidationType.Schema;
                             settings.Schemas.Add(schema);
 
-                            FileStream stream1 = File.OpenRead(@"D:\Projects\Projects\Fishery\Projects\Api\ScortelApi\Validation\bin\Debug\net5.0\FluxReports\ReusableAggregateBusinessInformationEntity_20p0.xsd");
+                            FileStream stream1 = File.OpenRead(@"\FluxReports\ReusableAggregateBusinessInformationEntity_20p0.xsd");
                             XmlSchema schema1 = XmlSchema.Read(stream1, Settings_ValidationEventHandler);
                             settings.Schemas.Add(schema1);
 
-                            FileStream stream2 = File.OpenRead(@"D:\Projects\Projects\Fishery\Projects\Api\ScortelApi\Validation\bin\Debug\net5.0\FluxReports\UnqualifiedDataType_20p0.xsd");
+                            FileStream stream2 = File.OpenRead(@"\FluxReports\FluxReports\UnqualifiedDataType_20p0.xsd");
                             XmlSchema schema2 = XmlSchema.Read(stream2, Settings_ValidationEventHandler);
                             settings.Schemas.Add(schema2);
 
-                            FileStream stream3 = File.OpenRead(@"D:\Projects\Projects\Fishery\Projects\Api\ScortelApi\Validation\bin\Debug\net5.0\FluxReports\QualifiedDataType_20p0.xsd");
+                            FileStream stream3 = File.OpenRead(@"\FluxReports\QualifiedDataType_20p0.xsd");
                             XmlSchema schema3 = XmlSchema.Read(stream3, Settings_ValidationEventHandler);
                             settings.Schemas.Add(schema3);
 
 
-                            FileStream stream4 = File.OpenRead(@"D:\Projects\Projects\Fishery\Projects\Api\ScortelApi\Validation\bin\Debug\net5.0\FluxReports\codelist_standard_UNECE_CommunicationMeansTypeCode_D16A.xsd");
+                            FileStream stream4 = File.OpenRead(@"\FluxReports\codelist_standard_UNECE_CommunicationMeansTypeCode_D16A.xsd");
                             XmlSchema schema4 = XmlSchema.Read(stream4, Settings_ValidationEventHandler);
                             settings.Schemas.Add(schema4);
 
                             settings.ValidationEventHandler += Settings_ValidationEventHandler;
 
-                            using (XmlReader validator = XmlReader.Create(@"D:\Projects\Projects\Fishery\Projects\Api\ScortelApi\Validation\bin\Debug\net5.0\FluxReports\FAReport1.xml", settings))
+                            using (XmlReader validator = XmlReader.Create(@"\FluxReports\FAReport1.xml", settings))
                             {
                                 // Validate the entire xml file
                                 while (validator.Read()) ;
