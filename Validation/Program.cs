@@ -16,6 +16,12 @@ namespace Validation
         static void Main(string[] args)
         {
 
+            //// UUID Check is valid
+            /////^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+            //if (System.Text.RegularExpressions.Regex.Match("d0979e76-8950-42bb-9bfe-1831def8ac5a", "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$").Success)
+            //{ 
+            //}
+
             ApplicationDbContext mContext = new ApplicationDbContext();
 
             string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
