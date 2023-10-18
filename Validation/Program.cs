@@ -77,7 +77,7 @@ namespace Validation
                 bool acdrDomainDebug = false;
                 if (acdrDomainDebug)
                 {
-                    ACDRDomainValidation acdrDomainValidation = new ACDRDomainValidation();
+                    AcdrDomainValidation acdrDomainValidation = new AcdrDomainValidation();
                     acdrDomainValidation.ACDRDomainValidate(strWorkPath: strWorkPath);
                 }
 
