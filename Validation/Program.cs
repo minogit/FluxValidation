@@ -60,7 +60,7 @@ namespace Validation
                     faDomainValidation.FADomainValidate(strWorkPath: strWorkPath, SysList: SysList, mContext: mContext);
                 }
 
-                bool VesselDomainDebug = false;
+                bool VesselDomainDebug = true;
                 if (VesselDomainDebug)
                 {
                     VesselDomainValidation vesselDomainValidation = new VesselDomainValidation();
