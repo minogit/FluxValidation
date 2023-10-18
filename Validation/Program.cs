@@ -46,10 +46,10 @@ namespace Validation
                 salesDomainValidation.SalesDomainValidate(strWorkPath: strWorkPath);
             }
 
-            bool acdrDomainDebug = false;
+            bool acdrDomainDebug = true;
             if (acdrDomainDebug)
             {
-                ACDRDomainValidation acdrDomainValidation = new ACDRDomainValidation();
+                AcdrDomainValidation acdrDomainValidation = new AcdrDomainValidation();
                 acdrDomainValidation.ACDRDomainValidate(strWorkPath: strWorkPath);
             }
 

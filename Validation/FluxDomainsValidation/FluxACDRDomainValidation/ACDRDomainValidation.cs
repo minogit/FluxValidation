@@ -10,7 +10,7 @@ using ScortelApi.Models.FLUX.Noms;
 
 namespace Validation.FluxDomainsValidation.FluxACDRDomainValidation
 {
-    class ACDRDomainValidation
+    class AcdrDomainValidation
     {
         public void ACDRDomainValidate(string strWorkPath)
         {
@@ -18,7 +18,8 @@ namespace Validation.FluxDomainsValidation.FluxACDRDomainValidation
             #region ACDR Domain
 
             #region AcdrReport
-            string filePathAcdrReport = strWorkPath + @"\FluxReports\ACDRReportFishingCategoryNew.xml";
+            string filePathAcdrReport = strWorkPath + @"\FluxReports\ACDR Message4.0 - sample1 with effort - new report.xml";
+
             XmlDocument xmlDoc = new XmlDocument();
 
             if (File.Exists(filePathAcdrReport))
@@ -29,12 +30,12 @@ namespace Validation.FluxDomainsValidation.FluxACDRDomainValidation
             XDocument xdoc = XDocument.Load(filePathAcdrReport);
 
             var stringReader = new StringReader(xdoc.ToString());
-            var serializer = new XmlSerializer(typeof(FLUXACDRReportType));
-            FLUXACDRReportType AcdrReportType = serializer.Deserialize(stringReader) as FLUXACDRReportType;
-            #endregion AcdrReport
+            var serializer = new XmlSerializer(typeof(FLUXACDRMessageType));
+            FLUXACDRMessageType AcdrReport = serializer.Deserialize(stringReader) as FLUXACDRMessageType;
+            #endregion AcdrReport 
 
-            #region AcdrMessageType - Response?
-            string filePathAcdrResponse = strWorkPath + @"\FluxReports\SalesResponse.xml";
+            #region AcdrResponse
+            string filePathAcdrResponse = @"C:\Users\k.zhivkova\Downloads\ACDR V2 IG document package 2020-01-28\ACDR V2 IG document package 2020-01-28\FLUXResponseMessage_4p0 - XSD and samples\FLUX Response Message v4.0 - sample4 - report accepted.xml";
             xmlDoc = new XmlDocument();
 
             if (File.Exists(filePathAcdrResponse))
@@ -45,9 +46,9 @@ namespace Validation.FluxDomainsValidation.FluxACDRDomainValidation
             xdoc = XDocument.Load(filePathAcdrResponse);
 
             stringReader = new StringReader(xdoc.ToString());
-            serializer = new XmlSerializer(typeof(FLUXACDRMessageType));
-            FLUXACDRMessageType AcdrMessageType = serializer.Deserialize(stringReader) as FLUXACDRMessageType;
-            #endregion AcdrMessageType - Response?
+            serializer = new XmlSerializer(typeof(FLUXResponseMessageType));
+            //FLUXResponseMessageType AcdrResponse = serializer.Deserialize(stringReader) as FLUXResponseMessageType;
+            #endregion AcdrResponse
 
             #region ACDR Query and BRDEF - for deletion
             /*
@@ -172,14 +173,21 @@ namespace Validation.FluxDomainsValidation.FluxACDRDomainValidation
 
             #endregion ACDR Domain
 
-            //AcdrReportType = null;
+            //AcdrReport = null;
             //AcdrMessageType = null;
             //AcdrMessageType1 = null;
 
-            if (AcdrReportType != null)
+            #region AcdrReport
+            if (AcdrReport != null)
             {
-                Console.WriteLine("AcdrReportType: " + AcdrReportType);
+                AcdrReportValidation acdrReportValidation = new AcdrReportValidation();
+                acdrReportValidation.AcdrReportValidate(AcdrReport: AcdrReport);
             }
+            else
+            {
+                Console.WriteLine("AcdrReport == null");
+            }
+            #endregion AcdrReport
         }
     }
 }
