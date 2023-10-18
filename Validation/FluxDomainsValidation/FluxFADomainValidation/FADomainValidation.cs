@@ -13,12 +13,13 @@ using ScortelApi.ISSN;
 using ScortelApi.Tools;
 using Models.Models;
 using System.Reflection;
+using Validation.DBContext.MyConsoleApp.Models;
 
 namespace Validation.FluxDomainsValidation.FluxFADomainValidation
 {
     class FADomainValidation
     {
-        public void FADomainValidate(string strWorkPath, List<string> SysList, ApplicationDbContext mContext)
+        public void FADomainValidate(string strWorkPath, List<string> SysList, FVMS22DbContext mContext)
         {
             #region FA Domain
             #region FAReport
