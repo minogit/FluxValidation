@@ -1,12 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31613.86
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{574217D5-C2F1-405F-9625-BFFD5A176568}"
 	ProjectSection(SolutionItems) = preProject
 		AppSetsForAccessIARa.json = AppSetsForAccessIARa.json
 		Changes.txt = Changes.txt
+		FAValidation.txt = FAValidation.txt
 		ForTestLocal.json = ForTestLocal.json
 		Прочети.txt = Прочети.txt
 	EndProjectSection
@@ -15,7 +16,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation", "Validation\Va
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{B7D3340D-1407-4870-9AC0-632D5A2E5800}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForTestAndDel", "ForTestAndDel\ForTestAndDel.csproj", "{227995B5-DE2C-425F-8D89-9A3F2DCD246D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ForTestAndDel", "ForTestAndDel\ForTestAndDel.csproj", "{227995B5-DE2C-425F-8D89-9A3F2DCD246D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
