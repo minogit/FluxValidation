@@ -60,11 +60,11 @@ namespace Validation
                     faDomainValidation.FADomainValidate(strWorkPath: strWorkPath, SysList: SysList, mContext: mContext);
                 }
 
-                bool VesselDomainDebug = false;
+                bool VesselDomainDebug = true;
                 if (VesselDomainDebug)
                 {
                     VesselDomainValidation vesselDomainValidation = new VesselDomainValidation();
-                    vesselDomainValidation.VesselDomainValidate(strWorkPath: strWorkPath);
+                    vesselDomainValidation.VesselDomainValidate(strWorkPath: strWorkPath, mContext: mContext);
                 }
 
                 bool SalesDomainDebug = false;
@@ -77,7 +77,7 @@ namespace Validation
                 bool acdrDomainDebug = false;
                 if (acdrDomainDebug)
                 {
-                    ACDRDomainValidation acdrDomainValidation = new ACDRDomainValidation();
+                    AcdrDomainValidation acdrDomainValidation = new AcdrDomainValidation();
                     acdrDomainValidation.ACDRDomainValidate(strWorkPath: strWorkPath);
                 }
 

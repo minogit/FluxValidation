@@ -7,12 +7,14 @@ using System.IO;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 using System.Xml.Serialization;
+using Models.Models;
+using Validation.DBContext.MyConsoleApp.Models;
 
 namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
 {
     class VesselDomainValidation
     {
-        public void VesselDomainValidate(string strWorkPath)
+        public void VesselDomainValidate(string strWorkPath, FVMS22DbContext mContext)
         {
 
             #region Vessel Domain
@@ -148,7 +150,7 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                         if (VesselReport != null)
                         {
                             VesselReportValidation vesselReportValidation = new VesselReportValidation();
-                            vesselReportValidation.VesselReportValidate(VesselReport: VesselReport);
+                            vesselReportValidation.VesselReportValidate(VesselReport: VesselReport, mContext: mContext);
                         }
                         else
                         {
