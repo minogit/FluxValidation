@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Trimmed schema FLUXACDRMessage_4p0.xsd -->
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="urn:un:unece:uncefact:data:standard:FLUXACDRMessage:4" version="4.0" xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:18" xmlns:rsm="urn:un:unece:uncefact:data:standard:FLUXACDRMessage:4" xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:18" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import namespace="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:18" schemaLocation="UnqualifiedDataType_18p0.xsd" />
+  <xsd:import namespace="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:18" schemaLocation="ReusableAggregateBusinessInformationEntity_18p0.xsd" />
+  <xsd:element name="FLUXACDRMessage" type="rsm:FLUXACDRMessageType" />
+  <xsd:complexType name="FLUXACDRMessageType">
+    <xsd:sequence>
+      <xsd:element maxOccurs="1" minOccurs="1" name="FLUXReportDocument" type="ram:FLUXReportDocumentType" />
+      <xsd:element maxOccurs="1" minOccurs="1" name="AggregatedCatchReportDocument" type="ram:AggregatedCatchReportDocumentType" />
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="FLUXACDRReport" type="ram:FLUXACDRReportType" />
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>
