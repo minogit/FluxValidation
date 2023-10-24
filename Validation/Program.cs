@@ -36,6 +36,8 @@ namespace Validation
                 // Пример
                 //var res1 = mContext.FLUXInnerMsg.OrderByDescending(x => x.ReceivedFDT).Where(x => x.StateISS == 13).ToList();
                 // Достъп до номенклатура
+
+                /*
                 var nom1 = mContext.MDR_Member_State.FirstOrDefault(x => x.Country == "BGR");
                 if (nom1 != null)
                 {
@@ -45,6 +47,7 @@ namespace Validation
                 {
                     // няма такъв елемент в номенклатурата
                 }
+                */
 
                 string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 //This will strip just the working path name:
