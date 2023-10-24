@@ -1156,11 +1156,11 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                 //VESSEL-L01-01-0066
                                 //YoC
                                 //>= lower limit : 1850 (Parameter YEAR_LOW from the VESSEL_BR_PARAMETER code list)
-                                //#Q Refactor DadeTime check
                                 //if (vesselEvent.RelatedVesselTransportMeans.SpecifiedConstructionEvent.OccurrenceDateTime.Item >= YEAR_LOW)
                                 if (vesselEvent.RelatedVesselTransportMeans.SpecifiedConstructionEvent.OccurrenceDateTime.Item >= DateTime.Parse("Jan 1, 1850"))
                                 {
                                     Console.WriteLine("VESSEL-L01-01-0066 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedConstructionEvent.OccurrenceDateTime.Item (DateTime) >= YEAR_LOW (1850)");
+                                    
                                     yocUtcDateTimeValue = vesselEvent.RelatedVesselTransportMeans.SpecifiedConstructionEvent.OccurrenceDateTime.Item;
                                 }
                                 else
@@ -1270,13 +1270,13 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                                 //VESSEL-L01-01-0052 [MISSING], VESSEL-L01-02-0040
                                                 //Main Power
                                                 //>= lower limit : 0 &<= upper limit : 20000 (Parameters PWR_LOW and PWR_UP from the VESSEL_BR_PARAMETER code list)
-                                                //#Q Refactor range validation
                                                 //if (attachedVesselEngineMainPowerMeasure.Value >= PWR_LOW && attachedVesselEngineMainPowerMeasure.Value <= PWR_UP) 
                                                 if (attachedVesselEngineMainPowerMeasure.Value >= 0 && attachedVesselEngineMainPowerMeasure.Value <= 20000)
                                                 {
-                                                    valueMainPower = attachedVesselEngineMainPowerMeasure.Value;
                                                     Console.WriteLine("VESSEL-L01-01-0052 | OK | VesselEvent.RelatedVesselTransportMeans.AttachedVesselEngine.PowerMeasure.Value in range");
                                                     Console.WriteLine("VESSEL-L01-02-0040 | OK | VesselEvent.RelatedVesselTransportMeans.AttachedVesselEngine.PowerMeasure.Value in range");
+
+                                                    valueMainPower = attachedVesselEngineMainPowerMeasure.Value;
                                                 }
                                                 else
                                                 {
@@ -1330,6 +1330,7 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                                 //VESSEL-L01-01-0056
                                                 //Auxiliary Power
                                                 //>= lower limit : 0 & <= upper limit : 20000 (Parameters PWR_LOW and PWR_UP from the VESSEL_BR_PARAMETER code list)
+                                                //if (attachedVesselEngineAuxPowerMeasure.Value >= PWR_LOW && attachedVesselEngineAuxPowerMeasure.Value <= PWR_UP)
                                                 if (attachedVesselEngineAuxPowerMeasure.Value >= 0 && attachedVesselEngineAuxPowerMeasure.Value <= 20000)
                                                 {
                                                     Console.WriteLine("VESSEL-L01-01-0056 | OK | VesselEvent.RelatedVesselTransportMeans.AttachedVesselEngine.PowerMeasure.Value in range");
@@ -1596,15 +1597,24 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                                 Console.WriteLine("VESSEL-L01-01-0035 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXX.YY");
                                                 Console.WriteLine("VESSEL-L01-02-0014 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXX.YY");
 
-                                                //#Q IF FORMAT OK:
-                                                Console.WriteLine("VESSEL-L01-01-0036 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
-                                                Console.WriteLine("VESSEL-L01-02-0015 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
                                                 //VESSEL-L01-01-0036 [MISSING], VESSEL-L01-02-0015
                                                 //LOA
                                                 //>= lower limit : 1 & <= upper limit : 200 (Parameters LEN_LOW and LEN_UP from the VESSEL_BR_PARAMETER code list
-                                                //#Q Check value in range
+                                                //if (attachedVesselEngineAuxPowerMeasure.Value >= LEN_LOW && attachedVesselEngineAuxPowerMeasure.Value <= LEN_UP)
+                                                if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= 1 && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= 200)
+                                                {
+                                                    Console.WriteLine("VESSEL-L01-01-0036 | OK | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
+                                                    Console.WriteLine("VESSEL-L01-02-0015 | OK | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
 
-                                                valueLOA = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+                                                    valueLOA = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("VESSEL-L01-01-0036 | MISSING | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                    Console.WriteLine("VESSEL-L01-02-0015 | REJECTED | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                    //VESSEL-L01-01-0036 - missing
+                                                    //VESSEL-L01-02-0015 - rejected
+                                                }
                                             }
                                             else
                                             {
@@ -1641,16 +1651,24 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                                 Console.WriteLine("VESSEL-L01-01-0038 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXX.YY");
                                                 Console.WriteLine("VESSEL-L01-02-0018 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXX.YY");
 
-                                                //#Q IF FORMAT OK:
-                                                Console.WriteLine("VESSEL-L01-01-0039 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
-                                                Console.WriteLine("VESSEL-L01-02-0019 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
-
                                                 //VESSEL-L01-01-0039 [ERROR], VESSEL-L01-02-0019
                                                 //LBP
                                                 //>= lower limit : 1 & <= upper limit : 200 (Parameters LEN_LOW and LEN_UP from the VESSEL_BR_PARAMETER code list)
-                                                //#Q Check value in range
+                                                //if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= LEN_LOW && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= LEN_UP)
+                                                if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= 1 && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= 200)
+                                                {
+                                                    Console.WriteLine("VESSEL-L01-01-0039 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
+                                                    Console.WriteLine("VESSEL-L01-02-0019 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
 
-                                                valueLBP = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+                                                    valueLBP = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("VESSEL-L01-01-0039 | ERROR | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                    Console.WriteLine("VESSEL-L01-02-0019 | REJECTED | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                    //VESSEL-L01-01-0039 - error
+                                                    //VESSEL-L01-02-0019 - rejected
+                                                }
                                             }
                                             else
                                             {
@@ -1686,15 +1704,24 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                                 Console.WriteLine("VESSEL-L01-01-0041 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXXX.YY");
                                                 Console.WriteLine("VESSEL-L01-02-0025 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXXX.YY");
 
-                                                //#Q IF FORMAT OK:
-                                                Console.WriteLine("VESSEL-L01-01-0042 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
-                                                Console.WriteLine("VESSEL-L01-02-0026 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
                                                 //VESSEL-L01-01-0042 [MISSING], VESSEL-L01-02-0026
                                                 //GT Tonnage
                                                 //>= lower limit : 0 & <= upper limit : 20000 (Parameters TON_LOW and TON_UP from the VESSEL_BR_PARAMETER code list)
-                                                //#Q Check value in range
+                                                //if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= TON_LOW && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= TON_UP)
+                                                if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= 0 && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= 20000)
+                                                {
+                                                    Console.WriteLine("VESSEL-L01-01-0042 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
+                                                    Console.WriteLine("VESSEL-L01-02-0026 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
 
-                                                valueGT = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+                                                    valueGT = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("VESSEL-L01-01-0042 | MISSING | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                    Console.WriteLine("VESSEL-L01-02-0026 | REJECTED | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                    //VESSEL-L01-01-0042 - missing
+                                                    //VESSEL-L01-02-0026 - rejected
+                                                }
                                             }
                                             else
                                             {
@@ -1732,15 +1759,24 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                                 Console.WriteLine("VESSEL-L01-01-0044 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXXX.YY");
                                                 Console.WriteLine("VESSEL-L01-02-0028 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXXX.YY");
 
-                                                //#Q IF FORMAT OK:
-                                                Console.WriteLine("VESSEL-L01-01-0045 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
-                                                Console.WriteLine("VESSEL-L01-02-0029 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
                                                 //VESSEL-L01-01-0045 [ERROR], VESSEL-L01-02-0029
                                                 //Other Tonnage
                                                 //>= lower limit : 0 & <= upper limit : 20000 (Parameters TON_LOW and TON_UP from the VESSEL_BR_PARAMETER code list)
-                                                //#Q Check value in range
+                                                //if (attachedVesselEngineAuxPowerMeasure.Value >= TON_LOW && attachedVesselEngineAuxPowerMeasure.Value <= TON_UP)
+                                                if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= 0 && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= 20000)
+                                                {
+                                                    Console.WriteLine("VESSEL-L01-01-0045 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
+                                                    Console.WriteLine("VESSEL-L01-02-0029 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
 
-                                                valueTOTH = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+                                                    valueTOTH = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("VESSEL-L01-01-0045 | ERROR | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                    Console.WriteLine("VESSEL-L01-02-0029 | REJECTED | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                    //VESSEL-L01-01-0045 - error
+                                                    //VESSEL-L01-02-0029 - rejected
+                                                }
                                             }
                                             else
                                             {
@@ -1780,9 +1816,18 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                                 //VESSEL-L01-01-0048 [ERROR]
                                                 //GTs
                                                 //>= lower limit : 0 & <= upper limit : 20000 (Parameters TON_LOW and TON_UP from the VESSEL_BR_PARAMETER code list)
-                                                //#Q Check value in range
+                                                //if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= TON_LOW && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= TON_UP)
+                                                if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= 0 && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= 20000)
+                                                {
+                                                    Console.WriteLine("VESSEL-L01-01-0048 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
 
-                                                valueGTS = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+                                                    valueGTS = relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value;
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("VESSEL-L01-01-0048 | ERROR | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                    //VESSEL-L01-01-0048 - error
+                                                }
                                             }
                                             else
                                             {
@@ -1814,12 +1859,19 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                                 {
                                                     Console.WriteLine("VESSEL-L01-00-0691 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXX.YY");
 
-                                                    //#Q IF FORMAT OK:
-                                                    Console.WriteLine("VESSEL-L01-00-0692 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
                                                     //VESSEL-L01-00-0692
                                                     //LRE
                                                     //>= lower limit : 1 & <= upper limit : 200 (Parameters LEN_LOW and LEN_UP from the VESSEL_BR_PARAMETER code list)
-                                                    //#Q Check value in range
+                                                    //if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= LEN_LOW && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= LEN_UP)
+                                                    if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= 1 && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= 200)
+                                                    {
+                                                        Console.WriteLine("VESSEL-L01-00-0692 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("VESSEL-L01-00-0692 | REJECTED | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                        //VESSEL-L01-00-0692 - rejected
+                                                    }
                                                 }
                                                 else
                                                 {
@@ -1857,12 +1909,19 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                                 {
                                                     Console.WriteLine("VESSEL-L01-00-0694 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXX.YY");
 
-                                                    //#Q IF FORMAT OK:
-                                                    Console.WriteLine("VESSEL-L01-00-0695 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
                                                     //VESSEL-L01-00-0695
                                                     //Other length
                                                     //>= lower limit : 1 & <= upper limit : 200 (Parameters LEN_LOW and LEN_UP from the VESSEL_BR_PARAMETER code list)
-                                                    //#Q Check value in range
+                                                    //if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= LEN_LOW && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= LEN_UP)
+                                                    if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= 1 && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= 200)
+                                                    {
+                                                        Console.WriteLine("VESSEL-L01-00-0695 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("VESSEL-L01-00-0695 | REJECTED | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                        //VESSEL-L01-00-0695 - rejected
+                                                    }
                                                 }
                                                 else
                                                 {
@@ -1900,12 +1959,19 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                                 {
                                                     Console.WriteLine("VESSEL-L01-00-0697 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXXX.YY");
 
-                                                    //#Q IF FORMAT OK:
-                                                    Console.WriteLine("VESSEL-L01-00-0698 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
                                                     //VESSEL-L01-00-0698
                                                     //NT
                                                     //>= lower limit : 0 & <= upper limit : 20000 (Parameters TON_LOW and TON_UP from the VESSEL_BR_PARAMETER code list)
-                                                    //#Q Check value in range
+                                                    //if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= TON_LOW && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= TON_UP)
+                                                    if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= 0 && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= 20000)
+                                                    {
+                                                        Console.WriteLine("VESSEL-L01-00-0698 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("VESSEL-L01-00-0698 | REJECTED | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                        //VESSEL-L01-00-0698 - rejected
+                                                    }
                                                 }
                                                 else
                                                 {
@@ -1943,12 +2009,19 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                                 {
                                                     Console.WriteLine("VESSEL-L01-00-0700 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXXX.YY");
 
-                                                    //#Q IF FORMAT OK:
-                                                    Console.WriteLine("VESSEL-L01-00-0701 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
                                                     //VESSEL-L01-00-0701
                                                     //NRT
                                                     //>= lower limit : 0 & <= upper limit : 20000 (Parameters TON_LOW and TON_UP from the VESSEL_BR_PARAMETER code list)
-                                                    //#Q Check value in range
+                                                    //if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= TON_LOW && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= TON_UP)
+                                                    if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= 0 && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= 20000)
+                                                    {
+                                                        Console.WriteLine("VESSEL-L01-00-0701 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("VESSEL-L01-00-0701 | REJECTED | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                        //VESSEL-L01-00-0701 - rejected
+                                                    }
                                                 }
                                                 else
                                                 {
@@ -1986,12 +2059,19 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                                 {
                                                     Console.WriteLine("VESSEL-L01-00-0703 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value provided with valid format XXXXX.YY");
 
-                                                    //#Q IF FORMAT OK:
-                                                    Console.WriteLine("VESSEL-L01-00-0704 | TODO | Check VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
                                                     //VESSEL-L01-00-0704
                                                     //CART
                                                     //>= lower limit : 0 & <= upper limit : 20000 (Parameters TON_LOW and TON_UP from the VESSEL_BR_PARAMETER code list)
-                                                    //#Q Check value in range
+                                                    //if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= TON_LOW && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= TON_UP)
+                                                    if (relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value >= 0 && relatedVesselTransportMeansSpecifiedVesselDimension.ValueMeasure.Value <= 20000)
+                                                    {
+                                                        Console.WriteLine("VESSEL-L01-00-0704 | OK | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value in range");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("VESSEL-L01-00-0704 | REJECTED | VesselEvent.RelatedVesselTransportMeans.SpecifiedVesselDimension.ValueMeasure.Value out of range");
+                                                        //VESSEL-L01-00-0704 - rejected
+                                                    }
                                                 }
                                                 else
                                                 {
@@ -3759,11 +3839,11 @@ namespace Validation.FluxDomainsValidation.FluxVesselDomainValidation
                                             //VESSEL-L01-01-0059
                                             //EiS Year
                                             //>= lower limit : 1850 (Parameter YEAR_LOW from the VESSEL_BR_PARAMETER code list)
-                                            //#Q Refactor DateTime check
                                             //if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime?.Item >= YEAR_LOW)
                                             if (relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime?.Item >= DateTime.Parse("Jan 1, 1850"))
                                             {
                                                 Console.WriteLine("VESSEL-L01-01-0059 | OK | VesselEvent.RelatedVesselTransportMeans.ApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item EIS provided and >= YEAR_LOW (1850)");
+                                                
                                                 eisUtcDateTimeValue = relatedVesselTransportMeansApplicableVesselAdministrativeCharacteristic.ValueDateTime.Item;
                                             }
                                             else
